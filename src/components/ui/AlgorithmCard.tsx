@@ -12,28 +12,25 @@ interface AlgorithmCardProps {
 
 const colorMap = {
   primary: {
-    border: "border-primary/12 hover:border-primary/24",
-    glow: "from-primary/10 via-primary/4 to-transparent",
+    border: "border-outline-variant/60 hover:border-primary/40",
     formulaBg: "bg-primary/8",
-    formulaBorder: "border-primary/16",
+    formulaBorder: "border-primary/20",
     formulaText: "text-primary/80",
     linkText: "text-primary",
     dot: "bg-primary",
   },
   secondary: {
-    border: "border-secondary/12 hover:border-secondary/24",
-    glow: "from-secondary/10 via-secondary/4 to-transparent",
+    border: "border-outline-variant/60 hover:border-secondary/40",
     formulaBg: "bg-secondary/8",
-    formulaBorder: "border-secondary/16",
+    formulaBorder: "border-secondary/20",
     formulaText: "text-secondary/80",
     linkText: "text-secondary",
     dot: "bg-secondary",
   },
   tertiary: {
-    border: "border-tertiary/12 hover:border-tertiary/24",
-    glow: "from-tertiary/10 via-tertiary/4 to-transparent",
+    border: "border-outline-variant/60 hover:border-tertiary/40",
     formulaBg: "bg-tertiary/8",
-    formulaBorder: "border-tertiary/16",
+    formulaBorder: "border-tertiary/20",
     formulaText: "text-tertiary/80",
     linkText: "text-tertiary",
     dot: "bg-tertiary",
@@ -53,36 +50,29 @@ export default function AlgorithmCard({
     <Link
       href={`/algorithms/${slug}`}
       className={clsx(
-        "group relative flex h-full min-h-[260px] flex-col overflow-hidden rounded-2xl border bg-surface-container-high/55 p-6 shadow-[0_14px_32px_rgba(0,0,0,0.16)] backdrop-blur transition-all duration-200",
-        "hover:-translate-y-0.5 hover:bg-surface-container-high/75 hover:shadow-[0_18px_38px_rgba(0,0,0,0.2)]",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-0",
+        "group relative flex h-full min-h-[260px] flex-col overflow-hidden rounded-xl border bg-surface-container-high p-6 transition-colors",
+        "hover:bg-surface-container-highest",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         colors.border,
       )}
     >
-      <div
-        className={clsx(
-          "pointer-events-none absolute inset-0 bg-linear-to-br opacity-0 transition-opacity duration-200 group-hover:opacity-100",
-          colors.glow,
-        )}
-      />
-
-      <div className="relative z-10 flex h-full flex-col">
+      <div className="flex h-full flex-col">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <span
               className={clsx(
-                "h-2.5 w-2.5 shrink-0 rounded-full shadow-[0_0_14px_rgba(255,255,255,0.18)]",
+                "h-2 w-2 shrink-0 rounded-full",
                 colors.dot,
               )}
             />
-            <p className="text-[10px] font-mono uppercase tracking-[0.22em] text-slate-500">
+            <p className="text-xs font-medium uppercase tracking-wider text-on-surface-variant">
               Algorithm
             </p>
           </div>
 
           <div
             className={clsx(
-              "max-w-[68%] truncate rounded-full border px-3 py-1 text-[11px] font-mono tracking-[0.08em]",
+              "max-w-[68%] truncate rounded-full border px-3 py-1 text-[11px] font-mono tracking-wide",
               colors.formulaBg,
               colors.formulaBorder,
               colors.formulaText,
@@ -94,7 +84,7 @@ export default function AlgorithmCard({
         </div>
 
         <div className="min-h-0 flex-1">
-          <h3 className="mb-3 text-balance font-headline text-2xl font-semibold tracking-tight text-slate-50">
+          <h3 className="mb-3 text-balance font-headline text-2xl font-semibold tracking-tight text-on-surface">
             {title}
           </h3>
 
@@ -103,20 +93,20 @@ export default function AlgorithmCard({
           </p>
         </div>
 
-        <div className="mt-6 border-t border-white/8 pt-4">
+        <div className="mt-6 border-t border-outline-variant/50 pt-4">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
+              <p className="text-xs font-medium uppercase tracking-wider text-on-surface-variant">
                 Open lesson
               </p>
-              <p className="mt-1 truncate text-sm text-slate-400">
+              <p className="mt-1 truncate text-sm text-on-surface-variant">
                 Intuition, logic, code, strengths
               </p>
             </div>
 
             <span
               className={clsx(
-                "shrink-0 text-sm font-semibold transition-transform duration-200 group-hover:translate-x-0.5",
+                "shrink-0 text-sm font-semibold",
                 colors.linkText,
               )}
             >

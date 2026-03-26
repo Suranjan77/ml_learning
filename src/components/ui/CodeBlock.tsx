@@ -116,22 +116,14 @@ export default function CodeBlock({
         : "Copy";
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-950 shadow-[0_18px_50px_rgba(0,0,0,0.28)]">
-      <div className="flex flex-col gap-3 border-b border-white/8 bg-slate-900/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="flex items-center gap-1.5">
-            <div className="h-3 w-3 rounded-full bg-error/50" />
-            <div className="h-3 w-3 rounded-full bg-tertiary/50" />
-            <div className="h-3 w-3 rounded-full bg-primary/50" />
+    <div className="overflow-hidden rounded-xl border border-outline-variant/50 bg-surface-container-lowest">
+      <div className="flex flex-col gap-3 border-b border-outline-variant/50 bg-surface-container-low px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="min-w-0">
+          <div className="truncate text-xs font-mono text-on-surface-variant">
+            {displayFileName}
           </div>
-
-          <div className="min-w-0">
-            <div className="truncate text-xs font-mono text-slate-400">
-              {displayFileName}
-            </div>
-            <div className="mt-0.5 text-[10px] font-mono uppercase tracking-[0.22em] text-slate-500">
-              {detectedLanguage}
-            </div>
+          <div className="mt-0.5 text-[10px] font-mono uppercase tracking-wider text-outline">
+            {detectedLanguage}
           </div>
         </div>
 
@@ -141,26 +133,20 @@ export default function CodeBlock({
           aria-live="polite"
           className={`inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
             copyState === "copied"
-              ? "bg-primary text-slate-950"
+              ? "bg-primary text-on-primary"
               : copyState === "error"
-                ? "bg-error/20 text-error"
-                : "bg-slate-800 text-slate-200 hover:bg-slate-700"
+                ? "bg-error/15 text-error"
+                : "bg-surface-container-high text-on-surface hover:bg-surface-container-highest"
           }`}
         >
           {buttonLabel}
         </button>
       </div>
 
-      <div className="relative">
-        <div className="pointer-events-none absolute inset-0 opacity-20">
-          <div className="h-full w-full bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:100%_2.1rem]" />
-        </div>
-
-        <div className="overflow-x-auto px-4 py-5 sm:px-6 sm:py-6">
-          <pre className="font-mono text-[13px] leading-8 text-slate-200 sm:text-sm">
-            <code>{code}</code>
-          </pre>
-        </div>
+      <div className="overflow-x-auto px-4 py-5 sm:px-6 sm:py-6">
+        <pre className="font-mono text-[13px] leading-8 text-on-surface sm:text-sm">
+          <code>{code}</code>
+        </pre>
       </div>
     </div>
   );

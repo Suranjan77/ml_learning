@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import "katex/dist/katex.min.css";
 
 import { algorithms } from "@/data/algorithms";
 import { algorithmSupplemental } from "@/data/algorithmSupplemental";
@@ -96,23 +95,18 @@ export default async function AlgorithmPage({ params }: PageProps) {
   const supportSections = getSupportSections(algorithm.id);
 
   return (
-    <div className="relative overflow-hidden px-6 py-10 sm:px-8 lg:px-12">
-      <div
-        className={`neural-glow absolute left-12 top-16 h-72 w-72 ${accent.glow}`}
-      />
-      <div className="neural-glow absolute bottom-10 right-4 h-80 w-80 bg-white/4" />
-
+    <div className="relative px-6 py-10 sm:px-8 lg:px-12">
       <section className="relative z-10 mx-auto max-w-6xl">
         <div className="mb-6 flex flex-wrap items-center gap-3">
           <Link
             href={categoryRoute}
-            className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium uppercase tracking-[0.18em] text-slate-300 transition hover:bg-white/10 hover:text-slate-100"
+            className="inline-flex items-center rounded-full bg-surface-container-high px-3 py-1.5 text-xs font-medium text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface"
           >
             ← Back to {categoryLabel}
           </Link>
 
           <div
-            className={`inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-bold uppercase tracking-[0.2em] ${accent.badge}`}
+            className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wider ${accent.badge}`}
           >
             {categoryLabel}
           </div>
@@ -128,21 +122,21 @@ export default async function AlgorithmPage({ params }: PageProps) {
             </p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-            <div className="rounded-2xl border border-white/10 bg-surface-container-high/70 p-5 shadow-[0_10px_40px_rgba(0,0,0,0.18)] backdrop-blur">
-              <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-slate-500">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+            <div className="rounded-xl bg-surface-container-high p-5">
+              <div className="text-xs font-medium uppercase tracking-wider text-on-surface-variant">
                 Best use
               </div>
-              <p className="mt-3 text-sm leading-7 text-slate-200">
+              <p className="mt-3 text-sm leading-7 text-on-surface">
                 {summary.bestUse}
               </p>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-surface-container-high/70 p-5 shadow-[0_10px_40px_rgba(0,0,0,0.18)] backdrop-blur">
-              <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-slate-500">
+            <div className="rounded-xl bg-surface-container-high p-5">
+              <div className="text-xs font-medium uppercase tracking-wider text-on-surface-variant">
                 Watch out for
               </div>
-              <p className="mt-3 text-sm leading-7 text-slate-200">
+              <p className="mt-3 text-sm leading-7 text-on-surface">
                 {summary.watchOut}
               </p>
             </div>
@@ -150,12 +144,12 @@ export default async function AlgorithmPage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="relative z-10 mx-auto mt-10 grid max-w-6xl grid-cols-1 gap-8 xl:grid-cols-12">
+      <section className="relative z-10 mx-auto mt-10 grid max-w-6xl grid-cols-1 gap-6 xl:grid-cols-12">
         <div className="xl:col-span-7">
-          <div className="glass-card overflow-hidden rounded-3xl border border-white/10">
-            <div className="border-b border-white/10 px-6 py-5 sm:px-8">
+          <div className="overflow-hidden rounded-xl border border-outline-variant/50 bg-surface-container-high">
+            <div className="border-b border-outline-variant/50 px-6 py-5 sm:px-8">
               <div className="mb-2 flex items-center gap-3 text-tertiary">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-tertiary/15 text-lg">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-tertiary/12 text-lg">
                   💡
                 </div>
                 <h2 className="font-headline text-2xl font-semibold text-on-surface">
@@ -176,10 +170,10 @@ export default async function AlgorithmPage({ params }: PageProps) {
         </div>
 
         <div className="xl:col-span-5">
-          <div className="overflow-hidden rounded-3xl border border-white/10 bg-surface-container-high shadow-[0_10px_40px_rgba(0,0,0,0.18)]">
-            <div className="border-b border-white/10 px-6 py-5 sm:px-8">
+          <div className="overflow-hidden rounded-xl border border-outline-variant/50 bg-surface-container-high">
+            <div className="border-b border-outline-variant/50 px-6 py-5 sm:px-8">
               <div className="mb-2 flex items-center gap-3 text-primary">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 text-lg">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/12 text-lg">
                   ∑
                 </div>
                 <h2 className="font-headline text-2xl font-semibold text-on-surface">
@@ -199,13 +193,13 @@ export default async function AlgorithmPage({ params }: PageProps) {
         </div>
 
         <div className="xl:col-span-12">
-          <div className="overflow-hidden rounded-3xl border border-white/10 bg-slate-950/70 shadow-[0_12px_50px_rgba(0,0,0,0.22)]">
-            <div className="flex flex-col gap-3 border-b border-white/10 px-6 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+          <div className="overflow-hidden rounded-xl border border-outline-variant/50 bg-surface-container-lowest">
+            <div className="flex flex-col gap-3 border-b border-outline-variant/50 bg-surface-container-low px-6 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-8">
               <div>
-                <p className="text-[10px] font-mono uppercase tracking-[0.22em] text-slate-500">
+                <p className="text-xs font-medium uppercase tracking-wider text-on-surface-variant">
                   Code Example
                 </p>
-                <p className="mt-1 text-sm text-slate-300">{codeLabel}</p>
+                <p className="mt-1 text-sm text-on-surface-variant">{codeLabel}</p>
               </div>
             </div>
 
@@ -216,10 +210,10 @@ export default async function AlgorithmPage({ params }: PageProps) {
         </div>
 
         <div className="xl:col-span-6">
-          <div className="group overflow-hidden rounded-3xl border border-primary/10 bg-gradient-to-br from-primary/12 to-surface-container shadow-[0_10px_40px_rgba(0,0,0,0.18)] transition-transform duration-300 hover:-translate-y-0.5">
+          <div className="overflow-hidden rounded-xl border border-outline-variant/50 bg-surface-container-high">
             <div className="px-6 py-6 sm:px-8">
               <div className="mb-6 flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/20 text-xl text-primary">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/12 text-lg text-primary">
                   ✓
                 </div>
                 <h2 className="font-headline text-2xl font-bold text-on-surface">
@@ -230,7 +224,7 @@ export default async function AlgorithmPage({ params }: PageProps) {
               <ul className="space-y-4">
                 {algorithm.pros.map((pro, index) => (
                   <li key={index} className="flex items-start gap-4">
-                    <span className="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">
+                    <span className="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/12 text-xs font-bold text-primary">
                       →
                     </span>
                     <span className="leading-7 text-on-surface-variant">
@@ -244,10 +238,10 @@ export default async function AlgorithmPage({ params }: PageProps) {
         </div>
 
         <div className="xl:col-span-6">
-          <div className="group overflow-hidden rounded-3xl border border-error/10 bg-gradient-to-br from-error/8 to-surface-container shadow-[0_10px_40px_rgba(0,0,0,0.18)] transition-transform duration-300 hover:-translate-y-0.5">
+          <div className="overflow-hidden rounded-xl border border-outline-variant/50 bg-surface-container-high">
             <div className="px-6 py-6 sm:px-8">
               <div className="mb-6 flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-error/20 text-xl text-error">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-error/12 text-lg text-error">
                   !
                 </div>
                 <h2 className="font-headline text-2xl font-bold text-on-surface">
@@ -258,7 +252,7 @@ export default async function AlgorithmPage({ params }: PageProps) {
               <ul className="space-y-4">
                 {algorithm.cons.map((con, index) => (
                   <li key={index} className="flex items-start gap-4">
-                    <span className="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-error/15 text-xs font-bold text-error">
+                    <span className="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-error/12 text-xs font-bold text-error">
                       ×
                     </span>
                     <span className="leading-7 text-on-surface-variant">
@@ -272,10 +266,10 @@ export default async function AlgorithmPage({ params }: PageProps) {
         </div>
 
         <div className="xl:col-span-6">
-          <div className="overflow-hidden rounded-3xl border border-white/10 bg-surface-container-high shadow-[0_10px_40px_rgba(0,0,0,0.18)]">
-            <div className="border-b border-white/10 px-6 py-5 sm:px-8">
+          <div className="overflow-hidden rounded-xl border border-outline-variant/50 bg-surface-container-high">
+            <div className="border-b border-outline-variant/50 px-6 py-5 sm:px-8">
               <div className="mb-2 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-lg text-slate-200">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-container-highest text-lg text-on-surface">
                   A
                 </div>
                 <h2 className="font-headline text-2xl font-semibold text-on-surface">
@@ -292,7 +286,7 @@ export default async function AlgorithmPage({ params }: PageProps) {
               <ul className="space-y-4">
                 {supportSections.assumptions.map((assumption, index) => (
                   <li key={index} className="flex items-start gap-4">
-                    <span className="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-slate-200">
+                    <span className="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-surface-container-highest text-xs font-bold text-on-surface">
                       •
                     </span>
                     <span className="leading-7 text-on-surface-variant">
@@ -306,10 +300,10 @@ export default async function AlgorithmPage({ params }: PageProps) {
         </div>
 
         <div className="xl:col-span-6">
-          <div className="overflow-hidden rounded-3xl border border-white/10 bg-surface-container-high shadow-[0_10px_40px_rgba(0,0,0,0.18)]">
-            <div className="border-b border-white/10 px-6 py-5 sm:px-8">
+          <div className="overflow-hidden rounded-xl border border-outline-variant/50 bg-surface-container-high">
+            <div className="border-b border-outline-variant/50 px-6 py-5 sm:px-8">
               <div className="mb-2 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-lg text-slate-200">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-container-highest text-lg text-on-surface">
                   R
                 </div>
                 <h2 className="font-headline text-2xl font-semibold text-on-surface">
@@ -323,11 +317,11 @@ export default async function AlgorithmPage({ params }: PageProps) {
             </div>
 
             <div className="px-6 py-6 sm:px-8">
-              <ul className="space-y-5">
+              <ul className="space-y-4">
                 {supportSections.references.map((reference, index) => (
                   <li
                     key={index}
-                    className="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-4"
+                    className="rounded-xl bg-surface-container p-4"
                   >
                     <p className="font-semibold leading-7 text-on-surface">
                       {reference.title}
@@ -341,7 +335,7 @@ export default async function AlgorithmPage({ params }: PageProps) {
                         href={reference.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="mt-3 inline-flex text-sm font-medium text-primary transition-colors hover:text-tertiary"
+                        className="mt-3 inline-flex text-sm font-medium text-primary transition-colors hover:text-primary/80"
                       >
                         Open reference →
                       </a>
@@ -354,7 +348,7 @@ export default async function AlgorithmPage({ params }: PageProps) {
         </div>
       </section>
 
-      <footer className="relative z-10 mx-auto mt-16 flex max-w-6xl flex-col gap-4 border-t border-white/10 pt-8 text-sm text-on-surface-variant sm:flex-row sm:items-center sm:justify-between">
+      <footer className="relative z-10 mx-auto mt-16 flex max-w-6xl flex-col gap-4 border-t border-outline-variant/50 pt-8 text-sm text-on-surface-variant sm:flex-row sm:items-center sm:justify-between">
         <p>© 2026 The Digital Observatory</p>
         <div className="flex flex-wrap gap-4 sm:gap-6">
           <Link
@@ -364,7 +358,7 @@ export default async function AlgorithmPage({ params }: PageProps) {
             Back to {categoryLabel}
           </Link>
           <Link
-            href="/#neural-playground"
+            href="/playground"
             className="transition-colors hover:text-primary"
           >
             Open Playground

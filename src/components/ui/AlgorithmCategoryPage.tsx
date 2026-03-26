@@ -13,7 +13,6 @@ const categoryColors: Record<
   AlgorithmCategory,
   {
     accent: "primary" | "secondary" | "tertiary";
-    glow: string;
     badge: string;
     badgeText: string;
     statLabel: string;
@@ -21,22 +20,19 @@ const categoryColors: Record<
 > = {
   Supervised: {
     accent: "primary",
-    glow: "bg-primary/8",
-    badge: "bg-primary/10 border-primary/20",
+    badge: "bg-primary/12",
     badgeText: "text-primary",
     statLabel: "Labeled data",
   },
   Unsupervised: {
     accent: "secondary",
-    glow: "bg-secondary/8",
-    badge: "bg-secondary/10 border-secondary/20",
+    badge: "bg-secondary/12",
     badgeText: "text-secondary",
     statLabel: "Hidden structure",
   },
   "Deep Learning": {
     accent: "tertiary",
-    glow: "bg-tertiary/8",
-    badge: "bg-tertiary/10 border-tertiary/20",
+    badge: "bg-tertiary/12",
     badgeText: "text-tertiary",
     statLabel: "Representation learning",
   },
@@ -104,18 +100,15 @@ export default function AlgorithmCategoryPage({
   const stats = getCategoryStats(category, algorithms.length);
 
   return (
-    <div className="relative min-h-screen overflow-hidden px-6 py-10 sm:px-8 lg:px-12">
-      <div className={`neural-glow absolute left-12 top-16 h-72 w-72 ${theme.glow}`}></div>
-      <div className="neural-glow absolute bottom-12 right-8 h-64 w-64 bg-white/3"></div>
-
+    <div className="relative min-h-screen px-6 py-10 sm:px-8 lg:px-12">
       <section className="relative z-10 mx-auto mb-12 max-w-6xl">
         <div className="mb-6 flex flex-wrap items-center gap-3">
           <div
-            className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] ${theme.badge} ${theme.badgeText}`}
+            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${theme.badge} ${theme.badgeText}`}
           >
             {eyebrow}
           </div>
-          <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
+          <div className="inline-flex items-center rounded-full bg-surface-container-high px-3 py-1 text-xs font-medium text-on-surface-variant">
             {theme.statLabel}
           </div>
         </div>
@@ -134,12 +127,12 @@ export default function AlgorithmCategoryPage({
             {stats.map((stat) => (
               <div
                 key={stat.label}
-                className="rounded-2xl border border-white/10 bg-surface-container-high/70 p-4 shadow-[0_10px_40px_rgba(0,0,0,0.18)] backdrop-blur"
+                className="rounded-xl bg-surface-container-high p-4"
               >
-                <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
+                <div className="text-xs font-medium uppercase tracking-wider text-on-surface-variant">
                   {stat.label}
                 </div>
-                <div className="mt-2 text-sm font-semibold leading-6 text-slate-100">
+                <div className="mt-2 text-sm font-semibold leading-6 text-on-surface">
                   {stat.value}
                 </div>
               </div>
@@ -151,16 +144,16 @@ export default function AlgorithmCategoryPage({
       <section className="relative z-10 mx-auto max-w-6xl">
         <div className="mb-6 flex items-center justify-between gap-4">
           <div>
-            <h2 className="font-headline text-2xl font-semibold text-slate-50 sm:text-3xl">
+            <h2 className="font-headline text-2xl font-semibold text-on-surface sm:text-3xl">
               Algorithms in this track
             </h2>
-            <p className="mt-2 text-sm leading-6 text-slate-400 sm:text-base">
+            <p className="mt-2 text-sm leading-6 text-on-surface-variant sm:text-base">
               Start with the concepts you need most, then drill into intuition,
               math, code, strengths, and limitations for each algorithm.
             </p>
           </div>
 
-          <div className="hidden rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-300 md:inline-flex">
+          <div className="hidden rounded-full bg-surface-container-high px-4 py-2 text-sm font-medium text-on-surface-variant md:inline-flex">
             {algorithms.length} topics
           </div>
         </div>

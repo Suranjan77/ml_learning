@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Label = 0 | 1;
 type Preset = "linear" | "xor" | "rings" | "custom";
@@ -587,7 +587,7 @@ export default function AlgorithmSimulator() {
       context.fillStyle = PLOT_BG;
       context.fillRect(0, 0, width, height);
 
-      const step = 8;
+      const step = 4;
 
       for (let px = 0; px < width; px += step) {
         for (let py = 0; py < height; py += step) {
@@ -928,7 +928,7 @@ export default function AlgorithmSimulator() {
             </button>
           </div>
 
-          <div className="mt-5 grid grid-cols-3 gap-3">
+          <div className="mt-5 grid grid-cols-4 gap-3">
             <div className="rounded-xl bg-white/[0.03] p-3">
               <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
                 Epoch
@@ -955,12 +955,108 @@ export default function AlgorithmSimulator() {
                 {(metrics.accuracy * 100).toFixed(0)}%
               </div>
             </div>
+
+            <div className="rounded-xl bg-white/[0.03] p-3">
+              <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
+                ‖W‖
+              </div>
+              <div className="mt-2 text-2xl font-bold text-slate-100">
+                {(() => {
+                  const net = networkRef.current;
+                  const w1Norm = Math.sqrt(
+                    net.w1.reduce((s, row) => s + row[0] ** 2 + row[1] ** 2, 0),
+                  );
+                  const w2Norm = Math.sqrt(
+                    net.w2.reduce((s, w) => s + w ** 2, 0),
+                  );
+                  return (w1Norm + w2Norm).toFixed(2);
+                })()}
+              </div>
+            </div>
           </div>
 
-          <div className="mt-5 rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm leading-7 text-slate-400">
-            The plot shows a one-hidden-layer MLP classifier trained on the
-            exact points you place. White regions mark the approximate 50%
-            decision contour, while the background tint shows class probability.
+          <div className="mt-5 space-y-3">
+            <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-slate-500">
+              How It Works
+            </div>
+
+            <div className="rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3">
+              <h5 className="text-xs font-semibold text-slate-200">
+                Architecture
+              </h5>
+              <p className="mt-1 text-sm leading-7 text-slate-400">
+                This is a <strong className="text-slate-200">one-hidden-layer MLP</strong>{" "}
+                with architecture{" "}
+                <code className="rounded bg-white/5 px-1.5 py-0.5 font-mono text-xs text-primary">
+                  2 → {hiddenUnits} → 1
+                </code>
+                . Inputs are the $(x, y)$ coordinates normalized to $[-1, 1]$.
+                The hidden layer uses <strong className="text-slate-200">tanh</strong>{" "}
+                activation; the output uses <strong className="text-slate-200">sigmoid</strong>{" "}
+                to produce a probability in $[0, 1]$.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3">
+              <h5 className="text-xs font-semibold text-slate-200">
+                Forward Pass
+              </h5>
+              <p className="mt-1 text-sm leading-7 text-slate-400">
+                For each point, the network computes:
+              </p>
+              <div className="mt-2 space-y-1 rounded-lg bg-black/20 px-3 py-2 font-mono text-xs leading-6 text-slate-300">
+                <div>z = W₁·x + b₁</div>
+                <div>a = tanh(z)</div>
+                <div>ŷ = σ(w₂ᵀ·a + b₂)</div>
+              </div>
+              <p className="mt-2 text-sm leading-7 text-slate-400">
+                where <strong className="text-slate-200">σ</strong> is the sigmoid function
+                σ(t) = 1/(1 + e⁻ᵗ).
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3">
+              <h5 className="text-xs font-semibold text-slate-200">
+                Loss &amp; Gradient Descent
+              </h5>
+              <p className="mt-1 text-sm leading-7 text-slate-400">
+                The loss is <strong className="text-slate-200">binary cross-entropy</strong>:
+              </p>
+              <div className="mt-2 rounded-lg bg-black/20 px-3 py-2 font-mono text-xs leading-6 text-slate-300">
+                L = −(1/n) Σ [yᵢ log(ŷᵢ) + (1−yᵢ) log(1−ŷᵢ)]
+              </div>
+              <p className="mt-2 text-sm leading-7 text-slate-400">
+                Gradients are computed via <strong className="text-slate-200">backpropagation</strong>{" "}
+                (chain rule through every layer). Weights are updated each epoch
+                using <strong className="text-slate-200">full-batch gradient descent</strong>:
+              </p>
+              <div className="mt-2 rounded-lg bg-black/20 px-3 py-2 font-mono text-xs leading-6 text-slate-300">
+                θ ← θ − η·(∇L + λ·θ)
+              </div>
+              <p className="mt-2 text-sm leading-7 text-slate-400">
+                The <strong className="text-slate-200">λ·θ</strong> term is L2 regularization
+                (weight decay), which penalizes large weights and encourages
+                simpler decision boundaries. The ‖W‖ metric above tracks the
+                total weight norm — lower values mean stronger regularization
+                effect.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3">
+              <h5 className="text-xs font-semibold text-slate-200">
+                Reading the Visualization
+              </h5>
+              <p className="mt-1 text-sm leading-7 text-slate-400">
+                The <strong className="text-slate-200">heatmap</strong> shows the predicted
+                class probability at every pixel. Tints closer to{" "}
+                <span className="text-primary">Class A color</span> mean the
+                model predicts Class A; tints closer to{" "}
+                <span className="text-secondary">Class B color</span> mean
+                Class B. The <strong className="text-slate-200">white contour</strong>{" "}
+                marks the <strong className="text-slate-200">decision boundary</strong>{" "}
+                where ŷ ≈ 0.5, i.e. the model is maximally uncertain.
+              </p>
+            </div>
           </div>
         </div>
       </div>

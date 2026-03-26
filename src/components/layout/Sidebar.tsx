@@ -38,8 +38,8 @@ const navigation = [
   },
   {
     name: "Playground",
-    href: "/#neural-playground",
-    match: () => false,
+    href: "/playground",
+    match: (pathname: string) => pathname === "/playground",
     meta: "Interactive Lab",
   },
 ] as const;
@@ -77,30 +77,30 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-white/10 lg:bg-slate-950/80 lg:backdrop-blur-xl">
-      <div className="border-b border-white/5 px-6 py-7">
+    <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-outline-variant/50 lg:bg-surface-container">
+      <div className="border-b border-outline-variant/50 px-6 py-7">
         <Link href="/" className="block">
-          <p className="font-headline text-2xl font-bold tracking-tight text-slate-100">
+          <p className="font-headline text-2xl font-bold tracking-tight text-on-surface">
             ML Learn
           </p>
-          <p className="mt-1 text-xs uppercase tracking-[0.22em] text-slate-500">
+          <p className="mt-1 text-xs font-medium uppercase tracking-[0.22em] text-on-surface-variant">
             Digital Observatory
           </p>
         </Link>
       </div>
 
       <div className="px-4 py-5">
-        <div className="mb-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-          <p className="text-[10px] font-mono uppercase tracking-[0.24em] text-slate-500">
+        <div className="mb-4 rounded-xl bg-surface-container-high p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-on-surface-variant">
             Learning Tracks
           </p>
-          <p className="mt-2 text-sm leading-6 text-slate-400">
+          <p className="mt-2 text-sm leading-6 text-on-surface-variant">
             Move through the curriculum by category, then open each algorithm
             for intuition, math, code, and trade-offs.
           </p>
         </div>
 
-        <nav className="space-y-2">
+        <nav className="space-y-1">
           {navigation.map((item) => {
             const isActive = item.match(pathname);
 
@@ -110,29 +110,29 @@ export default function Sidebar() {
                 href={item.href}
                 aria-current={isActive ? "page" : undefined}
                 className={clsx(
-                  "group flex items-center gap-3 rounded-2xl border px-4 py-3 transition-all duration-200",
+                  "group flex items-center gap-3 rounded-xl px-4 py-3 transition-colors",
                   isActive
-                    ? "border-primary/25 bg-primary/10 text-slate-50"
-                    : "border-transparent text-slate-400 hover:border-white/10 hover:bg-white/[0.03] hover:text-slate-100",
+                    ? "bg-primary/12 text-primary"
+                    : "text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface",
                 )}
               >
                 <span
                   className={clsx(
-                    "h-2.5 w-2.5 rounded-full transition-colors",
+                    "h-2 w-2 rounded-full transition-colors",
                     isActive
                       ? "bg-primary"
-                      : "bg-slate-600 group-hover:bg-slate-300",
+                      : "bg-outline group-hover:bg-on-surface-variant",
                   )}
                 />
 
                 <div className="min-w-0 flex-1">
-                  <div className="truncate font-headline text-base font-medium tracking-tight">
+                  <div className="truncate text-sm font-semibold">
                     {item.name}
                   </div>
                   <p
                     className={clsx(
-                      "mt-0.5 text-xs uppercase tracking-[0.18em]",
-                      isActive ? "text-slate-300" : "text-slate-500",
+                      "mt-0.5 text-xs tracking-wide",
+                      isActive ? "text-primary/70" : "text-on-surface-variant",
                     )}
                   >
                     {item.meta}
@@ -140,7 +140,7 @@ export default function Sidebar() {
                 </div>
 
                 {isActive ? (
-                  <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_12px_rgba(173,198,255,0.8)]" />
+                  <span className="h-2 w-2 rounded-full bg-primary" />
                 ) : null}
               </Link>
             );
@@ -148,23 +148,23 @@ export default function Sidebar() {
         </nav>
       </div>
 
-      <div className="mt-auto border-t border-white/5 p-5">
-        <div className="rounded-2xl border border-white/10 bg-surface-container-high/70 p-4 backdrop-blur">
-          <p className="text-sm font-semibold text-slate-100">
+      <div className="mt-auto border-t border-outline-variant/50 p-5">
+        <div className="rounded-xl bg-surface-container-high p-4">
+          <p className="text-sm font-semibold text-on-surface">
             Guided Learning
           </p>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-on-surface-variant">
             Interactive • Visual • Mathematical
           </p>
 
-          <div className="mt-4 space-y-2 text-xs leading-6 text-slate-400">
-            <div className="flex items-center justify-between rounded-lg bg-white/[0.03] px-3 py-2">
+          <div className="mt-4 space-y-1.5 text-xs text-on-surface-variant">
+            <div className="flex items-center justify-between rounded-lg bg-surface-container px-3 py-2">
               <span>Categories</span>
-              <span className="font-semibold text-slate-200">3</span>
+              <span className="font-semibold text-on-surface">3</span>
             </div>
-            <div className="flex items-center justify-between rounded-lg bg-white/[0.03] px-3 py-2">
+            <div className="flex items-center justify-between rounded-lg bg-surface-container px-3 py-2">
               <span>Algorithms</span>
-              <span className="font-semibold text-slate-200">
+              <span className="font-semibold text-on-surface">
                 {algorithms.length}
               </span>
             </div>
