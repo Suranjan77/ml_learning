@@ -316,16 +316,10 @@ export default function AlgorithmSimulator() {
   );
   const [running, setRunning] = useState(false);
   const [hasTrained, setHasTrained] = useState(false);
-  const [metrics, setMetrics] = useState<Metrics>(() => {
-    const initialEvaluation = evaluateNetwork(
-      createInitialNetwork(initialDefaults.hiddenUnits),
-      createLinearDataset(),
-    );
-
-    return {
-      ...initialEvaluation,
-      epoch: 0,
-    };
+  const [metrics, setMetrics] = useState<Metrics>({
+    epoch: 0,
+    loss: 0,
+    accuracy: 0,
   });
   const [statusText, setStatusText] = useState(
     getPresetDefaults(initialPreset).description,
@@ -334,9 +328,25 @@ export default function AlgorithmSimulator() {
   const plotRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frameRef = useRef<number | null>(null);
-  const networkRef = useRef<Network>(
-    createInitialNetwork(initialDefaults.hiddenUnits),
-  );
+  const networkRef = useRef<Network>({
+    w1: [],
+    b1: [],
+    w2: [],
+    b2: 0,
+  });
+
+  // Initial randomization on client only to avoid hydration mismatch
+  useEffect(() => {
+    networkRef.current = createInitialNetwork(initialDefaults.hiddenUnits);
+    const initialEvaluation = evaluateNetwork(
+      networkRef.current,
+      createLinearDataset(),
+    );
+    setMetrics({
+      ...initialEvaluation,
+      epoch: 0,
+    });
+  }, []);
 
   const datasetSummary = useMemo(() => {
     const classA = points.filter((point) => point.label === 0).length;
