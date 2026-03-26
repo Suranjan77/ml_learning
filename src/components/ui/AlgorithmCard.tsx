@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { clsx } from "clsx";
 
@@ -12,77 +10,121 @@ interface AlgorithmCardProps {
   color: "primary" | "secondary" | "tertiary";
 }
 
+const colorMap = {
+  primary: {
+    border: "border-primary/12 hover:border-primary/24",
+    glow: "from-primary/10 via-primary/4 to-transparent",
+    formulaBg: "bg-primary/8",
+    formulaBorder: "border-primary/16",
+    formulaText: "text-primary/80",
+    linkText: "text-primary",
+    dot: "bg-primary",
+  },
+  secondary: {
+    border: "border-secondary/12 hover:border-secondary/24",
+    glow: "from-secondary/10 via-secondary/4 to-transparent",
+    formulaBg: "bg-secondary/8",
+    formulaBorder: "border-secondary/16",
+    formulaText: "text-secondary/80",
+    linkText: "text-secondary",
+    dot: "bg-secondary",
+  },
+  tertiary: {
+    border: "border-tertiary/12 hover:border-tertiary/24",
+    glow: "from-tertiary/10 via-tertiary/4 to-transparent",
+    formulaBg: "bg-tertiary/8",
+    formulaBorder: "border-tertiary/16",
+    formulaText: "text-tertiary/80",
+    linkText: "text-tertiary",
+    dot: "bg-tertiary",
+  },
+} as const;
+
 export default function AlgorithmCard({
   title,
   description,
   formula,
-  icon,
   slug,
   color,
 }: AlgorithmCardProps) {
-  const colorMap = {
-    primary: {
-      border: "hover:border-primary/40",
-      bg: "bg-primary/10",
-      text: "text-primary",
-      formulaBg: "bg-primary/5",
-      formulaText: "text-primary/70",
-    },
-    secondary: {
-      border: "hover:border-secondary/40",
-      bg: "bg-secondary/10",
-      text: "text-secondary",
-      formulaBg: "bg-secondary/5",
-      formulaText: "text-secondary/70",
-    },
-    tertiary: {
-      border: "hover:border-tertiary/40",
-      bg: "bg-tertiary/10",
-      text: "text-tertiary",
-      formulaBg: "bg-tertiary/5",
-      formulaText: "text-tertiary/70",
-    },
-  };
-
   const colors = colorMap[color];
 
   return (
-    <div className={clsx(
-      "glass-card p-8 rounded-xl group transition-all duration-500 relative overflow-hidden",
-      colors.border
-    )}>
-      <div className="absolute inset-0 neural-glow opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-      <div className="relative z-10">
-        <div className={clsx(
-          "w-14 h-14 rounded-xl flex items-center justify-center mb-6 border transition-transform duration-500 group-hover:scale-110",
-          colors.bg,
-          colors.text,
-          color === 'primary' ? 'border-primary/20' : color === 'secondary' ? 'border-secondary/20' : 'border-tertiary/20'
-        )}>
-          <span className="material-symbols-outlined text-3xl">{icon}</span>
-        </div>
-        <h4 className="font-headline text-2xl font-semibold text-slate-50 mb-3 tracking-tight">{title}</h4>
-        <p className="text-on-surface-variant leading-relaxed mb-8">{description}</p>
-        <div className="flex items-center justify-between">
-          <span className={clsx(
-            "font-mono text-xs px-2 py-1 rounded",
-            colors.formulaBg,
-            colors.formulaText
-          )}>
-            {formula}
-          </span>
-          <Link
-            href={`/algorithms/${slug}`}
+    <Link
+      href={`/algorithms/${slug}`}
+      className={clsx(
+        "group relative flex h-full min-h-[260px] flex-col overflow-hidden rounded-2xl border bg-surface-container-high/55 p-6 shadow-[0_14px_32px_rgba(0,0,0,0.16)] backdrop-blur transition-all duration-200",
+        "hover:-translate-y-0.5 hover:bg-surface-container-high/75 hover:shadow-[0_18px_38px_rgba(0,0,0,0.2)]",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-0",
+        colors.border,
+      )}
+    >
+      <div
+        className={clsx(
+          "pointer-events-none absolute inset-0 bg-linear-to-br opacity-0 transition-opacity duration-200 group-hover:opacity-100",
+          colors.glow,
+        )}
+      />
+
+      <div className="relative z-10 flex h-full flex-col">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span
+              className={clsx(
+                "h-2.5 w-2.5 shrink-0 rounded-full shadow-[0_0_14px_rgba(255,255,255,0.18)]",
+                colors.dot,
+              )}
+            />
+            <p className="text-[10px] font-mono uppercase tracking-[0.22em] text-slate-500">
+              Algorithm
+            </p>
+          </div>
+
+          <div
             className={clsx(
-              "flex items-center gap-2 font-bold text-sm uppercase tracking-widest group-hover:gap-3 transition-all",
-              colors.text
+              "max-w-[68%] truncate rounded-full border px-3 py-1 text-[11px] font-mono tracking-[0.08em]",
+              colors.formulaBg,
+              colors.formulaBorder,
+              colors.formulaText,
             )}
+            title={formula}
           >
-            Learn More
-            <span className="material-symbols-outlined">trending_flat</span>
-          </Link>
+            {formula}
+          </div>
+        </div>
+
+        <div className="min-h-0 flex-1">
+          <h3 className="mb-3 text-balance font-headline text-2xl font-semibold tracking-tight text-slate-50">
+            {title}
+          </h3>
+
+          <p className="text-sm leading-7 text-on-surface-variant sm:text-[15px]">
+            {description}
+          </p>
+        </div>
+
+        <div className="mt-6 border-t border-white/8 pt-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
+                Open lesson
+              </p>
+              <p className="mt-1 truncate text-sm text-slate-400">
+                Intuition, logic, code, strengths
+              </p>
+            </div>
+
+            <span
+              className={clsx(
+                "shrink-0 text-sm font-semibold transition-transform duration-200 group-hover:translate-x-0.5",
+                colors.linkText,
+              )}
+            >
+              Learn more →
+            </span>
+          </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

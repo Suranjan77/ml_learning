@@ -1,9 +1,20 @@
-const fs = require('fs');
-const pdf = require('pdf-parse');
+/* eslint-disable @typescript-eslint/no-require-imports */
+const fs = require("fs");
+const pdf = require("pdf-parse");
 
 const files = [
-  { path: 'books/The Elements of Statistical Learning.pdf', keywords: ['Support Vector Machines', 'Random Forest'] },
-  { path: 'books/Deep Learning.pdf', keywords: ['Multilayer Perceptron', 'Neural Networks', 'Forward Propagation'] }
+  {
+    path: "books/The Elements of Statistical Learning.pdf",
+    keywords: ["Support Vector Machines", "Random Forest"],
+  },
+  {
+    path: "books/Deep Learning.pdf",
+    keywords: [
+      "Multilayer Perceptron",
+      "Neural Networks",
+      "Forward Propagation",
+    ],
+  },
 ];
 
 async function extract() {
@@ -14,7 +25,7 @@ async function extract() {
       const parser = new pdf.PDFParse({ data: dataBuffer });
       const data = await parser.getText();
       const text = data.text;
-      
+
       for (const keyword of file.keywords) {
         const index = text.indexOf(keyword);
         if (index !== -1) {
@@ -24,8 +35,8 @@ async function extract() {
           console.log("\nKeyword NOT found: '" + keyword + "'");
         }
       }
-    } catch(err) {
-      console.error('Error reading PDF:', err.message);
+    } catch (err) {
+      console.error("Error reading PDF:", err.message);
     }
   }
 }
