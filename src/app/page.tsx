@@ -55,84 +55,123 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero section */}
-      <section className="relative overflow-hidden px-6 py-14 sm:px-8 lg:px-12 lg:py-20">
-        {/* Decorative gradient orbs */}
-        <div className="pointer-events-none absolute inset-0">
-          <div className="hero-gradient-orb hero-gradient-orb--primary" />
-          <div className="hero-gradient-orb hero-gradient-orb--secondary" />
-          <div className="hero-gradient-orb hero-gradient-orb--tertiary" />
-        </div>
-
-        <div className="relative z-10 mr-auto grid max-w-[1400px] gap-10 xl:grid-cols-[minmax(0,1.08fr)_320px] xl:items-end">
+      <section className="relative overflow-visible px-6 py-14 sm:px-8 lg:px-12 lg:py-24">
+        <div className="relative z-10 mx-auto grid max-w-[1400px] gap-16 lg:grid-cols-[1fr_360px] lg:items-center">
+          
+          {/* Left Column (Hero Content) */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="relative z-20 flex flex-col gap-6"
           >
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-primary">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
-              Interactive ML curriculum
+            {/* Main Headline */}
+            <div className="flex flex-col items-start gap-4">
+              <h1 className="font-headline text-5xl font-black uppercase leading-none tracking-tight text-on-surface sm:text-6xl lg:text-7xl xl:text-8xl">
+                Understand AI,
+              </h1>
+              <div className="border-4 border-outline bg-primary px-4 py-2 shadow-[-8px_8px_0px_0px_var(--color-outline)]">
+                <span className="font-headline text-4xl font-black uppercase tracking-tight text-outline-dark sm:text-5xl lg:text-6xl">
+                  Mathematically
+                </span>
+              </div>
+              <div className="border-4 border-outline bg-tertiary px-4 py-2 shadow-[-8px_8px_0px_0px_var(--color-outline)]">
+                <span className="font-headline text-4xl font-black uppercase tracking-tight text-on-surface sm:text-5xl lg:text-6xl">
+                  & Intuitively
+                </span>
+              </div>
             </div>
 
-            <h1 className="max-w-4xl font-headline text-4xl font-bold leading-[1.05] tracking-tight text-on-surface sm:text-5xl lg:text-6xl xl:text-7xl">
-              Understand AI,{" "}
-              <span className="bg-gradient-to-r from-primary via-tertiary to-secondary bg-clip-text text-transparent">
-                Mathematically
-              </span>{" "}
-              & Intuitively
-            </h1>
-
-            <p className="mt-6 max-w-2xl text-base leading-8 text-on-surface-variant sm:text-lg">
+            <p className="mt-4 max-w-2xl font-mono text-base font-medium leading-relaxed text-[#D4D4D4] sm:text-lg">
               Explore machine learning algorithms through concise explanations,
               polished visual intuition, readable mathematical logic, code
               examples, and a browser-based neural playground you can manipulate
               yourself.
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            {/* CTA Buttons */}
+            <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:flex-wrap">
               <Link
                 href="/algorithms/supervised"
-                className="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3.5 text-sm font-bold text-on-primary transition-all duration-200 hover:brightness-110 hover:shadow-lg hover:shadow-primary/20 sm:px-8 sm:text-base"
+                className="inline-flex items-center justify-center border-4 border-outline-dark bg-primary px-8 py-4 font-mono text-sm font-bold uppercase tracking-wider text-outline-dark shadow-[-6px_6px_0px_0px_var(--color-outline-dark)] transition-transform hover:-translate-y-1 hover:translate-x-1 hover:shadow-[-2px_2px_0px_0px_var(--color-outline-dark)]"
               >
                 Start Learning
               </Link>
 
               <Link
                 href="/algorithms/maximum-likelihood"
-                className="inline-flex items-center justify-center rounded-xl border border-outline-variant/50 bg-surface-container-high px-6 py-3.5 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-highest sm:px-8 sm:text-base"
+                className="inline-flex items-center justify-center border-4 border-outline-dark bg-[#E5E5E5] px-8 py-4 font-mono text-sm font-bold uppercase tracking-wider text-outline-dark shadow-[-6px_6px_0px_0px_var(--color-outline-dark)] transition-transform hover:-translate-y-1 hover:translate-x-1 hover:shadow-[-2px_2px_0px_0px_var(--color-outline-dark)]"
               >
                 Explore Curriculum
               </Link>
 
               <Link
                 href="/playground"
-                className="inline-flex items-center justify-center rounded-xl border border-tertiary/30 bg-tertiary/8 px-6 py-3.5 text-sm font-semibold text-tertiary transition-colors hover:bg-tertiary/12 sm:px-8 sm:text-base"
+                className="inline-flex items-center justify-center border-4 border-tertiary bg-transparent px-8 py-4 font-mono text-sm font-bold uppercase tracking-wider text-tertiary shadow-[-6px_6px_0px_0px_var(--color-tertiary)] transition-transform hover:-translate-y-1 hover:translate-x-1 hover:shadow-[-2px_2px_0px_0px_var(--color-tertiary)]"
               >
                 Open Playground
               </Link>
             </div>
           </motion.div>
 
-          <motion.div
-            className="grid grid-cols-1 gap-3 sm:grid-cols-3 xl:grid-cols-1"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-          >
-            {heroStats.map((stat) => (
-              <div
-                key={stat.label}
-                className="rounded-xl border border-outline-variant/30 bg-surface-container-high/80 p-4 backdrop-blur-sm"
-              >
-                <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant/60">
-                  {stat.label}
+          {/* Right Column (Visuals & Data Cards) */}
+          <div className="relative mt-12 lg:mt-0">
+            {/* Abstract Background Shapes */}
+            <motion.div
+              className="pointer-events-none absolute -right-16 -top-16 z-0 h-64 w-64"
+              animate={{ y: [0, -15, 0] }}
+              transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+            >
+              <svg viewBox="0 0 100 100" className="h-full w-full overflow-visible">
+                <polygon
+                  points="50,10 90,90 10,90"
+                  fill="var(--color-tertiary)"
+                  stroke="var(--color-outline)"
+                  strokeWidth="4"
+                  strokeLinejoin="miter"
+                />
+              </svg>
+            </motion.div>
+            
+            <motion.div
+              className="pointer-events-none absolute -bottom-16 -left-16 z-0 h-56 w-56"
+              animate={{ y: [0, 15, 0] }}
+              transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 1 }}
+            >
+              <svg viewBox="0 0 100 100" className="h-full w-full overflow-visible">
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  fill="var(--color-secondary)"
+                  stroke="var(--color-outline)"
+                  strokeWidth="4"
+                />
+              </svg>
+            </motion.div>
+
+            {/* Data Cards */}
+            <motion.div
+              className="relative z-10 flex flex-col gap-6 pointer-events-auto"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              {heroStats.map((stat) => (
+                <div
+                  key={stat.label}
+                  className="border-4 border-outline bg-[#2A2A2A] p-6 shadow-[-8px_8px_0px_0px_var(--color-outline)] transition-transform hover:-translate-y-1 hover:translate-x-1 hover:shadow-[-4px_4px_0px_0px_var(--color-outline)]"
+                >
+                  <div className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#D4D4D4]">
+                    {stat.label}
+                  </div>
+                  <div className="mt-2 font-headline text-5xl font-black tracking-tight text-on-surface">
+                    {stat.value}
+                  </div>
                 </div>
-                <div className="mt-2 text-2xl font-bold tracking-tight text-on-surface">
-                  {stat.value}
-                </div>
-              </div>
-            ))}
-          </motion.div>
+              ))}
+            </motion.div>
+          </div>
         </div>
       </section>
 
@@ -141,18 +180,18 @@ export default function Home() {
         <div className="mr-auto max-w-[1400px]">
           <div className="mb-10 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-secondary/60">
+              <p className="mb-2 font-mono text-xs font-bold uppercase tracking-[0.2em] text-secondary">
                 Curriculum
               </p>
-              <h2 className="font-headline text-3xl font-bold tracking-tight text-on-surface">
+              <h2 className="font-headline text-4xl font-black uppercase tracking-tight text-on-surface">
                 Complete Sequence
               </h2>
-              <p className="mt-2 max-w-2xl text-sm leading-7 text-on-surface-variant sm:text-base">
+              <p className="mt-2 max-w-2xl font-mono text-base font-medium leading-relaxed text-[#D4D4D4]">
                 Master the full mathematical foundations sequentially across all {algorithms.length} distinct rigorous learning modules.
               </p>
             </div>
 
-            <div className="hidden rounded-full border border-outline-variant/30 bg-surface-container-high/80 px-4 py-2 text-sm font-medium text-on-surface-variant md:inline-flex">
+            <div className="hidden border-2 border-outline bg-surface px-4 py-2 font-mono text-sm font-bold uppercase text-on-surface shadow-[-4px_4px_0px_0px_var(--color-outline)] md:inline-flex">
               {algorithms.length} topics available
             </div>
           </div>

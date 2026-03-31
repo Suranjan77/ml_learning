@@ -17,6 +17,18 @@ interface VisualizationShellProps {
   children: React.ReactNode;
 }
 
+// Brutalist Palette
+const COLORS = {
+  bg: "#121212",
+  grid: "#333333",
+  border: "#E2E8F0",
+  pink: "#FF3366",
+  cyan: "#00FFFF",
+  yellow: "#FFEA00",
+  green: "#00E676",
+  muted: "#64748B",
+};
+
 function VisualizationShell({
   title,
   subtitle,
@@ -25,74 +37,52 @@ function VisualizationShell({
   children,
 }: VisualizationShellProps) {
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-950/70 shadow-[0_20px_60px_rgba(0,0,0,0.28)]">
-      <div className="absolute inset-0 opacity-30">
-        <div className="h-full w-full bg-[linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:28px_28px]" />
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#121212] border-2 border-slate-200 shadow-[8px_8px_0px_0px_rgba(226,232,240,1)] font-sans">
+      {/* Brutalist Grid Background */}
+      <div className="absolute inset-0 z-0">
+        <div className="h-full w-full bg-[linear-gradient(#222_2px,transparent_2px),linear-gradient(90deg,#222_2px,transparent_2px)] bg-[size:32px_32px]" />
       </div>
 
-      <div className="relative z-10 flex items-start justify-between gap-4 border-b border-white/10 px-5 py-4">
-        <div>
-          <p className="text-[10px] font-mono uppercase tracking-[0.28em] text-slate-500">
-            Intuition Diagram
-          </p>
-          <h4 className="mt-1 font-headline text-lg font-semibold tracking-tight text-slate-100">
+      <div className="relative z-10 flex flex-col items-start justify-between border-b-2 border-slate-200 bg-[#121212] p-5 lg:flex-row lg:gap-8">
+        <div className="flex-1">
+          <div className="inline-block bg-slate-200 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-black mb-3 border border-slate-200 shadow-[2px_2px_0px_0px_#FF3366]">
+            Interactive Diagram
+          </div>
+          <h4 className="font-mono text-xl font-black uppercase tracking-tight text-white mb-2">
             {title}
           </h4>
-          <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-400">
+          <p className="max-w-2xl text-sm font-medium leading-relaxed text-slate-400">
             {subtitle}
           </p>
         </div>
 
-        {legend && legend.length > 0 ? (
-          <div className="hidden flex-wrap items-center gap-3 md:flex">
+        {legend && legend.length > 0 && (
+          <div className="mt-4 flex flex-wrap items-center gap-2 lg:mt-0 lg:flex-col lg:items-end">
             {legend.map((item) => (
               <div
                 key={item.label}
-                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300"
+                className="inline-flex items-center gap-2 border-2 border-slate-700 bg-black px-3 py-1.5 text-xs font-bold uppercase text-white shadow-[2px_2px_0px_0px_#333]"
               >
                 <span
-                  className="h-2.5 w-2.5 rounded-full"
+                  className="h-3 w-3 border border-white"
                   style={{ backgroundColor: item.color }}
                 />
                 <span>{item.label}</span>
               </div>
             ))}
           </div>
-        ) : null}
+        )}
       </div>
 
-      <div className="relative z-10 flex-1 px-4 py-4 sm:px-5">{children}</div>
+      <div className="relative z-10 flex-1 p-4 sm:p-6">{children}</div>
 
-      <div className="relative z-10 border-t border-white/10 bg-white/[0.02] px-5 py-3 text-sm leading-6 text-slate-400">
-        <span className="font-semibold text-slate-200">Key idea:</span>{" "}
+      <div className="relative z-10 border-t-2 border-slate-200 bg-slate-200 px-5 py-4 text-sm font-medium leading-relaxed text-black">
+        <span className="bg-black px-2 py-0.5 text-xs font-black uppercase tracking-widest text-[#FFEA00] mr-2">
+          Key Insight
+        </span>
         {insight}
       </div>
     </div>
-  );
-}
-
-function AxisLabels() {
-  return (
-    <>
-      <text
-        x="24"
-        y="22"
-        fill="#64748b"
-        fontSize="11"
-        fontFamily="var(--font-mono)"
-      >
-        y
-      </text>
-      <text
-        x="296"
-        y="208"
-        fill="#64748b"
-        fontSize="11"
-        fontFamily="var(--font-mono)"
-      >
-        x
-      </text>
-    </>
   );
 }
 
@@ -104,1967 +94,444 @@ function ScatterAxes() {
         y1="24"
         x2="40"
         y2="190"
-        stroke="rgba(255,255,255,0.18)"
-        strokeWidth="1"
+        stroke={COLORS.border}
+        strokeWidth="2"
       />
       <line
         x1="40"
         y1="190"
         x2="296"
         y2="190"
-        stroke="rgba(255,255,255,0.18)"
-        strokeWidth="1"
+        stroke={COLORS.border}
+        strokeWidth="2"
       />
-      {[72, 104, 136, 168, 200, 232, 264].map((x) => (
-        <line
-          key={`vx-${x}`}
-          x1={x}
-          y1="24"
-          x2={x}
-          y2="190"
-          stroke="rgba(255,255,255,0.06)"
-          strokeWidth="0.5"
-        />
-      ))}
-      {[58, 92, 126, 160].map((y) => (
-        <line
-          key={`hy-${y}`}
-          x1="40"
-          y1={y}
-          x2="296"
-          y2={y}
-          stroke="rgba(255,255,255,0.06)"
-          strokeWidth="0.5"
-        />
-      ))}
-      <AxisLabels />
+      <text x="24" y="22" fill={COLORS.border} fontSize="12" fontFamily="monospace" fontWeight="bold">Y</text>
+      <text x="296" y="208" fill={COLORS.border} fontSize="12" fontFamily="monospace" fontWeight="bold">X</text>
     </>
   );
 }
 
+// ─────────────────────────────────────────────────────────────
+// 1. LINEAR REGRESSION
+// ─────────────────────────────────────────────────────────────
 function LinearRegressionVisualization() {
   const points = [
-    { x: 68, y: 152 },
-    { x: 96, y: 144 },
-    { x: 120, y: 122 },
-    { x: 146, y: 118 },
-    { x: 176, y: 98 },
-    { x: 210, y: 92 },
-    { x: 236, y: 78 },
-    { x: 262, y: 62 },
+    { x: 68, y: 152 }, { x: 96, y: 144 }, { x: 120, y: 122 },
+    { x: 146, y: 118 }, { x: 176, y: 98 }, { x: 210, y: 92 },
+    { x: 236, y: 78 }, { x: 262, y: 62 },
   ];
-
   const predictY = (x: number) => 178 - 0.45 * x;
 
   return (
     <VisualizationShell
-      title="Fit a trend line through noisy observations"
-      subtitle="Linear regression summarizes a relationship with one line that best explains the average direction of the data."
-      insight="The residuals show what the model misses; training tries to make those vertical errors as small as possible."
+      title="Fit a trend line through noisy data"
+      subtitle="Linear regression summarizes a relationship with one rigid line that minimizes the total vertical distance to all observed points."
+      insight="The dashed lines represent residual errors. The algorithm's only job is to adjust the line's slope and height to make those errors as small as possible."
       legend={[
-        { label: "Observed samples", color: "#7bd0ff" },
-        { label: "Best-fit line", color: "#adc6ff" },
-        { label: "Residual error", color: "#ffb4ab" },
+        { label: "Observations", color: COLORS.cyan },
+        { label: "Best-fit line", color: COLORS.pink },
+        { label: "Residual error", color: COLORS.yellow },
       ]}
     >
-      <svg viewBox="0 0 320 220" className="h-full w-full">
+      <svg viewBox="0 0 320 220" className="h-full w-full overflow-visible">
         <ScatterAxes />
-
         <line
-          x1="52"
-          y1={predictY(52)}
-          x2="286"
-          y2={predictY(286)}
-          stroke="var(--color-primary)"
-          strokeWidth="2.5"
-          strokeLinecap="round"
+          x1="52" y1={predictY(52)} x2="286" y2={predictY(286)}
+          stroke={COLORS.pink} strokeWidth="4"
         />
-
-        <line
-          x1="52"
-          y1={predictY(52) - 10}
-          x2="286"
-          y2={predictY(286) - 10}
-          stroke="rgba(173,198,255,0.24)"
-          strokeWidth="2"
-          strokeDasharray="6 6"
-        />
-
         {points.map((point, index) => {
           const lineY = predictY(point.x);
           return (
             <g key={index}>
               <line
-                x1={point.x}
-                y1={point.y}
-                x2={point.x}
-                y2={lineY}
-                stroke="var(--color-error)"
-                strokeWidth="1.5"
-                strokeDasharray="4 4"
-                opacity="0.8"
+                x1={point.x} y1={point.y} x2={point.x} y2={lineY}
+                stroke={COLORS.yellow} strokeWidth="2" strokeDasharray="4 4"
               />
-              <circle
-                cx={point.x}
-                cy={point.y}
-                r="4.5"
-                fill="var(--color-tertiary)"
-                stroke="rgba(255,255,255,0.35)"
-                strokeWidth="1"
+              <rect
+                x={point.x - 4} y={point.y - 4} width="8" height="8"
+                fill={COLORS.cyan} stroke="#000" strokeWidth="2"
               />
             </g>
           );
         })}
-
-        <rect
-          x="56"
-          y="32"
-          width="128"
-          height="34"
-          rx="6"
-          fill="rgba(11,19,38,0.86)"
-          stroke="rgba(255,255,255,0.08)"
-        />
-        <text
-          x="66"
-          y="46"
-          fill="#cbd5e1"
-          fontSize="11"
-          fontFamily="var(--font-mono)"
-        >
-          y = mx + b
-        </text>
-        <text
-          x="66"
-          y="58"
-          fill="#64748b"
-          fontSize="8.5"
-          fontFamily="var(--font-mono)"
-        >
-          slope + intercept
-        </text>
+        <rect x="56" y="32" width="130" height="34" fill="#000" border="2" stroke={COLORS.border} strokeWidth="2" />
+        <text x="66" y="54" fill={COLORS.pink} fontSize="14" fontFamily="monospace" fontWeight="bold">Y = mx + b</text>
       </svg>
     </VisualizationShell>
   );
 }
 
+// ─────────────────────────────────────────────────────────────
+// 2. LOGISTIC REGRESSION
+// ─────────────────────────────────────────────────────────────
 function LogisticRegressionVisualization() {
-  const groupA = [
-    [74, 154],
-    [92, 138],
-    [110, 150],
-    [126, 126],
-    [142, 136],
-  ];
-  const groupB = [
-    [184, 92],
-    [206, 88],
-    [220, 72],
-    [240, 82],
-    [254, 60],
-  ];
+  const groupA = [[74, 154], [92, 138], [110, 150], [126, 126], [142, 136]];
+  const groupB = [[184, 92], [206, 88], [220, 72], [240, 82], [254, 60]];
 
   return (
     <VisualizationShell
-      title="Turn a score into a probability"
-      subtitle="Logistic regression computes a weighted score and maps it through a sigmoid, creating a smooth probability transition between classes."
-      insight="The decision boundary is where the predicted probability is around 50%, so nearby points are the most uncertain."
+      title="Turn a raw score into a strict probability"
+      subtitle="Logistic regression computes a linear score and forces it through a sigmoid curve, creating a strict percentage boundary between two classes."
+      insight="The exact center of the curve represents 50% uncertainty—the mathematical decision boundary slicing the two groups."
       legend={[
-        { label: "Class 0", color: "#adc6ff" },
-        { label: "Class 1", color: "#7bd0ff" },
-        { label: "Decision boundary", color: "#f8fafc" },
+        { label: "Class 0", color: COLORS.pink },
+        { label: "Class 1", color: COLORS.cyan },
       ]}
     >
       <div className="grid h-full gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-        <svg
-          viewBox="0 0 320 220"
-          className="h-full w-full rounded-xl border border-white/5 bg-black/10"
-        >
-          <defs>
-            <linearGradient
-              id="logisticSplit"
-              x1="0%"
-              y1="0%"
-              x2="100%"
-              y2="0%"
-            >
-              <stop offset="0%" stopColor="rgba(173,198,255,0.22)" />
-              <stop offset="45%" stopColor="rgba(173,198,255,0.12)" />
-              <stop offset="55%" stopColor="rgba(123,208,255,0.12)" />
-              <stop offset="100%" stopColor="rgba(123,208,255,0.22)" />
-            </linearGradient>
-          </defs>
-
-          <rect
-            x="40"
-            y="24"
-            width="256"
-            height="166"
-            fill="url(#logisticSplit)"
-            rx="10"
-          />
+        <svg viewBox="0 0 320 220" className="h-full w-full border-2 border-slate-700 bg-black">
+          <rect x="0" y="0" width="160" height="220" fill="rgba(255,51,102,0.15)" />
+          <rect x="160" y="0" width="160" height="220" fill="rgba(0,255,255,0.15)" />
+          <line x1="160" y1="0" x2="160" y2="220" stroke="#FFF" strokeWidth="4" strokeDasharray="8 8" />
           <ScatterAxes />
-
-          <path
-            d="M150 190 C 162 160, 172 135, 184 108 C 194 86, 206 56, 218 24"
-            fill="none"
-            stroke="rgba(255,255,255,0.9)"
-            strokeWidth="2"
-            strokeDasharray="5 5"
-          />
-
-          {groupA.map(([x, y], index) => (
-            <circle
-              key={`a-${index}`}
-              cx={x}
-              cy={y}
-              r="5.5"
-              fill="var(--color-primary)"
-              stroke="rgba(255,255,255,0.35)"
-              strokeWidth="1"
-            />
+          {groupA.map(([x, y], i) => (
+            <rect key={`a-${i}`} x={x - 5} y={y - 5} width="10" height="10" fill={COLORS.pink} />
           ))}
-
-          {groupB.map(([x, y], index) => (
-            <circle
-              key={`b-${index}`}
-              cx={x}
-              cy={y}
-              r="5.5"
-              fill="var(--color-tertiary)"
-              stroke="rgba(255,255,255,0.35)"
-              strokeWidth="1"
-            />
+          {groupB.map(([x, y], i) => (
+            <rect key={`b-${i}`} x={x - 5} y={y - 5} width="10" height="10" fill={COLORS.cyan} />
           ))}
         </svg>
 
-        <svg
-          viewBox="0 0 220 220"
-          className="h-full w-full rounded-xl border border-white/5 bg-black/10"
-        >
-          <text
-            x="22"
-            y="28"
-            fill="#cbd5e1"
-            fontSize="12"
-            fontFamily="var(--font-mono)"
-          >
-            sigmoid(score)
-          </text>
-          <line
-            x1="28"
-            y1="184"
-            x2="194"
-            y2="184"
-            stroke="rgba(255,255,255,0.18)"
-            strokeWidth="1.5"
-          />
-          <line
-            x1="28"
-            y1="28"
-            x2="28"
-            y2="184"
-            stroke="rgba(255,255,255,0.18)"
-            strokeWidth="1.5"
-          />
+        <svg viewBox="0 0 220 220" className="h-full w-full border-2 border-slate-700 bg-black">
+          <line x1="28" y1="184" x2="194" y2="184" stroke={COLORS.border} strokeWidth="2" />
+          <line x1="28" y1="28" x2="28" y2="184" stroke={COLORS.border} strokeWidth="2" />
           <path
-            d="M36 170 C 70 170, 80 155, 98 122 C 112 94, 124 54, 184 42"
-            fill="none"
-            stroke="var(--color-primary)"
-            strokeWidth="2.5"
-            strokeLinecap="round"
+            d="M36 170 L 80 170 L 110 106 L 140 42 L 184 42"
+            fill="none" stroke={COLORS.yellow} strokeWidth="4"
           />
-          <line
-            x1="28"
-            y1="106"
-            x2="194"
-            y2="106"
-            stroke="rgba(255,255,255,0.18)"
-            strokeDasharray="6 6"
-          />
-          <text
-            x="146"
-            y="98"
-            fill="#94a3b8"
-            fontSize="10"
-            fontFamily="var(--font-mono)"
-          >
-            p = 0.5
-          </text>
-          <text
-            x="174"
-            y="200"
-            fill="#64748b"
-            fontSize="10"
-            fontFamily="var(--font-mono)"
-          >
-            score
-          </text>
-          <text
-            x="8"
-            y="36"
-            fill="#64748b"
-            fontSize="10"
-            fontFamily="var(--font-mono)"
-          >
-            p
-          </text>
+          <line x1="28" y1="106" x2="194" y2="106" stroke="#FFF" strokeWidth="2" strokeDasharray="4 4" />
+          <text x="146" y="98" fill="#FFF" fontSize="12" fontFamily="monospace" fontWeight="bold">p=0.5</text>
+          <text x="10" y="36" fill={COLORS.border} fontSize="12" fontFamily="monospace" fontWeight="bold">P</text>
         </svg>
       </div>
     </VisualizationShell>
   );
 }
 
+// ─────────────────────────────────────────────────────────────
+// 3. K-NEAREST NEIGHBORS (KNN)
+// ─────────────────────────────────────────────────────────────
 function KnnVisualization() {
-  const blue = [
-    [84, 134],
-    [100, 148],
-    [116, 126],
-    [132, 144],
-  ];
-  const purple = [
-    [186, 84],
-    [204, 102],
-    [222, 76],
-    [238, 96],
-  ];
-  const neighbors = [
-    [132, 144],
-    [186, 84],
-    [204, 102],
-  ];
+  const blue = [[84, 134], [100, 148], [116, 126], [132, 144]];
+  const purple = [[186, 84], [204, 102], [222, 76], [238, 96]];
+  const neighbors = [[132, 144], [186, 84], [204, 102]];
 
   return (
     <VisualizationShell
-      title="Classify by local neighborhood"
-      subtitle="K-nearest neighbors delays learning until prediction time, then checks which labeled samples are closest to a new query point."
-      insight="The algorithm assumes nearby points should behave similarly, so distance and local density drive the prediction."
+      title="Classify by checking the local neighborhood"
+      subtitle="KNN skips training entirely. When a new point arrives, it simply draws a radius and takes a majority vote from the closest known data points."
+      insight="The algorithm assumes the world is smooth: if you are surrounded by Class A, you are likely Class A."
       legend={[
-        { label: "Known class A", color: "#adc6ff" },
-        { label: "Known class B", color: "#7bd0ff" },
-        { label: "Query point", color: "#f8fafc" },
+        { label: "Class A", color: COLORS.cyan },
+        { label: "Class B", color: COLORS.pink },
+        { label: "Query", color: COLORS.yellow },
       ]}
     >
       <svg viewBox="0 0 320 220" className="h-full w-full">
         <ScatterAxes />
-
-        {blue.map(([x, y], index) => (
-          <circle
-            key={`blue-${index}`}
-            cx={x}
-            cy={y}
-            r="5.5"
-            fill="var(--color-primary)"
-            stroke="rgba(255,255,255,0.35)"
-            strokeWidth="1"
-          />
+        {blue.map(([x, y], i) => (
+          <rect key={`blue-${i}`} x={x - 5} y={y - 5} width="10" height="10" fill={COLORS.cyan} stroke="#000" strokeWidth="2" />
         ))}
-
-        {purple.map(([x, y], index) => (
-          <circle
-            key={`purple-${index}`}
-            cx={x}
-            cy={y}
-            r="5.5"
-            fill="var(--color-tertiary)"
-            stroke="rgba(255,255,255,0.35)"
-            strokeWidth="1"
-          />
+        {purple.map(([x, y], i) => (
+          <rect key={`purple-${i}`} x={x - 5} y={y - 5} width="10" height="10" fill={COLORS.pink} stroke="#000" strokeWidth="2" />
         ))}
-
-        <circle
-          cx="168"
-          cy="118"
-          r="44"
-          fill="rgba(255,255,255,0.03)"
-          stroke="rgba(255,255,255,0.32)"
-          strokeDasharray="6 6"
-        />
-
-        {neighbors.map(([x, y], index) => (
-          <line
-            key={`n-${index}`}
-            x1="168"
-            y1="118"
-            x2={x}
-            y2={y}
-            stroke="rgba(255,255,255,0.4)"
-            strokeDasharray="4 4"
-          />
+        <rect x="168 - 44" y="118 - 44" width="88" height="88" fill="rgba(255,234,0,0.1)" stroke={COLORS.yellow} strokeWidth="2" strokeDasharray="8 8" />
+        {neighbors.map(([x, y], i) => (
+          <line key={`n-${i}`} x1="168" y1="118" x2={x} y2={y} stroke={COLORS.yellow} strokeWidth="3" />
         ))}
-
-        <circle
-          cx="168"
-          cy="118"
-          r="7"
-          fill="#f8fafc"
-          stroke="#0f172a"
-          strokeWidth="2"
-        />
-        <text
-          x="182"
-          y="116"
-          fill="#e2e8f0"
-          fontSize="11"
-          fontFamily="var(--font-mono)"
-        >
-          query
-        </text>
-        <text
-          x="182"
-          y="130"
-          fill="#64748b"
-          fontSize="10"
-          fontFamily="var(--font-mono)"
-        >
-          k = 3
-        </text>
+        <rect x="163" y="113" width="10" height="10" fill={COLORS.yellow} stroke="#000" strokeWidth="2" />
+        <text x="180" y="112" fill={COLORS.yellow} fontSize="14" fontFamily="monospace" fontWeight="bold">QUERY</text>
+        <text x="180" y="130" fill="#FFF" fontSize="12" fontFamily="monospace">K=3</text>
       </svg>
     </VisualizationShell>
   );
 }
 
+// ─────────────────────────────────────────────────────────────
+// 4. SUPPORT VECTOR MACHINES (SVM)
+// ─────────────────────────────────────────────────────────────
 function SvmVisualization() {
-  const left = [
-    [84, 148],
-    [98, 126],
-    [116, 142],
-    [136, 116],
-  ];
-  const right = [
-    [192, 88],
-    [212, 68],
-    [228, 92],
-    [246, 72],
-  ];
-  const support = [
-    [136, 116],
-    [176, 90],
-    [192, 88],
-  ];
+  const left = [[84, 148], [98, 126], [116, 142], [136, 116]];
+  const right = [[192, 88], [212, 68], [228, 92], [246, 72]];
+  const support = [[136, 116], [176, 90], [192, 88]];
 
   return (
     <VisualizationShell
-      title="Separate classes with the widest possible margin"
-      subtitle="A support vector machine looks for a boundary that not only separates the groups, but does so with the largest safety buffer."
-      insight="Only a few edge cases — the support vectors — determine the final separator, which is why SVMs can be very robust."
+      title="Draw a boundary with the widest possible safety margin"
+      subtitle="SVM doesn't just split the data; it finds the single dividing line that sits as far away as possible from the closest points of both classes."
+      insight="Only the absolute edge cases (the support vectors) define the model. All other data points behind the lines are effectively ignored."
       legend={[
-        { label: "Support vectors", color: "#ffb4ab" },
-        { label: "Margin", color: "#94a3b8" },
-        { label: "Hyperplane", color: "#f8fafc" },
+        { label: "Margin", color: COLORS.muted },
+        { label: "Hyperplane", color: "#FFF" },
+        { label: "Support Vector", color: COLORS.yellow },
       ]}
     >
       <svg viewBox="0 0 320 220" className="h-full w-full">
         <ScatterAxes />
+        <line x1="112" y1="178" x2="228" y2="44" stroke={COLORS.muted} strokeWidth="3" strokeDasharray="8 8" />
+        <line x1="136" y1="190" x2="252" y2="56" stroke="#FFF" strokeWidth="5" />
+        <line x1="160" y1="202" x2="276" y2="68" stroke={COLORS.muted} strokeWidth="3" strokeDasharray="8 8" />
 
-        <line
-          x1="112"
-          y1="178"
-          x2="228"
-          y2="44"
-          stroke="rgba(255,255,255,0.3)"
-          strokeDasharray="8 8"
-          strokeWidth="1.5"
-        />
-        <line
-          x1="136"
-          y1="190"
-          x2="252"
-          y2="56"
-          stroke="rgba(255,255,255,0.9)"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
-        <line
-          x1="160"
-          y1="202"
-          x2="276"
-          y2="68"
-          stroke="rgba(255,255,255,0.3)"
-          strokeDasharray="8 8"
-          strokeWidth="1.5"
-        />
-
-        {left.map(([x, y], index) => (
-          <circle
-            key={`l-${index}`}
-            cx={x}
-            cy={y}
-            r="5.5"
-            fill="var(--color-primary)"
-            stroke="rgba(255,255,255,0.35)"
-            strokeWidth="1"
-          />
+        {left.map(([x, y], i) => (
+          <rect key={`l-${i}`} x={x - 5} y={y - 5} width="10" height="10" fill={COLORS.cyan} />
         ))}
-
-        {right.map(([x, y], index) => (
-          <circle
-            key={`r-${index}`}
-            cx={x}
-            cy={y}
-            r="5.5"
-            fill="var(--color-tertiary)"
-            stroke="rgba(255,255,255,0.35)"
-            strokeWidth="1"
-          />
+        {right.map(([x, y], i) => (
+          <rect key={`r-${i}`} x={x - 5} y={y - 5} width="10" height="10" fill={COLORS.pink} />
         ))}
-
-        {support.map(([x, y], index) => (
-          <circle
-            key={`s-${index}`}
-            cx={x}
-            cy={y}
-            r="8"
-            fill="transparent"
-            stroke="var(--color-error)"
-            strokeWidth="2"
-          />
+        {support.map(([x, y], i) => (
+          <rect key={`s-${i}`} x={x - 9} y={y - 9} width="18" height="18" fill="none" stroke={COLORS.yellow} strokeWidth="3" />
         ))}
-
-        <rect
-          x="56"
-          y="32"
-          width="144"
-          height="38"
-          rx="8"
-          fill="rgba(11,19,38,0.86)"
-          stroke="rgba(255,255,255,0.08)"
-        />
-        <text
-          x="66"
-          y="48"
-          fill="#cbd5e1"
-          fontSize="11"
-          fontFamily="var(--font-mono)"
-        >
-          maximize margin
-        </text>
-        <text
-          x="66"
-          y="61"
-          fill="#64748b"
-          fontSize="9"
-          fontFamily="var(--font-mono)"
-        >
-          support vectors define it
-        </text>
       </svg>
     </VisualizationShell>
   );
 }
 
+// ─────────────────────────────────────────────────────────────
+// 5. DECISION TREES
+// ─────────────────────────────────────────────────────────────
 function DecisionTreeVisualization() {
   return (
     <VisualizationShell
-      title="Make decisions by asking one split question at a time"
-      subtitle="Decision trees partition the feature space into regions using a sequence of interpretable if/else rules."
-      insight="Each internal node asks a question, and every branch narrows the data until a leaf makes the final prediction."
+      title="Segment data via rigid rules"
+      subtitle="Decision trees build an architectural flowchart. At each node, they slice the data using a strict mathematical rule until a final verdict is reached."
+      insight="This creates rectangular, blocky decision boundaries. It is highly interpretable, but prone to creating overly specific, jagged rules."
       legend={[
-        { label: "Split node", color: "#adc6ff" },
-        { label: "Leaf prediction", color: "#7bd0ff" },
+        { label: "Logic Gate", color: COLORS.cyan },
+        { label: "Terminal Leaf", color: COLORS.pink },
       ]}
     >
       <svg viewBox="0 0 320 220" className="h-full w-full">
-        <line
-          x1="160"
-          y1="46"
-          x2="102"
-          y2="92"
-          stroke="rgba(255,255,255,0.18)"
-          strokeWidth="1.5"
-        />
-        <line
-          x1="160"
-          y1="46"
-          x2="218"
-          y2="92"
-          stroke="rgba(255,255,255,0.18)"
-          strokeWidth="1.5"
-        />
-        <line
-          x1="102"
-          y1="104"
-          x2="74"
-          y2="154"
-          stroke="rgba(255,255,255,0.14)"
-          strokeWidth="1.5"
-        />
-        <line
-          x1="102"
-          y1="104"
-          x2="130"
-          y2="154"
-          stroke="rgba(255,255,255,0.14)"
-          strokeWidth="1.5"
-        />
-        <line
-          x1="218"
-          y1="104"
-          x2="190"
-          y2="154"
-          stroke="rgba(255,255,255,0.14)"
-          strokeWidth="1.5"
-        />
-        <line
-          x1="218"
-          y1="104"
-          x2="246"
-          y2="154"
-          stroke="rgba(255,255,255,0.14)"
-          strokeWidth="1.5"
-        />
+        <line x1="160" y1="46" x2="102" y2="104" stroke="#FFF" strokeWidth="3" />
+        <line x1="160" y1="46" x2="218" y2="104" stroke="#FFF" strokeWidth="3" />
+        <line x1="102" y1="104" x2="74" y2="166" stroke="#FFF" strokeWidth="3" />
+        <line x1="102" y1="104" x2="130" y2="166" stroke="#FFF" strokeWidth="3" />
+        <line x1="218" y1="104" x2="190" y2="166" stroke="#FFF" strokeWidth="3" />
+        <line x1="218" y1="104" x2="246" y2="166" stroke="#FFF" strokeWidth="3" />
 
         {[
-          { x: 160, y: 36, text: "income > 70k?" },
-          { x: 102, y: 104, text: "age > 30?" },
-          { x: 218, y: 104, text: "visits > 5?" },
+          { x: 160, y: 40, text: "X > 10?" },
+          { x: 102, y: 104, text: "Y < 5?" },
+          { x: 218, y: 104, text: "Z = 1?" },
         ].map((node) => (
           <g key={node.text}>
-            <rect
-              x={node.x - 34}
-              y={node.y - 14}
-              width="68"
-              height="28"
-              rx="12"
-              fill="rgba(173,198,255,0.16)"
-              stroke="rgba(173,198,255,0.28)"
-            />
-            <text
-              x={node.x}
-              y={node.y + 4}
-              textAnchor="middle"
-              fill="#e2e8f0"
-              fontSize="9.5"
-              fontFamily="var(--font-mono)"
-            >
-              {node.text}
-            </text>
+            <rect x={node.x - 34} y={node.y - 14} width="68" height="28" fill="#000" stroke={COLORS.cyan} strokeWidth="3" />
+            <text x={node.x} y={node.y + 4} textAnchor="middle" fill="#FFF" fontSize="12" fontFamily="monospace" fontWeight="bold">{node.text}</text>
           </g>
         ))}
 
         {[
-          { x: 74, y: 166, label: "class A" },
-          { x: 130, y: 166, label: "class B" },
-          { x: 190, y: 166, label: "class B" },
-          { x: 246, y: 166, label: "class A" },
+          { x: 74, y: 166, label: "A" }, { x: 130, y: 166, label: "B" },
+          { x: 190, y: 166, label: "B" }, { x: 246, y: 166, label: "A" },
         ].map((leaf) => (
           <g key={`${leaf.x}-${leaf.label}`}>
-            <rect
-              x={leaf.x - 28}
-              y={leaf.y - 11}
-              width="56"
-              height="22"
-              rx="11"
-              fill="rgba(123,208,255,0.14)"
-              stroke="rgba(123,208,255,0.24)"
-            />
-            <text
-              x={leaf.x}
-              y={leaf.y + 3}
-              textAnchor="middle"
-              fill="#dbeafe"
-              fontSize="10"
-              fontFamily="var(--font-mono)"
-            >
-              {leaf.label}
-            </text>
+            <rect x={leaf.x - 20} y={leaf.y - 14} width="40" height="28" fill={COLORS.pink} stroke="#000" strokeWidth="3" />
+            <text x={leaf.x} y={leaf.y + 5} textAnchor="middle" fill="#000" fontSize="14" fontFamily="monospace" fontWeight="bold">{leaf.label}</text>
           </g>
         ))}
-
-        <text
-          x="82"
-          y="84"
-          fill="#64748b"
-          fontSize="10"
-          fontFamily="var(--font-mono)"
-        >
-          no
-        </text>
-        <text
-          x="226"
-          y="84"
-          fill="#64748b"
-          fontSize="10"
-          fontFamily="var(--font-mono)"
-        >
-          yes
-        </text>
       </svg>
     </VisualizationShell>
   );
 }
 
+// ─────────────────────────────────────────────────────────────
+// 6. RANDOM FOREST
+// ─────────────────────────────────────────────────────────────
 function RandomForestVisualization() {
   return (
     <VisualizationShell
-      title="Combine many trees into one stronger vote"
-      subtitle="Random forests train multiple slightly different trees and aggregate their outputs to reduce variance and overfitting."
-      insight="Each tree sees a different slice of the data, so the ensemble is less fragile than a single deep tree."
+      title="Create an ensemble mob to vote on reality"
+      subtitle="Random forests deliberately train many flawed, highly restricted decision trees. By forcing them to look at different parts of the data, their collective vote cancels out individual errors."
+      insight="A single tree memorizes the noise; a forest of trees averages the noise out into a robust signal."
       legend={[
-        { label: "Individual tree", color: "#adc6ff" },
-        { label: "Ensemble vote", color: "#7bd0ff" },
+        { label: "Weak Tree", color: COLORS.muted },
+        { label: "Aggregated Vote", color: COLORS.green },
       ]}
     >
       <svg viewBox="0 0 320 220" className="h-full w-full">
         {[60, 160, 260].map((x, index) => (
           <g key={x}>
-            <circle
-              cx={x}
-              cy="48"
-              r="10"
-              fill="rgba(173,198,255,0.18)"
-              stroke="rgba(173,198,255,0.32)"
-            />
-            <line
-              x1={x}
-              y1="58"
-              x2={x - 20}
-              y2="92"
-              stroke="rgba(255,255,255,0.18)"
-            />
-            <line
-              x1={x}
-              y1="58"
-              x2={x + 20}
-              y2="92"
-              stroke="rgba(255,255,255,0.18)"
-            />
-            <circle
-              cx={x - 20}
-              cy="98"
-              r="7"
-              fill="rgba(123,208,255,0.18)"
-              stroke="rgba(123,208,255,0.3)"
-            />
-            <circle
-              cx={x + 20}
-              cy="98"
-              r="7"
-              fill="rgba(123,208,255,0.18)"
-              stroke="rgba(123,208,255,0.3)"
-            />
-            <line
-              x1={x - 20}
-              y1="105"
-              x2={x - 30}
-              y2="136"
-              stroke="rgba(255,255,255,0.12)"
-            />
-            <line
-              x1={x + 20}
-              y1="105"
-              x2={x + 30}
-              y2="136"
-              stroke="rgba(255,255,255,0.12)"
-            />
-            <rect
-              x={x - 44}
-              y="138"
-              width="28"
-              height="18"
-              rx="9"
-              fill={
-                index === 1
-                  ? "rgba(123,208,255,0.18)"
-                  : "rgba(173,198,255,0.18)"
-              }
-              stroke="rgba(255,255,255,0.14)"
-            />
-            <rect
-              x={x + 16}
-              y="138"
-              width="28"
-              height="18"
-              rx="9"
-              fill={
-                index === 0
-                  ? "rgba(173,198,255,0.18)"
-                  : "rgba(123,208,255,0.18)"
-              }
-              stroke="rgba(255,255,255,0.14)"
-            />
+            <rect x={x - 15} y="38" width="30" height="20" fill="none" stroke={COLORS.muted} strokeWidth="2" />
+            <line x1={x} y1="58" x2={x - 20} y2="92" stroke={COLORS.muted} strokeWidth="2" />
+            <line x1={x} y1="58" x2={x + 20} y2="92" stroke={COLORS.muted} strokeWidth="2" />
+
+            <rect x={x - 30} y="92" width="20" height="15" fill={index === 1 ? COLORS.green : COLORS.muted} />
+            <rect x={x + 10} y="92" width="20" height="15" fill={index === 0 ? COLORS.muted : COLORS.green} />
           </g>
         ))}
 
-        <line
-          x1="60"
-          y1="178"
-          x2="160"
-          y2="178"
-          stroke="rgba(255,255,255,0.18)"
-          strokeDasharray="5 5"
-        />
-        <line
-          x1="160"
-          y1="178"
-          x2="260"
-          y2="178"
-          stroke="rgba(255,255,255,0.18)"
-          strokeDasharray="5 5"
-        />
-        <line
-          x1="160"
-          y1="178"
-          x2="160"
-          y2="196"
-          stroke="rgba(255,255,255,0.18)"
-        />
+        <line x1="40" y1="150" x2="280" y2="150" stroke="#FFF" strokeWidth="4" />
+        <polygon points="150,150 170,150 160,170" fill="#FFF" />
 
-        <rect
-          x="90"
-          y="196"
-          width="140"
-          height="18"
-          rx="9"
-          fill="rgba(123,208,255,0.14)"
-          stroke="rgba(123,208,255,0.26)"
-        />
-        <text
-          x="160"
-          y="208"
-          textAnchor="middle"
-          fill="#dbeafe"
-          fontSize="10"
-          fontFamily="var(--font-mono)"
-        >
-          majority vote → class B
-        </text>
+        <rect x="90" y="180" width="140" height="30" fill={COLORS.green} stroke="#000" strokeWidth="3" />
+        <text x="160" y="200" textAnchor="middle" fill="#000" fontSize="14" fontFamily="monospace" fontWeight="bold">FINAL VOTE</text>
       </svg>
     </VisualizationShell>
   );
 }
 
-function GradientBoostingVisualization() {
-  return (
-    <VisualizationShell
-      title="Correct mistakes stage by stage"
-      subtitle="Gradient boosting builds weak learners sequentially, where each new learner focuses on the residual errors left behind by the previous ones."
-      insight="Instead of averaging many independent trees, boosting keeps asking: what errors remain, and how can the next model reduce them?"
-      legend={[
-        { label: "Current prediction", color: "#adc6ff" },
-        { label: "Residual correction", color: "#ffb4ab" },
-        { label: "Improved fit", color: "#7bd0ff" },
-      ]}
-    >
-      <svg viewBox="0 0 320 220" className="h-full w-full">
-        {[
-          { x: 26, y: 36, w: 78, h: 128, title: "Model 1", bars: [46, 62, 88] },
-          {
-            x: 122,
-            y: 36,
-            w: 78,
-            h: 128,
-            title: "Model 2",
-            bars: [32, 46, 58],
-          },
-          {
-            x: 218,
-            y: 36,
-            w: 78,
-            h: 128,
-            title: "Model 3",
-            bars: [18, 30, 38],
-          },
-        ].map((panel, index) => (
-          <g key={panel.title}>
-            <rect
-              x={panel.x}
-              y={panel.y}
-              width={panel.w}
-              height={panel.h}
-              rx="14"
-              fill="rgba(255,255,255,0.03)"
-              stroke="rgba(255,255,255,0.08)"
-            />
-            <text
-              x={panel.x + 14}
-              y={panel.y + 18}
-              fill="#cbd5e1"
-              fontSize="11"
-              fontFamily="var(--font-mono)"
-            >
-              {panel.title}
-            </text>
-
-            {panel.bars.map((bar, barIndex) => (
-              <g key={barIndex}>
-                <rect
-                  x={panel.x + 16}
-                  y={panel.y + 34 + barIndex * 28}
-                  width="14"
-                  height={bar}
-                  rx="7"
-                  fill={
-                    index === 2
-                      ? "rgba(123,208,255,0.72)"
-                      : "rgba(173,198,255,0.72)"
-                  }
-                />
-                <rect
-                  x={panel.x + 38}
-                  y={panel.y + 34 + barIndex * 28 + Math.max(0, bar - 14)}
-                  width="14"
-                  height="14"
-                  rx="7"
-                  fill="rgba(255,180,171,0.78)"
-                />
-              </g>
-            ))}
-          </g>
-        ))}
-
-        <line
-          x1="104"
-          y1="100"
-          x2="122"
-          y2="100"
-          stroke="rgba(255,255,255,0.18)"
-          strokeWidth="1.5"
-        />
-        <line
-          x1="200"
-          y1="100"
-          x2="218"
-          y2="100"
-          stroke="rgba(255,255,255,0.18)"
-          strokeWidth="1.5"
-        />
-        <text
-          x="108"
-          y="92"
-          fill="#64748b"
-          fontSize="10"
-          fontFamily="var(--font-mono)"
-        >
-          fit residuals
-        </text>
-        <text
-          x="204"
-          y="92"
-          fill="#64748b"
-          fontSize="10"
-          fontFamily="var(--font-mono)"
-        >
-          fit residuals
-        </text>
-
-        <rect
-          x="78"
-          y="184"
-          width="164"
-          height="22"
-          rx="11"
-          fill="rgba(123,208,255,0.14)"
-          stroke="rgba(123,208,255,0.24)"
-        />
-        <text
-          x="160"
-          y="198"
-          textAnchor="middle"
-          fill="#dbeafe"
-          fontSize="10"
-          fontFamily="var(--font-mono)"
-        >
-          stage-wise additive model
-        </text>
-      </svg>
-    </VisualizationShell>
-  );
-}
-
-function NaiveBayesVisualization() {
-  return (
-    <VisualizationShell
-      title="Combine independent evidence into a posterior probability"
-      subtitle="Naive Bayes estimates how likely each feature is under each class, then multiplies that evidence with the class prior."
-      insight="Even with a very strong independence assumption, combining several simple feature probabilities often works surprisingly well."
-      legend={[
-        { label: "Class A likelihood", color: "#adc6ff" },
-        { label: "Class B likelihood", color: "#7bd0ff" },
-        { label: "Posterior winner", color: "#f8fafc" },
-      ]}
-    >
-      <svg viewBox="0 0 320 220" className="h-full w-full">
-        <text
-          x="30"
-          y="28"
-          fill="#cbd5e1"
-          fontSize="12"
-          fontFamily="var(--font-mono)"
-        >
-          feature likelihoods
-        </text>
-
-        <line
-          x1="30"
-          y1="164"
-          x2="158"
-          y2="164"
-          stroke="rgba(255,255,255,0.18)"
-          strokeWidth="1"
-        />
-        <line
-          x1="30"
-          y1="44"
-          x2="30"
-          y2="164"
-          stroke="rgba(255,255,255,0.18)"
-          strokeWidth="1"
-        />
-
-        <path
-          d="M34 164 C 56 164, 62 112, 90 96 C 110 86, 128 102, 152 164"
-          fill="none"
-          stroke="var(--color-primary)"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
-        <path
-          d="M34 164 C 60 164, 88 148, 108 118 C 126 92, 142 90, 152 164"
-          fill="none"
-          stroke="var(--color-tertiary)"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
-
-        <line
-          x1="104"
-          y1="44"
-          x2="104"
-          y2="164"
-          stroke="rgba(255,255,255,0.14)"
-          strokeDasharray="6 6"
-        />
-        <text
-          x="84"
-          y="38"
-          fill="#94a3b8"
-          fontSize="10"
-          fontFamily="var(--font-mono)"
-        >
-          observed value
-        </text>
-
-        <text
-          x="188"
-          y="28"
-          fill="#cbd5e1"
-          fontSize="12"
-          fontFamily="var(--font-mono)"
-        >
-          posterior
-        </text>
-
-        <rect
-          x="188"
-          y="70"
-          width="104"
-          height="24"
-          rx="12"
-          fill="rgba(255,255,255,0.06)"
-        />
-        <rect
-          x="188"
-          y="70"
-          width="42"
-          height="24"
-          rx="12"
-          fill="rgba(173,198,255,0.72)"
-        />
-        <text
-          x="196"
-          y="86"
-          fill="#0f172a"
-          fontSize="10"
-          fontFamily="var(--font-mono)"
-        >
-          P(A|x)
-        </text>
-
-        <rect
-          x="188"
-          y="114"
-          width="104"
-          height="24"
-          rx="12"
-          fill="rgba(255,255,255,0.06)"
-        />
-        <rect
-          x="188"
-          y="114"
-          width="62"
-          height="24"
-          rx="12"
-          fill="rgba(123,208,255,0.72)"
-        />
-        <text
-          x="196"
-          y="130"
-          fill="#0f172a"
-          fontSize="10"
-          fontFamily="var(--font-mono)"
-        >
-          P(B|x)
-        </text>
-
-        <rect
-          x="188"
-          y="160"
-          width="104"
-          height="28"
-          rx="14"
-          fill="rgba(123,208,255,0.14)"
-          stroke="rgba(123,208,255,0.24)"
-        />
-        <text
-          x="240"
-          y="178"
-          textAnchor="middle"
-          fill="#dbeafe"
-          fontSize="10"
-          fontFamily="var(--font-mono)"
-        >
-          predict class B
-        </text>
-      </svg>
-    </VisualizationShell>
-  );
-}
-
+// ─────────────────────────────────────────────────────────────
+// 7. K-MEANS CLUSTERING
+// ─────────────────────────────────────────────────────────────
 function KMeansVisualization() {
   const clusters = [
-    {
-      color: "rgba(173,198,255,0.18)",
-      centroid: [88, 126],
-      points: [
-        [62, 144],
-        [76, 116],
-        [94, 138],
-        [108, 114],
-      ],
-    },
-    {
-      color: "rgba(123,208,255,0.18)",
-      centroid: [174, 88],
-      points: [
-        [152, 102],
-        [168, 70],
-        [186, 98],
-        [198, 78],
-      ],
-    },
-    {
-      color: "rgba(208,188,255,0.18)",
-      centroid: [248, 138],
-      points: [
-        [226, 152],
-        [238, 124],
-        [258, 154],
-        [272, 132],
-      ],
-    },
+    { color: COLORS.cyan, centroid: [88, 126], points: [[62, 144], [76, 116], [94, 138], [108, 114]] },
+    { color: COLORS.pink, centroid: [174, 88], points: [[152, 102], [168, 70], [186, 98], [198, 78]] },
+    { color: COLORS.yellow, centroid: [248, 138], points: [[226, 152], [238, 124], [258, 154], [272, 132]] },
   ];
 
   return (
     <VisualizationShell
-      title="Assign each sample to the nearest centroid"
-      subtitle="K-means alternates between two steps: assign points to the closest center, then move each center to the mean of its assigned cluster."
-      insight="The centroids act like movable prototypes; when they stop shifting much, the clustering has stabilized."
+      title="Force data into competitive gravity wells"
+      subtitle="K-means drops random center points. Points snap to the closest center. The centers then move to the middle of their newly acquired points. This repeats until territory is locked."
+      insight="It creates rigid, geometric borders (Voronoi cells). It assumes clusters are perfectly round and evenly sized, which can fail on complex shapes."
       legend={[
-        { label: "Cluster region", color: "#7bd0ff" },
-        { label: "Centroid", color: "#f8fafc" },
+        { label: "Centroid", color: "#FFF" },
+        { label: "Territory", color: COLORS.muted },
       ]}
     >
       <svg viewBox="0 0 320 220" className="h-full w-full">
         <ScatterAxes />
+        {/* Voronoi territories */}
+        <path d="M40 24 L 132 24 L 132 190 L 40 190 Z" fill="rgba(0,255,255,0.1)" stroke={COLORS.cyan} strokeWidth="2" strokeDasharray="4 4" />
+        <path d="M132 24 L 218 24 L 218 190 L 132 190 Z" fill="rgba(255,51,102,0.1)" stroke={COLORS.pink} strokeWidth="2" strokeDasharray="4 4" />
+        <path d="M218 24 L 296 24 L 296 190 L 218 190 Z" fill="rgba(255,234,0,0.1)" stroke={COLORS.yellow} strokeWidth="2" strokeDasharray="4 4" />
 
-        <rect
-          x="40"
-          y="24"
-          width="92"
-          height="166"
-          rx="14"
-          fill="rgba(173,198,255,0.08)"
-        />
-        <rect
-          x="132"
-          y="24"
-          width="86"
-          height="166"
-          rx="14"
-          fill="rgba(123,208,255,0.08)"
-        />
-        <rect
-          x="218"
-          y="24"
-          width="78"
-          height="166"
-          rx="14"
-          fill="rgba(208,188,255,0.08)"
-        />
-
-        {clusters.map((cluster, index) => (
-          <g key={index}>
-            {cluster.points.map(([x, y], pointIndex) => (
-              <circle
-                key={pointIndex}
-                cx={x}
-                cy={y}
-                r="4.5"
-                fill={
-                  index === 0
-                    ? "var(--color-primary)"
-                    : index === 1
-                      ? "var(--color-tertiary)"
-                      : "var(--color-secondary)"
-                }
-                stroke="rgba(255,255,255,0.3)"
-              />
+        {clusters.map((cluster, i) => (
+          <g key={i}>
+            {cluster.points.map(([x, y], pi) => (
+              <rect key={pi} x={x - 4} y={y - 4} width="8" height="8" fill={cluster.color} />
             ))}
-            <g>
-              <circle
-                cx={cluster.centroid[0]}
-                cy={cluster.centroid[1]}
-                r="11"
-                fill="rgba(248,250,252,0.06)"
-                stroke="#f8fafc"
-                strokeWidth="2"
-              />
-              <line
-                x1={cluster.centroid[0] - 6}
-                y1={cluster.centroid[1]}
-                x2={cluster.centroid[0] + 6}
-                y2={cluster.centroid[1]}
-                stroke="#f8fafc"
-                strokeWidth="2"
-              />
-              <line
-                x1={cluster.centroid[0]}
-                y1={cluster.centroid[1] - 6}
-                x2={cluster.centroid[0]}
-                y2={cluster.centroid[1] + 6}
-                stroke="#f8fafc"
-                strokeWidth="2"
-              />
-            </g>
-          </g>
-        ))}
-      </svg>
-    </VisualizationShell>
-  );
-}
-
-function DbscanVisualization() {
-  const denseA = [
-    [84, 138],
-    [94, 126],
-    [104, 142],
-    [112, 122],
-    [124, 134],
-    [132, 118],
-  ];
-  const denseB = [
-    [202, 88],
-    [214, 100],
-    [226, 82],
-    [236, 96],
-    [246, 78],
-    [256, 92],
-  ];
-  const noise = [
-    [56, 58],
-    [160, 160],
-    [278, 146],
-  ];
-
-  return (
-    <VisualizationShell
-      title="Find dense regions and mark sparse points as noise"
-      subtitle="DBSCAN expands clusters from core points that have enough nearby neighbors within a chosen radius."
-      insight="Unlike K-means, DBSCAN does not force every point into a cluster, which makes it useful when outliers matter."
-      legend={[
-        { label: "Dense cluster", color: "#7bd0ff" },
-        { label: "Noise / outlier", color: "#ffb4ab" },
-      ]}
-    >
-      <svg viewBox="0 0 320 220" className="h-full w-full">
-        <ScatterAxes />
-
-        <circle
-          cx="108"
-          cy="128"
-          r="34"
-          fill="rgba(173,198,255,0.10)"
-          stroke="rgba(173,198,255,0.18)"
-        />
-        <circle
-          cx="228"
-          cy="90"
-          r="34"
-          fill="rgba(123,208,255,0.10)"
-          stroke="rgba(123,208,255,0.18)"
-        />
-
-        {denseA.map(([x, y], index) => (
-          <circle
-            key={`a-${index}`}
-            cx={x}
-            cy={y}
-            r="5"
-            fill="var(--color-primary)"
-            stroke="rgba(255,255,255,0.3)"
-          />
-        ))}
-
-        {denseB.map(([x, y], index) => (
-          <circle
-            key={`b-${index}`}
-            cx={x}
-            cy={y}
-            r="5"
-            fill="var(--color-tertiary)"
-            stroke="rgba(255,255,255,0.3)"
-          />
-        ))}
-
-        {noise.map(([x, y], index) => (
-          <g key={`n-${index}`}>
-            <circle cx={x} cy={y} r="5.5" fill="var(--color-error)" />
-            <line
-              x1={x - 7}
-              y1={y - 7}
-              x2={x + 7}
-              y2={y + 7}
-              stroke="#0f172a"
-              strokeWidth="1.5"
+            <polygon
+              points={`${cluster.centroid[0]},${cluster.centroid[1] - 10} ${cluster.centroid[0] + 10},${cluster.centroid[1]} ${cluster.centroid[0]},${cluster.centroid[1] + 10} ${cluster.centroid[0] - 10},${cluster.centroid[1]}`}
+              fill="#FFF" stroke="#000" strokeWidth="2"
             />
           </g>
         ))}
-
-        <circle
-          cx="94"
-          cy="126"
-          r="22"
-          fill="transparent"
-          stroke="rgba(255,255,255,0.3)"
-          strokeDasharray="5 5"
-        />
-        <text
-          x="110"
-          y="112"
-          fill="#94a3b8"
-          fontSize="10"
-          fontFamily="var(--font-mono)"
-        >
-          eps neighborhood
-        </text>
       </svg>
     </VisualizationShell>
   );
 }
 
-function PcaVisualization() {
-  return (
-    <VisualizationShell
-      title="Rotate the data to the directions of greatest variance"
-      subtitle="Principal component analysis finds a new coordinate system whose axes explain as much spread in the data as possible."
-      insight="The first component captures the strongest direction of variation, while later components explain what remains."
-      legend={[
-        { label: "Original data cloud", color: "#7bd0ff" },
-        { label: "PC1", color: "#adc6ff" },
-        { label: "PC2", color: "#d0bcff" },
-      ]}
-    >
-      <svg viewBox="0 0 320 220" className="h-full w-full">
-        <ScatterAxes />
-
-        <ellipse
-          cx="168"
-          cy="110"
-          rx="92"
-          ry="34"
-          transform="rotate(-28 168 110)"
-          fill="rgba(123,208,255,0.10)"
-          stroke="rgba(123,208,255,0.22)"
-          strokeWidth="1.5"
-        />
-
-        {[
-          [96, 142],
-          [112, 130],
-          [126, 124],
-          [142, 112],
-          [160, 106],
-          [176, 98],
-          [194, 86],
-          [216, 78],
-          [234, 70],
-        ].map(([x, y], index) => (
-          <circle
-            key={index}
-            cx={x}
-            cy={y}
-            r="4.5"
-            fill="var(--color-tertiary)"
-            stroke="rgba(255,255,255,0.28)"
-          />
-        ))}
-
-        <line
-          x1="78"
-          y1="158"
-          x2="254"
-          y2="58"
-          stroke="var(--color-primary)"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
-        <line
-          x1="146"
-          y1="52"
-          x2="196"
-          y2="172"
-          stroke="var(--color-secondary)"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-
-        <text
-          x="246"
-          y="54"
-          fill="#dbeafe"
-          fontSize="11"
-          fontFamily="var(--font-mono)"
-        >
-          PC1
-        </text>
-        <text
-          x="202"
-          y="176"
-          fill="#e9ddff"
-          fontSize="11"
-          fontFamily="var(--font-mono)"
-        >
-          PC2
-        </text>
-      </svg>
-    </VisualizationShell>
-  );
-}
-
+// ─────────────────────────────────────────────────────────────
+// 8. NEURAL NETWORKS
+// ─────────────────────────────────────────────────────────────
 function NeuralNetworkVisualization() {
   const layers = [
-    { x: 52, nodes: [52, 98, 144, 190], color: "var(--color-primary)" },
-    { x: 126, nodes: [64, 98, 132, 166], color: "var(--color-secondary)" },
-    { x: 198, nodes: [78, 116, 154], color: "var(--color-secondary)" },
-    { x: 270, nodes: [100, 140], color: "var(--color-tertiary)" },
+    { x: 52, nodes: [52, 98, 144, 190], color: COLORS.cyan },
+    { x: 126, nodes: [64, 98, 132, 166], color: COLORS.muted },
+    { x: 198, nodes: [78, 116, 154], color: COLORS.muted },
+    { x: 270, nodes: [100, 140], color: COLORS.pink },
   ];
 
   return (
     <VisualizationShell
-      title="Transform inputs through hidden layers"
-      subtitle="A multilayer perceptron repeatedly mixes features and applies non-linear activations so it can bend simple inputs into flexible decision regions."
-      insight="Each hidden layer re-expresses the data; together they can represent patterns that a single straight boundary cannot."
+      title="Warp and mangle space to separate targets"
+      subtitle="Neural Networks stack layers of matrix multiplications (warping space) and activation functions (folding space) until impossible problems become linearly solvable."
+      insight="The hidden layers literally learn a completely new coordinate system where the final classification is trivial."
       legend={[
-        { label: "Input layer", color: "#adc6ff" },
-        { label: "Hidden layers", color: "#d0bcff" },
-        { label: "Output layer", color: "#7bd0ff" },
+        { label: "Input", color: COLORS.cyan },
+        { label: "Hidden", color: COLORS.muted },
+        { label: "Output", color: COLORS.pink },
       ]}
     >
       <svg viewBox="0 0 320 220" className="h-full w-full">
-        {layers.map((layer, layerIndex) =>
+        {layers.map((layer, i) =>
           layer.nodes.map((y) =>
-            layerIndex < layers.length - 1
-              ? layers[layerIndex + 1].nodes.map((nextY, nextIndex) => (
-                  <line
-                    key={`${layerIndex}-${y}-${nextIndex}-${nextY}`}
-                    x1={layer.x}
-                    y1={y}
-                    x2={layers[layerIndex + 1].x}
-                    y2={nextY}
-                    stroke="rgba(173,198,255,0.12)"
-                    strokeWidth="1"
-                  />
-                ))
-              : null,
-          ),
+            i < layers.length - 1
+              ? layers[i + 1].nodes.map((nextY, ni) => (
+                <line key={`${i}-${y}-${ni}`} x1={layer.x} y1={y} x2={layers[i + 1].x} y2={nextY} stroke="#333" strokeWidth="2" />
+              ))
+              : null
+          )
         )}
-
-        {layers.map((layer, layerIndex) => (
+        {layers.map((layer) => (
           <g key={layer.x}>
-            {layer.nodes.map((y, index) => (
-              <circle
-                key={index}
-                cx={layer.x}
-                cy={y}
-                r="7.5"
-                fill={layer.color}
-                fillOpacity={
-                  layerIndex === 0
-                    ? 0.85
-                    : layerIndex === layers.length - 1
-                      ? 0.85
-                      : 0.6
-                }
-                stroke="rgba(255,255,255,0.25)"
-                strokeWidth="1"
-              />
+            {layer.nodes.map((y, i) => (
+              <rect key={i} x={layer.x - 8} y={y - 8} width="16" height="16" fill={layer.color} stroke="#000" strokeWidth="2" />
             ))}
           </g>
         ))}
-
-        <text
-          x="36"
-          y="28"
-          fill="#94a3b8"
-          fontSize="10"
-          fontFamily="var(--font-mono)"
-        >
-          inputs
-        </text>
-        <text
-          x="108"
-          y="28"
-          fill="#94a3b8"
-          fontSize="10"
-          fontFamily="var(--font-mono)"
-        >
-          hidden
-        </text>
-        <text
-          x="182"
-          y="28"
-          fill="#94a3b8"
-          fontSize="10"
-          fontFamily="var(--font-mono)"
-        >
-          hidden
-        </text>
-        <text
-          x="250"
-          y="28"
-          fill="#94a3b8"
-          fontSize="10"
-          fontFamily="var(--font-mono)"
-        >
-          outputs
-        </text>
-
-        <rect
-          x="28"
-          y="182"
-          width="264"
-          height="20"
-          rx="10"
-          fill="rgba(255,255,255,0.05)"
-          stroke="rgba(255,255,255,0.08)"
-        />
-        <path
-          d="M40 192 C 78 170, 102 206, 132 190 C 160 174, 178 142, 214 158 C 244 172, 258 130, 282 120"
-          fill="none"
-          stroke="var(--color-tertiary)"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
       </svg>
     </VisualizationShell>
   );
 }
 
-function CnnVisualization() {
+// ─────────────────────────────────────────────────────────────
+// 9. MAXIMUM LIKELIHOOD ESTIMATION (MLE) - *NEW*
+// ─────────────────────────────────────────────────────────────
+function MaximumLikelihoodVisualization() {
   return (
     <VisualizationShell
-      title="Detect local visual patterns and build them into objects"
-      subtitle="CNNs reuse small filters across the image, first finding edges and textures, then combining them into higher-level visual concepts."
-      insight="Weight sharing makes convolution efficient: the same filter can detect a pattern anywhere in the image."
+      title="Shift the mathematical truth to fit reality"
+      subtitle="Maximum Likelihood Estimation slides and stretches a probability distribution until the data we actually observed sits squarely at the highest possible probability."
+      insight="We assume a shape (like a bell curve). MLE is the brute-force search for the exact center and width that makes our data look completely unsurprising."
       legend={[
-        { label: "Input image", color: "#adc6ff" },
-        { label: "Feature maps", color: "#d0bcff" },
-        { label: "Classifier", color: "#7bd0ff" },
+        { label: "Fixed Data", color: COLORS.yellow },
+        { label: "Fitted Model", color: COLORS.pink },
+        { label: "Likelihood", color: COLORS.cyan },
       ]}
     >
       <svg viewBox="0 0 320 220" className="h-full w-full">
-        <rect
-          x="22"
-          y="58"
-          width="68"
-          height="68"
-          rx="14"
-          fill="rgba(173,198,255,0.10)"
-          stroke="rgba(173,198,255,0.24)"
-        />
-        {[0, 1, 2].map((row) =>
-          [0, 1, 2].map((col) => (
-            <rect
-              key={`${row}-${col}`}
-              x={34 + col * 16}
-              y={70 + row * 16}
-              width="10"
-              height="10"
-              rx="2"
-              fill={
-                row === 1 && col === 1
-                  ? "var(--color-primary)"
-                  : "rgba(255,255,255,0.18)"
-              }
-            />
-          )),
-        )}
+        <line x1="20" y1="180" x2="300" y2="180" stroke={COLORS.border} strokeWidth="4" />
 
-        <rect
-          x="58"
-          y="94"
-          width="22"
-          height="22"
-          rx="4"
-          fill="transparent"
-          stroke="#f8fafc"
-          strokeWidth="1"
-        />
+        {/* Poor fit curve (ghosted) */}
+        <path d="M 20 180 Q 70 180 100 80 Q 130 180 180 180" fill="none" stroke="#444" strokeWidth="2" strokeDasharray="4 4" />
 
-        <line
-          x1="98"
-          y1="92"
-          x2="130"
-          y2="92"
-          stroke="rgba(255,255,255,0.2)"
-          strokeWidth="1.5"
-        />
-        <line
-          x1="98"
-          y1="110"
-          x2="130"
-          y2="110"
-          stroke="rgba(255,255,255,0.2)"
-          strokeWidth="1.5"
-        />
+        {/* MLE Best fit curve */}
+        <path d="M 100 180 Q 160 180 200 40 Q 240 180 300 180" fill="rgba(255,51,102,0.1)" stroke={COLORS.pink} strokeWidth="4" />
 
-        {[0, 1, 2].map((index) => (
-          <rect
-            key={index}
-            x={132 + index * 8}
-            y={58 + index * 8}
-            width="52"
-            height="52"
-            rx="12"
-            fill="rgba(208,188,255,0.10)"
-            stroke="rgba(208,188,255,0.24)"
-          />
-        ))}
-
-        {[0, 1, 2].map((index) => (
-          <rect
-            key={`pool-${index}`}
-            x={198 + index * 6}
-            y={74 + index * 6}
-            width="36"
-            height="36"
-            rx="10"
-            fill="rgba(123,208,255,0.10)"
-            stroke="rgba(123,208,255,0.24)"
-          />
-        ))}
-
-        <line
-          x1="238"
-          y1="100"
-          x2="264"
-          y2="100"
-          stroke="rgba(255,255,255,0.2)"
-          strokeWidth="1.5"
-        />
-
+        {/* Data points & Likelihood drops */}
         {[
-          { x: 276, y: 80 },
-          { x: 276, y: 100 },
-          { x: 276, y: 120 },
-        ].map((node, index) => (
-          <circle
-            key={index}
-            cx={node.x}
-            cy={node.y}
-            r="8"
-            fill="var(--color-tertiary)"
-            fillOpacity="0.8"
-            stroke="rgba(255,255,255,0.25)"
-          />
-        ))}
-
-        <text
-          x="56"
-          y="146"
-          textAnchor="middle"
-          fill="#94a3b8"
-          fontSize="9"
-          fontFamily="var(--font-mono)"
-        >
-          image
-        </text>
-        <text
-          x="166"
-          y="156"
-          textAnchor="middle"
-          fill="#94a3b8"
-          fontSize="9"
-          fontFamily="var(--font-mono)"
-        >
-          conv filters
-        </text>
-        <text
-          x="222"
-          y="138"
-          textAnchor="middle"
-          fill="#94a3b8"
-          fontSize="9"
-          fontFamily="var(--font-mono)"
-        >
-          pooled maps
-        </text>
-        <text
-          x="276"
-          y="146"
-          textAnchor="middle"
-          fill="#94a3b8"
-          fontSize="9"
-          fontFamily="var(--font-mono)"
-        >
-          logits
-        </text>
-      </svg>
-    </VisualizationShell>
-  );
-}
-
-function RnnVisualization() {
-  return (
-    <VisualizationShell
-      title="Carry context forward through a sequence"
-      subtitle="RNNs process one time step at a time, updating a hidden state that summarizes what has happened so far."
-      insight="The hidden state acts like short-term memory, letting earlier tokens influence the interpretation of later ones."
-      legend={[
-        { label: "Input token", color: "#adc6ff" },
-        { label: "Hidden state", color: "#d0bcff" },
-        { label: "Output", color: "#7bd0ff" },
-      ]}
-    >
-      <svg viewBox="0 0 320 220" className="h-full w-full">
-        {[
-          { x: 44, token: "x₁", state: "h₁", out: "y₁" },
-          { x: 118, token: "x₂", state: "h₂", out: "y₂" },
-          { x: 192, token: "x₃", state: "h₃", out: "y₃" },
-          { x: 266, token: "x₄", state: "h₄", out: "y₄" },
-        ].map((step, index) => (
-          <g key={step.token}>
-            <rect
-              x={step.x - 18}
-              y="148"
-              width="36"
-              height="24"
-              rx="12"
-              fill="rgba(173,198,255,0.14)"
-              stroke="rgba(173,198,255,0.22)"
-            />
-            <text
-              x={step.x}
-              y="163"
-              textAnchor="middle"
-              fill="#dbeafe"
-              fontSize="11"
-              fontFamily="var(--font-mono)"
-            >
-              {step.token}
-            </text>
-
-            <rect
-              x={step.x - 22}
-              y="82"
-              width="44"
-              height="36"
-              rx="14"
-              fill="rgba(208,188,255,0.14)"
-              stroke="rgba(208,188,255,0.24)"
-            />
-            <text
-              x={step.x}
-              y="104"
-              textAnchor="middle"
-              fill="#ede9fe"
-              fontSize="11"
-              fontFamily="var(--font-mono)"
-            >
-              RNN
-            </text>
-
-            <rect
-              x={step.x - 18}
-              y="28"
-              width="36"
-              height="24"
-              rx="12"
-              fill="rgba(123,208,255,0.14)"
-              stroke="rgba(123,208,255,0.22)"
-            />
-            <text
-              x={step.x}
-              y="43"
-              textAnchor="middle"
-              fill="#dbeafe"
-              fontSize="11"
-              fontFamily="var(--font-mono)"
-            >
-              {step.out}
-            </text>
-
-            <text
-              x={step.x}
-              y="70"
-              textAnchor="middle"
-              fill="#94a3b8"
-              fontSize="10"
-              fontFamily="var(--font-mono)"
-            >
-              {step.state}
-            </text>
-
-            <line
-              x1={step.x}
-              y1="118"
-              x2={step.x}
-              y2="148"
-              stroke="rgba(255,255,255,0.2)"
-              strokeWidth="1.5"
-            />
-            <line
-              x1={step.x}
-              y1="82"
-              x2={step.x}
-              y2="52"
-              stroke="rgba(255,255,255,0.2)"
-              strokeWidth="1.5"
-            />
-
-            {index < 3 ? (
-              <>
-                <line
-                  x1={step.x + 22}
-                  y1="100"
-                  x2={step.x + 52}
-                  y2="100"
-                  stroke="rgba(255,255,255,0.22)"
-                  strokeWidth="1.5"
-                />
-                <polygon
-                  points={`${step.x + 52},100 ${step.x + 44},96 ${step.x + 44},104`}
-                  fill="rgba(255,255,255,0.5)"
-                />
-              </>
-            ) : null}
+          { x: 170, y: 80 }, { x: 190, y: 46 }, { x: 200, y: 40 }, { x: 215, y: 58 }, { x: 230, y: 110 }
+        ].map((pt, i) => (
+          <g key={i}>
+            <line x1={pt.x} y1={180} x2={pt.x} y2={pt.y} stroke={COLORS.cyan} strokeWidth="3" />
+            <rect x={pt.x - 6} y={174} width="12" height="12" fill={COLORS.yellow} stroke="#000" strokeWidth="2" />
           </g>
         ))}
+
+        <text x="200" y="25" fill={COLORS.pink} fontSize="14" fontFamily="monospace" fontWeight="bold" textAnchor="middle">MAX LIKELIHOOD</text>
       </svg>
     </VisualizationShell>
   );
 }
 
-function CalculusVisualization() {
+// ─────────────────────────────────────────────────────────────
+// 10. BAYESIAN INFERENCE - *NEW*
+// ─────────────────────────────────────────────────────────────
+function BayesianVisualization() {
   return (
     <VisualizationShell
-      title="Navigate landscapes by following the slope"
-      subtitle="Calculus calculates the exact local steepness (gradient) of the error landscape. Optimization relies on taking steps directly opposite to that steepest vector."
-      insight="The chain rule (Backpropagation) allows exactly calculating this slope simultaneously across millions of deeply nested parameters."
+      title="Update your beliefs with hard evidence"
+      subtitle="Bayesian logic refuses to look at data in a vacuum. It forces you to state an initial belief (Prior), measures the new evidence (Likelihood), and computes a mathematically sound compromise (Posterior)."
+      insight="If your prior belief is incredibly strong, it takes massive amounts of contrary data to shift your posterior. The model inherently protects against jumping to conclusions."
       legend={[
-        { label: "Error surface", color: "#64748b" },
-        { label: "Descent steps", color: "#7bd0ff" },
-        { label: "Local gradient", color: "#ffb4ab" },
+        { label: "Prior (Belief)", color: COLORS.yellow },
+        { label: "Likelihood (Data)", color: COLORS.cyan },
+        { label: "Posterior (Truth)", color: COLORS.pink },
       ]}
     >
       <svg viewBox="0 0 320 220" className="h-full w-full">
-        {/* Parabolic Loss Curve */}
-        <path
-          d="M 40 40 Q 160 220 280 40"
-          fill="none"
-          stroke="rgba(255,255,255,0.4)"
-          strokeWidth="3"
-        />
-        
-        {/* Tangent lines */}
-        <line x1="45" y1="20" x2="115" y2="150" stroke="var(--color-error)" strokeWidth="1.5" strokeDasharray="4 4"/>
-        <line x1="90" y1="95" x2="160" y2="155" stroke="var(--color-error)" strokeWidth="1.5" strokeDasharray="4 4"/>
-        
-        {/* Gradient Steps */}
-        <circle cx="80" cy="85" r="5" fill="var(--color-primary)" />
-        <path d="M 85 91 L 115 119" stroke="var(--color-primary)" strokeWidth="2" markerEnd="url(#arrow_calc)" />
-        <circle cx="125" cy="125" r="5" fill="var(--color-primary)" />
-        <path d="M 130 128 L 150 141" stroke="var(--color-primary)" strokeWidth="2" markerEnd="url(#arrow_calc)" />
-        <circle cx="160" cy="145" r="6" fill="#f8fafc" stroke="#0f172a" strokeWidth="2" />
-        
+        <line x1="20" y1="180" x2="300" y2="180" stroke={COLORS.border} strokeWidth="4" />
+
+        {/* Prior (Wide, Yellow) */}
+        <path d="M 40 180 Q 120 180 120 100 Q 120 180 200 180" fill="none" stroke={COLORS.yellow} strokeWidth="3" strokeDasharray="6 6" />
+        <text x="120" y="85" fill={COLORS.yellow} fontSize="12" fontFamily="monospace" fontWeight="bold" textAnchor="middle">PRIOR</text>
+
+        {/* Likelihood (Tall, Cyan, Shifted right) */}
+        <path d="M 160 180 Q 220 180 220 40 Q 220 180 280 180" fill="none" stroke={COLORS.cyan} strokeWidth="3" strokeDasharray="6 6" />
+        <text x="220" y="25" fill={COLORS.cyan} fontSize="12" fontFamily="monospace" fontWeight="bold" textAnchor="middle">DATA</text>
+
+        {/* Posterior (Intermediate, Pink, Solid) */}
+        <path d="M 100 180 Q 180 180 180 50 Q 180 180 260 180" fill="rgba(255,51,102,0.15)" stroke={COLORS.pink} strokeWidth="5" />
+        <rect x="150" y="55" width="60" height="24" fill={COLORS.pink} stroke="#000" strokeWidth="2" />
+        <text x="180" y="72" fill="#000" fontSize="12" fontFamily="monospace" fontWeight="bold" textAnchor="middle">UPDATED</text>
+
+        {/* Shift Arrow */}
+        <line x1="135" y1="120" x2="160" y2="105" stroke="#FFF" strokeWidth="3" markerEnd="url(#bayes_arrow)" />
         <defs>
-          <marker id="arrow_calc" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--color-primary)" />
-          </marker>
-        </defs>
-
-        <rect x="110" y="165" width="100" height="24" rx="12" fill="rgba(11,19,38,0.86)" stroke="rgba(255,255,255,0.08)" />
-        <text x="160" y="181" fill="#e2e8f0" fontSize="10" fontFamily="var(--font-mono)" textAnchor="middle">
-          Minimum Loss
-        </text>
-        
-        {/* Axes logic */}
-        <line x1="30" y1="20" x2="30" y2="190" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
-        <line x1="30" y1="190" x2="300" y2="190" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
-        <text x="16" y="24" fill="#64748b" fontSize="10" fontFamily="var(--font-mono)">L</text>
-        <text x="296" y="204" fill="#64748b" fontSize="10" fontFamily="var(--font-mono)">w</text>
-      </svg>
-    </VisualizationShell>
-  );
-}
-
-function LinearAlgebraVisualization() {
-  return (
-    <VisualizationShell
-      title="Morph and rotate multidimensional data"
-      subtitle="Matrices act as transformation engines. When data vectors are multiplied by a weight matrix, their entire surrounding spatial structure is skewed, rotated, or squashed."
-      insight="Learning a weight matrix essentially means searching for the exact spatial rotation that perfectly aligns and separates target classes."
-      legend={[
-        { label: "Original basis", color: "#64748b" },
-        { label: "Learned transformation", color: "#adc6ff" },
-        { label: "Vector data", color: "#7bd0ff" },
-      ]}
-    >
-      <svg viewBox="0 0 320 220" className="h-full w-full">
-        {/* Original Grid */}
-        <g stroke="rgba(255,255,255,0.08)" strokeWidth="1">
-          <line x1="160" y1="20" x2="160" y2="200" />
-          <line x1="160" y1="110" x2="300" y2="110" />
-          <line x1="20" y1="110" x2="160" y2="110" />
-        </g>
-        
-        {/* Skewed Grid (Transformed) */}
-        <g stroke="rgba(173,198,255,0.15)" strokeWidth="1.5">
-          <line x1="100" y1="20" x2="220" y2="200" />
-          <line x1="20" y1="140" x2="300" y2="80" />
-        </g>
-        
-        {/* Original Vectors */}
-        <line x1="160" y1="110" x2="160" y2="60" stroke="#64748b" strokeWidth="2.5" strokeDasharray="4 4" />
-        <line x1="160" y1="110" x2="220" y2="110" stroke="#64748b" strokeWidth="2.5" strokeDasharray="4 4" />
-        
-        {/* Transformed Basis Vectors */}
-        <line x1="160" y1="110" x2="120" y2="50" stroke="var(--color-tertiary)" strokeWidth="3" markerEnd="url(#arrow_tertiary)" />
-        <line x1="160" y1="110" x2="250" y2="90" stroke="var(--color-primary)" strokeWidth="3" markerEnd="url(#arrow_primary)" />
-
-        <circle cx="210" cy="70" r="4.5" fill="#f8fafc" />
-        <rect x="220" y="60" width="40" height="20" rx="4" fill="rgba(11,19,38,0.86)" stroke="rgba(255,255,255,0.08)" />
-        <text x="240" y="74" fill="#e2e8f0" fontSize="10" fontFamily="var(--font-mono)" textAnchor="middle">
-          T(v)
-        </text>
-        
-        <defs>
-          <marker id="arrow_primary" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3" markerHeight="3" orient="auto">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--color-primary)" />
-          </marker>
-          <marker id="arrow_tertiary" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3" markerHeight="3" orient="auto">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--color-tertiary)" />
+          <marker id="bayes_arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto">
+            <polygon points="0,0 10,5 0,10" fill="#FFF" />
           </marker>
         </defs>
       </svg>
@@ -2072,101 +539,27 @@ function LinearAlgebraVisualization() {
   );
 }
 
-function ProbabilityTheoryVisualization() {
-  return (
-    <VisualizationShell
-      title="Quantify uncertainty and bounded noise"
-      subtitle="Probability assumes data springs from latent mathematical distributions. Algorithms use variance and expectations to avoid falsely memorizing chaotic noise."
-      insight="A Gaussian standard deviation formally maps the boundaries of uncertainty, ensuring models output confidence limits rather than rigid guesses."
-      legend={[
-        { label: "Predictive variance", color: "rgba(173,198,255,0.15)" },
-        { label: "Target distribution", color: "var(--color-primary)" },
-      ]}
-    >
-      <svg viewBox="0 0 320 220" className="h-full w-full">
-        {/* Axes */}
-        <line x1="30" y1="190" x2="300" y2="190" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
-        
-        {/* Shaded variance area */}
-        <path
-          d="M 110 190 L 110 130 Q 160 10 210 130 L 210 190 Z"
-          fill="rgba(173,198,255,0.1)"
-        />
-        
-        {/* Gaussian Curve */}
-        <path
-          d="M 30 190 Q 90 190 110 130 Q 160 10 210 130 Q 230 190 300 190"
-          fill="none"
-          stroke="var(--color-primary)"
-          strokeWidth="3"
-        />
-
-        {/* Center Mean */}
-        <line x1="160" y1="40" x2="160" y2="190" stroke="#f8fafc" strokeWidth="2" strokeDasharray="5 5" />
-        
-        <rect x="150" y="20" width="20" height="20" rx="4" fill="rgba(11,19,38,0.86)" stroke="rgba(255,255,255,0.08)" />
-        <text x="160" y="34" fill="#e2e8f0" fontSize="12" fontFamily="var(--font-mono)" textAnchor="middle">μ</text>
-        
-        {/* Standard Deviations */}
-        <line x1="110" y1="130" x2="110" y2="190" stroke="var(--color-tertiary)" strokeWidth="1.5" strokeDasharray="3 3" />
-        <line x1="210" y1="130" x2="210" y2="190" stroke="var(--color-tertiary)" strokeWidth="1.5" strokeDasharray="3 3" />
-        
-        <path d="M 110 150 L 160 150" stroke="rgba(255,255,255,0.4)" strokeWidth="1" markerEnd="url(#arrow_prob)" markerStart="url(#arrow_prob_start)" />
-        <rect x="120" y="140" width="30" height="16" rx="4" fill="rgba(11,19,38,0.86)" stroke="rgba(255,255,255,0.08)" />
-        <text x="135" y="152" fill="#94a3b8" fontSize="10" fontFamily="var(--font-mono)" textAnchor="middle">-1σ</text>
-        
-        <path d="M 160 150 L 210 150" stroke="rgba(255,255,255,0.4)" strokeWidth="1" markerEnd="url(#arrow_prob)" markerStart="url(#arrow_prob_start)" />
-        <rect x="170" y="140" width="30" height="16" rx="4" fill="rgba(11,19,38,0.86)" stroke="rgba(255,255,255,0.08)" />
-        <text x="185" y="152" fill="#94a3b8" fontSize="10" fontFamily="var(--font-mono)" textAnchor="middle">+1σ</text>
-
-        <defs>
-          <marker id="arrow_prob" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3" markerHeight="3" orient="auto">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(255,255,255,0.6)" />
-          </marker>
-          <marker id="arrow_prob_start" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3" markerHeight="3" orient="auto-start-reverse">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(255,255,255,0.6)" />
-          </marker>
-        </defs>
-      </svg>
-    </VisualizationShell>
-  );
-}
-
+// ─────────────────────────────────────────────────────────────
+// 11. DEFAULT VISUALIZATION (Brutalist Fallback)
+// ─────────────────────────────────────────────────────────────
 function DefaultVisualization() {
   return (
     <VisualizationShell
-      title="Map structure, uncertainty, and model behavior"
-      subtitle="This diagram highlights how the algorithm organizes information, whether through boundaries, clusters, projections, or sequential transformations."
-      insight="The most useful intuition is to ask what structure the algorithm assumes and what kind of signal it tries to preserve."
+      title="Deconstruct the algorithm's mechanical reality"
+      subtitle="Every algorithm is simply a machine designed to force data into a specific structural paradigm—be it rules, distances, or mathematical boundaries."
+      insight="Stop looking at the math as magic. Look at the geometry it creates. That geometry tells you exactly when and how the algorithm will spectacularly fail."
     >
       <div className="grid h-full gap-4 md:grid-cols-3">
         {[
-          {
-            title: "Represent",
-            text: "Transform raw inputs into a useful internal structure.",
-            color: "bg-primary/10 border-primary/20 text-primary",
-          },
-          {
-            title: "Separate",
-            text: "Create regions, scores, or distances that distinguish outcomes.",
-            color: "bg-secondary/10 border-secondary/20 text-secondary",
-          },
-          {
-            title: "Generalize",
-            text: "Apply the learned structure to unseen examples.",
-            color: "bg-tertiary/10 border-tertiary/20 text-tertiary",
-          },
+          { title: "REPRESENT", text: "Transform raw chaotic inputs into rigid vector geometry.", color: "bg-[#00FFFF]" },
+          { title: "FRACTURE", text: "Violently split the space using boundaries, planes, or rules.", color: "bg-[#FF3366]" },
+          { title: "PROJECT", text: "Force unseen future data into this exact same rigid structure.", color: "bg-[#FFEA00]" },
         ].map((card) => (
-          <div
-            key={card.title}
-            className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"
-          >
-            <div
-              className={`inline-flex rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] ${card.color}`}
-            >
+          <div key={card.title} className="border-4 border-slate-700 bg-black p-5 shadow-[4px_4px_0px_0px_#333]">
+            <div className={`mb-4 inline-block px-3 py-1 text-sm font-black text-black border-2 border-black ${card.color}`}>
               {card.title}
             </div>
-            <p className="mt-4 text-sm leading-7 text-slate-400">{card.text}</p>
+            <p className="text-sm font-medium leading-relaxed text-white">{card.text}</p>
           </div>
         ))}
       </div>
@@ -2174,28 +567,321 @@ function DefaultVisualization() {
   );
 }
 
+// ─────────────────────────────────────────────────────────────
+// FOUNDATION: CALCULUS
+// ─────────────────────────────────────────────────────────────
+function CalculusVisualization() {
+  return (
+    <VisualizationShell
+      title="Navigate the error landscape by following the slope"
+      subtitle="Calculus computes the exact local steepness (gradient) of the error landscape. Optimization (like Gradient Descent) takes steps directly opposite to that steepest vector."
+      insight="Backpropagation is just the chain rule applied backwards, computing this slope across millions of parameters simultaneously."
+      legend={[
+        { label: "Loss Landscape", color: "#FFF" },
+        { label: "Descent Steps", color: COLORS.cyan },
+        { label: "Gradient Tangent", color: COLORS.pink },
+      ]}
+    >
+      <svg viewBox="0 0 320 220" className="h-full w-full">
+        {/* Axes */}
+        <line x1="30" y1="20" x2="30" y2="190" stroke={COLORS.border} strokeWidth="2" />
+        <line x1="30" y1="190" x2="300" y2="190" stroke={COLORS.border} strokeWidth="2" />
+        <text x="16" y="24" fill={COLORS.border} fontSize="12" fontFamily="monospace" fontWeight="bold">L</text>
+        <text x="296" y="204" fill={COLORS.border} fontSize="12" fontFamily="monospace" fontWeight="bold">W</text>
+
+        {/* Parabolic Loss Curve - Stark */}
+        <path d="M 40 40 Q 160 220 280 40" fill="none" stroke="#FFF" strokeWidth="4" />
+
+        {/* Tangent lines */}
+        <line x1="45" y1="20" x2="115" y2="150" stroke={COLORS.pink} strokeWidth="2" strokeDasharray="4 4" />
+        <line x1="90" y1="95" x2="160" y2="155" stroke={COLORS.pink} strokeWidth="2" strokeDasharray="4 4" />
+
+        {/* Gradient Steps */}
+        <rect x="76" y="81" width="8" height="8" fill={COLORS.cyan} stroke="#000" strokeWidth="2" />
+        <line x1="84" y1="90" x2="115" y2="119" stroke={COLORS.cyan} strokeWidth="3" markerEnd="url(#arrow_calc)" />
+        <rect x="121" y="121" width="8" height="8" fill={COLORS.cyan} stroke="#000" strokeWidth="2" />
+        <line x1="129" y1="128" x2="150" y2="141" stroke={COLORS.cyan} strokeWidth="3" markerEnd="url(#arrow_calc)" />
+        <rect x="156" y="141" width="8" height="8" fill="#FFF" stroke="#000" strokeWidth="2" />
+
+        <defs>
+          <marker id="arrow_calc" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto">
+            <polygon points="0,0 10,5 0,10" fill={COLORS.cyan} />
+          </marker>
+        </defs>
+
+        <rect x="100" y="165" width="120" height="24" fill={COLORS.pink} stroke="#000" strokeWidth="2" />
+        <text x="160" y="181" fill="#000" fontSize="12" fontFamily="monospace" fontWeight="bold" textAnchor="middle">MINIMUM LOSS</text>
+      </svg>
+    </VisualizationShell>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// FOUNDATION: LINEAR ALGEBRA
+// ─────────────────────────────────────────────────────────────
+function LinearAlgebraVisualization() {
+  return (
+    <VisualizationShell
+      title="Morph and rotate the fabric of data"
+      subtitle="Matrices are transformation engines. Multiplying data vectors by a weight matrix fundamentally skews, rotates, or squashes the entire spatial coordinate system."
+      insight="Training a neural network is essentially searching for the exact sequence of spatial warps that perfectly untangles target classes."
+      legend={[
+        { label: "Original Grid", color: COLORS.muted },
+        { label: "Warped Space", color: COLORS.cyan },
+        { label: "Data Vector", color: COLORS.pink },
+      ]}
+    >
+      <svg viewBox="0 0 320 220" className="h-full w-full">
+        {/* Original Grid */}
+        <g stroke={COLORS.muted} strokeWidth="2" strokeDasharray="4 4">
+          <line x1="160" y1="20" x2="160" y2="200" />
+          <line x1="160" y1="110" x2="300" y2="110" />
+          <line x1="20" y1="110" x2="160" y2="110" />
+        </g>
+
+        {/* Skewed Grid (Transformed) */}
+        <g stroke={COLORS.cyan} strokeWidth="2">
+          <line x1="100" y1="20" x2="220" y2="200" />
+          <line x1="20" y1="140" x2="300" y2="80" />
+          <line x1="60" y1="80" x2="180" y2="260" strokeOpacity="0.4" />
+          <line x1="60" y1="130" x2="340" y2="70" strokeOpacity="0.4" />
+        </g>
+
+        {/* Transformed Basis Vectors */}
+        <line x1="160" y1="110" x2="120" y2="50" stroke={COLORS.yellow} strokeWidth="4" markerEnd="url(#arrow_yellow)" />
+        <line x1="160" y1="110" x2="250" y2="90" stroke={COLORS.pink} strokeWidth="4" markerEnd="url(#arrow_pink)" />
+
+        <rect x="220" y="60" width="50" height="24" fill={COLORS.pink} stroke="#000" strokeWidth="2" />
+        <text x="245" y="76" fill="#000" fontSize="12" fontFamily="monospace" fontWeight="bold" textAnchor="middle">T(v)</text>
+
+        <defs>
+          <marker id="arrow_pink" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3" markerHeight="3" orient="auto">
+            <polygon points="0,0 10,5 0,10" fill={COLORS.pink} />
+          </marker>
+          <marker id="arrow_yellow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3" markerHeight="3" orient="auto">
+            <polygon points="0,0 10,5 0,10" fill={COLORS.yellow} />
+          </marker>
+        </defs>
+      </svg>
+    </VisualizationShell>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// FOUNDATION: PROBABILITY THEORY
+// ─────────────────────────────────────────────────────────────
+function ProbabilityTheoryVisualization() {
+  return (
+    <VisualizationShell
+      title="Quantify uncertainty and bound the noise"
+      subtitle="Probability models assume data springs from mathematical distributions. Using variance and expectations prevents algorithms from falsely memorizing chaotic noise."
+      insight="A standard deviation formally maps the boundaries of uncertainty, ensuring models output confidence limits rather than rigid guesses."
+      legend={[
+        { label: "Variance Bounds", color: COLORS.cyan },
+        { label: "Target Distribution", color: COLORS.pink },
+      ]}
+    >
+      <svg viewBox="0 0 320 220" className="h-full w-full">
+        <line x1="30" y1="190" x2="300" y2="190" stroke={COLORS.border} strokeWidth="4" />
+
+        {/* Harsh Hatched/Solid Variance Area */}
+        <rect x="110" y="40" width="100" height="150" fill="rgba(0,255,255,0.1)" stroke={COLORS.cyan} strokeWidth="2" strokeDasharray="4 4" />
+
+        {/* Gaussian Curve - Converted to brutalist straight lines for effect */}
+        <path d="M 30 190 L 90 190 L 110 130 L 160 40 L 210 130 L 230 190 L 300 190" fill="none" stroke={COLORS.pink} strokeWidth="4" />
+
+        {/* Center Mean */}
+        <line x1="160" y1="40" x2="160" y2="190" stroke="#FFF" strokeWidth="3" />
+
+        <rect x="150" y="20" width="20" height="20" fill="#FFF" stroke="#000" strokeWidth="2" />
+        <text x="160" y="34" fill="#000" fontSize="12" fontFamily="monospace" fontWeight="bold" textAnchor="middle">μ</text>
+
+        {/* Standard Deviations */}
+        <line x1="110" y1="150" x2="160" y2="150" stroke={COLORS.cyan} strokeWidth="2" markerStart="url(#arrow_prob_rev)" markerEnd="url(#arrow_prob)" />
+        <rect x="120" y="140" width="30" height="20" fill={COLORS.cyan} stroke="#000" strokeWidth="2" />
+        <text x="135" y="154" fill="#000" fontSize="12" fontFamily="monospace" fontWeight="bold" textAnchor="middle">-1σ</text>
+
+        <line x1="160" y1="150" x2="210" y2="150" stroke={COLORS.cyan} strokeWidth="2" markerStart="url(#arrow_prob_rev)" markerEnd="url(#arrow_prob)" />
+        <rect x="170" y="140" width="30" height="20" fill={COLORS.cyan} stroke="#000" strokeWidth="2" />
+        <text x="185" y="154" fill="#000" fontSize="12" fontFamily="monospace" fontWeight="bold" textAnchor="middle">+1σ</text>
+
+        <defs>
+          <marker id="arrow_prob" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3" markerHeight="3" orient="auto">
+            <polygon points="0,0 10,5 0,10" fill={COLORS.cyan} />
+          </marker>
+          <marker id="arrow_prob_rev" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3" markerHeight="3" orient="auto-start-reverse">
+            <polygon points="0,0 10,5 0,10" fill={COLORS.cyan} />
+          </marker>
+        </defs>
+      </svg>
+    </VisualizationShell>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// MODEL: PRINCIPAL COMPONENT ANALYSIS (PCA)
+// ─────────────────────────────────────────────────────────────
+function PcaVisualization() {
+  return (
+    <VisualizationShell
+      title="Rotate reality to find the strongest signal"
+      subtitle="PCA abandons the original X/Y axes and creates a new coordinate system aligned with the directions where the data varies the most."
+      insight="The first component (PC1) slices through the widest spread of data. The rest capture whatever variance is left over."
+      legend={[
+        { label: "Data points", color: COLORS.cyan },
+        { label: "PC1 (Max Variance)", color: COLORS.pink },
+        { label: "PC2 (Orthogonal)", color: COLORS.yellow },
+      ]}
+    >
+      <svg viewBox="0 0 320 220" className="h-full w-full">
+        <ScatterAxes />
+        {/* Rotated bounding box representing variance instead of a soft ellipse */}
+        <rect x="76" y="76" width="184" height="68" transform="rotate(-28 168 110)" fill="rgba(0,255,255,0.05)" stroke={COLORS.cyan} strokeWidth="2" strokeDasharray="4 4" />
+
+        {/* Data points (Squares) */}
+        {[[96, 142], [112, 130], [126, 124], [142, 112], [160, 106], [176, 98], [194, 86], [216, 78], [234, 70]].map(([x, y], index) => (
+          <rect key={index} x={x - 4} y={y - 4} width="8" height="8" fill={COLORS.cyan} stroke="#000" strokeWidth="2" />
+        ))}
+
+        {/* PC1 */}
+        <line x1="78" y1="158" x2="254" y2="58" stroke={COLORS.pink} strokeWidth="4" />
+        {/* PC2 */}
+        <line x1="146" y1="52" x2="196" y2="172" stroke={COLORS.yellow} strokeWidth="3" strokeDasharray="6 6" />
+
+        <rect x="236" y="34" width="36" height="20" fill={COLORS.pink} stroke="#000" strokeWidth="2" />
+        <text x="254" y="48" fill="#000" fontSize="12" fontFamily="monospace" fontWeight="bold" textAnchor="middle">PC1</text>
+
+        <rect x="180" y="174" width="36" height="20" fill={COLORS.yellow} stroke="#000" strokeWidth="2" />
+        <text x="198" y="188" fill="#000" fontSize="12" fontFamily="monospace" fontWeight="bold" textAnchor="middle">PC2</text>
+      </svg>
+    </VisualizationShell>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// 12. MARKOV CHAIN MONTE CARLO (MCMC)
+// ─────────────────────────────────────────────────────────────
+function McmcVisualization() {
+  // Path data for the Markov Chain
+  const chain = [
+    [50, 170], [80, 140], [130, 150], [160, 100], [200, 110]
+  ];
+  const rejected = [250, 50]; // Proposed but rejected (went too far outside)
+
+  return (
+    <VisualizationShell
+      title="Wander randomly to map the unknown"
+      subtitle="MCMC explores complex probability landscapes by taking a random walk. Steps towards higher probability are accepted; steps away are mostly rejected, leaving a trail that maps the hidden structure."
+      insight="Instead of calculating an impossible integral, MCMC builds a crowd of samples. Where the walker spends the most time is where the mathematical truth lies."
+      legend={[
+        { label: "Target Distribution", color: COLORS.cyan },
+        { label: "Accepted Chain", color: COLORS.yellow },
+        { label: "Rejected Step", color: COLORS.pink },
+      ]}
+    >
+      <svg viewBox="0 0 320 220" className="h-full w-full overflow-visible">
+        <ScatterAxes />
+
+        {/* Target Distribution Contours (Brutalist style: stark, thick, jagged lines) */}
+        {/* Outer low prob boundary */}
+        <path
+          d="M 100 100 L 140 30 L 260 60 L 280 150 L 200 190 Z"
+          fill="none" stroke={COLORS.muted} strokeWidth="3" strokeDasharray="8 8"
+        />
+        {/* Inner high prob core */}
+        <path
+          d="M 150 100 L 180 70 L 230 90 L 220 140 L 170 130 Z"
+          fill="rgba(0,255,255,0.1)" stroke={COLORS.cyan} strokeWidth="4"
+        />
+        <text x="195" y="110" fill={COLORS.cyan} fontSize="16" fontFamily="monospace" fontWeight="bold" textAnchor="middle">P(X)</text>
+
+        {/* The Chain (Accepted Steps) */}
+        <polyline
+          points={chain.map(p => p.join(',')).join(' ')}
+          fill="none"
+          stroke={COLORS.yellow}
+          strokeWidth="4"
+        />
+
+        {/* Accepted Nodes */}
+        {chain.map(([x, y], i) => (
+          <rect
+            key={`node-${i}`}
+            x={x - 6} y={y - 6}
+            width="12" height="12"
+            fill={i === chain.length - 1 ? "#000" : COLORS.yellow}
+            stroke={COLORS.yellow} strokeWidth="3"
+          />
+        ))}
+
+        {/* Rejected Step */}
+        <line
+          x1={chain[chain.length - 1][0]} y1={chain[chain.length - 1][1]}
+          x2={rejected[0]} y2={rejected[1]}
+          stroke={COLORS.pink} strokeWidth="4" strokeDasharray="6 6"
+        />
+
+        {/* Brutalist 'X' for rejected node */}
+        <rect x={rejected[0] - 8} y={rejected[1] - 8} width="16" height="16" fill="none" stroke={COLORS.pink} strokeWidth="3" />
+        <line x1={rejected[0] - 8} y1={rejected[1] - 8} x2={rejected[0] + 8} y2={rejected[1] + 8} stroke={COLORS.pink} strokeWidth="3" />
+        <line x1={rejected[0] - 8} y1={rejected[1] + 8} x2={rejected[0] + 8} y2={rejected[1] - 8} stroke={COLORS.pink} strokeWidth="3" />
+
+        {/* Annotations */}
+        <rect x="215" y="20" width="76" height="22" fill={COLORS.pink} stroke="#000" strokeWidth="2" />
+        <text x="253" y="35" fill="#000" fontSize="12" fontFamily="monospace" fontWeight="bold" textAnchor="middle">REJECTED</text>
+
+        <rect x={chain[chain.length - 1][0] - 35} y={chain[chain.length - 1][1] + 15} width="70" height="22" fill={COLORS.yellow} stroke="#000" strokeWidth="2" />
+        <text x={chain[chain.length - 1][0]} y={chain[chain.length - 1][1] + 30} fill="#000" fontSize="12" fontFamily="monospace" fontWeight="bold" textAnchor="middle">CURRENT</text>
+
+      </svg>
+    </VisualizationShell>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// COMPONENT EXPORT
+// ─────────────────────────────────────────────────────────────
 export default function AlgorithmVisualization({ algorithmId }: Props) {
   switch (algorithmId) {
+    // ── Foundations ─────────────────────────
     case "calculus":
       return <CalculusVisualization />;
     case "linear-algebra":
       return <LinearAlgebraVisualization />;
     case "probability-theory":
       return <ProbabilityTheoryVisualization />;
+
+    // ── Core Models ─────────────────────────
     case "linear-regression":
       return <LinearRegressionVisualization />;
+    case "logistic-regression":
+      return <LogisticRegressionVisualization />;
+    case "maximum-likelihood":
+      return <MaximumLikelihoodVisualization />;
+    case "bayesian-inference":
+      return <BayesianVisualization />;
+    case "knn":
+      return <KnnVisualization />;
     case "instance-based-trees":
       return <DecisionTreeVisualization />;
-    case "clustering":
-      return <KMeansVisualization />;
     case "support-vector-machines":
       return <SvmVisualization />;
-    case "ensemble-learning":
-      return <RandomForestVisualization />;
+    case "mcmc":
+      return <McmcVisualization />;
+
+    // ── Unsupervised & Ensembles ────────────
+    case "clustering":
+      return <KMeansVisualization />;
     case "dimensionality-reduction":
       return <PcaVisualization />;
+    case "ensemble-learning":
+      return <RandomForestVisualization />;
+
+    // ── Deep Learning ───────────────────────
     case "neural-networks":
       return <NeuralNetworkVisualization />;
+
+    // ── Fallback ────────────────────────────
     default:
       return <DefaultVisualization />;
   }

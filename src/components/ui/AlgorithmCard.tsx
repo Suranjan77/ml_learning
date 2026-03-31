@@ -14,28 +14,28 @@ interface AlgorithmCardProps {
 const colorMap = {
   primary: {
     topBorder: "bg-primary",
-    formulaBg: "bg-primary/6",
-    formulaBorder: "border-primary/15",
-    formulaText: "text-primary/60",
-    glow: "group-hover:shadow-[0_4px_24px_-4px_rgba(173,198,255,0.15)]",
+    formulaBg: "bg-primary/20",
+    formulaBorder: "border-primary",
+    formulaText: "text-primary",
+    glow: "group-hover:shadow-[-8px_8px_0px_0px_var(--color-primary)]",
     arrow: "text-primary group-hover:translate-x-1",
     dot: "bg-primary",
   },
   secondary: {
     topBorder: "bg-secondary",
-    formulaBg: "bg-secondary/6",
-    formulaBorder: "border-secondary/15",
-    formulaText: "text-secondary/60",
-    glow: "group-hover:shadow-[0_4px_24px_-4px_rgba(208,188,255,0.15)]",
+    formulaBg: "bg-secondary/20",
+    formulaBorder: "border-secondary",
+    formulaText: "text-secondary",
+    glow: "group-hover:shadow-[-8px_8px_0px_0px_var(--color-secondary)]",
     arrow: "text-secondary group-hover:translate-x-1",
     dot: "bg-secondary",
   },
   tertiary: {
     topBorder: "bg-tertiary",
-    formulaBg: "bg-tertiary/6",
-    formulaBorder: "border-tertiary/15",
-    formulaText: "text-tertiary/60",
-    glow: "group-hover:shadow-[0_4px_24px_-4px_rgba(123,208,255,0.15)]",
+    formulaBg: "bg-tertiary/20",
+    formulaBorder: "border-tertiary",
+    formulaText: "text-tertiary",
+    glow: "group-hover:shadow-[-8px_8px_0px_0px_var(--color-tertiary)]",
     arrow: "text-tertiary group-hover:translate-x-1",
     dot: "bg-tertiary",
   },
@@ -54,14 +54,14 @@ export default function AlgorithmCard({
     <Link
       href={`/algorithms/${slug}`}
       className={clsx(
-        "group relative flex h-full min-h-[270px] flex-col overflow-hidden rounded-xl border border-outline-variant/40 bg-surface-container-high transition-all duration-300",
-        "hover:bg-surface-container-highest hover:border-outline-variant/60",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        "group relative flex h-full min-h-[270px] flex-col overflow-hidden border-4 border-outline bg-surface transition-all duration-200",
+        "shadow-[-4px_4px_0px_0px_var(--color-outline)] hover:-translate-y-1 hover:translate-x-1",
+        "focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         colors.glow,
       )}
     >
       {/* Category accent top border */}
-      <div className={clsx("h-[2px] w-full", colors.topBorder)} />
+      <div className={clsx("h-2 w-full", colors.topBorder)} />
 
       <div className="flex h-full flex-col p-6">
         {/* Header with formula chip */}
