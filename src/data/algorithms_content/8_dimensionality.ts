@@ -4,56 +4,63 @@ export const dimensionalityReduction: Algorithm = {
   id: "dimensionality-reduction",
   title: "Dimensionality Reduction",
   category: "Dimensionality Reduction",
-  shortDescription: "Methodologies for the substantial mathematical compression of features whilst rigorously retaining essential structural variance.",
+  shortDescription: "Techniques to shrink massive datasets down to their most important core features, making them easier to visualize and faster to process.",
 
   fullDescription: `
-Dimensionality reduction encompasses advanced algorithms fundamentally designed to map highly dimensional data configurations into lower-dimensional representational spaces. The most prominent analytical technique, Principal Component Analysis (PCA), mathematically orthogonalises the original dataset by successfully isolating the fundamental axes (principal components) exhibiting the maximum continuous geometric variance, subsequently projecting the raw data onto them. This effectively compresses extraneous statistical noise and definitively insulates the most salient structural signals intrinsic to the dataset.
+Imagine you have a spreadsheet with 1,000 columns describing a house (square footage, number of windows, color of the front door, distance to the nearest coffee shop, etc.). "Dimensionality Reduction" algorithms figure out how to compress those 1,000 columns down to, say, 10 columns, without losing the core "meaning" of the data.
 
-### Empirical Applications
-Dimensionality reduction is frequently leveraged for exploratory data visualisation protocols (effectively compressing thousands of empirical variables onto a discernible 2D or 3D coordinate plane), robust computational data compression pipelines, mitigating the geometric 'Curse of Dimensionality' in downstream machine learning tasks, and propelling high-speed facial recognition mechanisms (e.g., the Eigenfaces biometric system).
+The most famous technique is Principal Component Analysis (PCA). PCA looks at all your data and mathematically figures out which combinations of features actually matter. For example, it might figure out that "number of bedrooms," "number of bathrooms," and "square footage" all basically measure the same thing: "House Size." It combines them into one new super-feature, throwing away the redundant noise.
+
+### Where is it used?
+It is heavily used for data visualization. Humans can't visualize a 1,000-dimensional graph, but PCA can compress that data down to 2 or 3 dimensions so we can actually look at it on a screen. It's also used to compress images, speed up facial recognition systems, and clean up messy data before feeding it into other machine learning models.
   `,
 
   intuition: `
-Consider the analytical challenge of evaluating a complex three-dimensional object, such as an aircraft, via a static two-dimensional photograph. A suboptimal vantage point directly obscures structural details, projecting a shadow completely devoid of nuance. Alternatively, an optimal statistical projection (e.g., a superior orthogonal view) explicitly reveals the comprehensive proportions, explicitly capturing the wingspan, fuselage, and tail structure. 
+Imagine you are trying to take a photograph of a complex 3D object, like a bicycle. If you take the photo from the front, it just looks like a thin line (a tire and some handlebars). You've lost almost all the information about what the object is. 
 
-PCA mathematically computes this precise, optimal 'viewing angle', systematically capturing the greatest measure of explicitly defining shape configuration and geometric variance inherent to high-dimensional empirical matrices.
+But if you walk around to the side and take a photo, you capture the wheels, the frame, the pedals, and the seat. You have successfully compressed a 3D object into a 2D photograph while keeping the maximum amount of useful visual information. 
+
+PCA does exactly this, but with math. It mathematically rotates your data until it finds the absolute best "camera angle" that captures the widest, most informative view of your dataset.
   `,
 
   mathematics: `
 ### 1. The Covariance Matrix
-Given a precisely mean-centred $n \\times d$ dataset matrix $X$, the empirical $d \\times d$ symmetric statistical covariance matrix is rigorously formulated as:
+To figure out how features relate to each other, PCA first calculates a Covariance Matrix ($\\Sigma$). If you have a dataset $X$ (where the average of every column is zero), the covariance matrix is calculated as:
 
 $$ \\Sigma = \\frac{1}{n-1} X^T X $$
 
-### 2. Spectral Eigenvalue Decomposition
-PCA systematically decomposes this specific covariance matrix $\\Sigma$ directly into rigorously independent structural eigenvectors ($v_i$) and equivalent corresponding eigenvalues ($\\lambda_i$):
+This matrix tells the algorithm which features move together (like height and weight) and which are completely unrelated.
+
+### 2. Eigenvectors and Eigenvalues
+PCA then performs a mathematical operation called "Eigendecomposition" on that covariance matrix:
 
 $$ \\Sigma v_i = \\lambda_i v_i $$
 
-Each exactly derived, analytically valid eigenvector structurally operates as an orthogonal principal component defining an axis of variance. The corresponding eigenvalue mathematically quantifies the precise absolute magnitude of the variance rigorously isolated along that specific eigenvector's dimension.
+It finds special directions called **Eigenvectors** ($v_i$). These are the new "camera angles." It also finds **Eigenvalues** ($\\lambda_i$), which tell you exactly how much information (variance) is captured by that specific camera angle. You simply keep the top few eigenvectors with the biggest eigenvalues, and throw the rest away!
   `,
 
   pros: [
-    "Mathematically flawless methodology for isolating and definitively eliminating severely correlated (collinear) variables within complex datasets.",
-    "Specifically and structurally isolates pure geometric variance to analytically maximise computational downstream efficiency."
+    "It is a brilliant, mathematically proven way to remove redundant, highly correlated columns from your data.",
+    "It drastically speeds up other machine learning algorithms by giving them less, but higher-quality, data to process.",
+    "It allows you to visualize incredibly complex datasets on a standard 2D screen."
   ],
 
   cons: [
-    "Strictly presupposes that the underlying latent parametric relationships governing the data are fundamentally perfectly linear.",
-    "Analytically and precisely removes absolute structural interpretability, effectively transforming explicit real-world features into functionally abstract mathematical composite vectors."
+    "PCA assumes that the relationships in your data are straight lines (linear). If your data is curved or twisted, standard PCA will fail.",
+    "The new 'super-features' it creates are mathematically abstract. You might compress 10 columns into 'Component 1', but it becomes very hard to explain to a human what 'Component 1' actually represents in the real world."
   ],
 
   codeSnippet: `import numpy as np
 from sklearn.decomposition import PCA
 
-# Matrix definition: 100 random continuous samples with 5 correlating features
+# Create a fake dataset: 100 rows, 5 columns
 X = np.random.randn(100, 5)
 
-# Initialise PCA strictly retaining components explaining 95% of aggregate variance
+# Tell PCA to keep enough components to explain 95% of the data's variance
 pca = PCA(n_components=0.95)
 X_reduced = pca.fit_transform(X)
 
-print(f"Original array shape dimensionality: {X.shape}")
-print(f"Reduced array shape dimensionality: {X_reduced.shape}")
-print(f"Explicit Explained Statistical Variance Factor Ratio: {pca.explained_variance_ratio_}")`
+print(f"Original shape: {X.shape}")
+print(f"Reduced shape: {X_reduced.shape}")
+print(f"How much information each new column holds: {pca.explained_variance_ratio_}")`
 };

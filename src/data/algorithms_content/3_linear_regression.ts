@@ -4,58 +4,61 @@ export const linearRegression: Algorithm = {
   id: "linear-regression",
   title: "Linear & Logistic Regression",
   category: "Linear Regression",
-  shortDescription: "A fundamental parametric class of models predicting continuous values (Linear) or class probabilities (Logistic) via globally linear feature combinations.",
+  shortDescription: "The classic algorithms for drawing a line through data to predict numbers (Linear) or sort things into categories (Logistic).",
 
   fullDescription: `
-Linear regression mathematically models the fundamental relationship between a targeted continuous dependent variable and one or more independent input features by fitting an $n$-dimensional hyperplane. Logistic regression formally extends this concept for classification tasks by passing the linear output directly through the logistic (sigmoid) function. This transformation maps the raw unbounded output to a probabilistic value strictly bounded between 0 and 1, thereby facilitating robust binary classification modelling.
+Linear regression is one of the oldest and most fundamental algorithms in machine learning. It tries to find the simplest possible relationship between your inputs and your target by drawing a straight line (or a flat plane) through your data points. 
 
-### Empirical Applications
-Linear regression is optimally suited for straightforward continuous modelling (e.g., predicting exact pharmacological dosages based on quantifiable physiological metrics), robust long-term econometric forecasting, or isolating causal feature impact. Logistic regression is extensively utilised in institutional credit scoring applications, critical biomedical research (e.g., mapping precise disease incidence probabilities), and analytical targeted marketing.
+Logistic regression is its close cousin, but instead of predicting a continuous number (like the price of a house), it predicts a probability between 0 and 1 (like the chance a house will sell this month). It does this by taking the straight line from linear regression and bending it into an "S" shape.
+
+### Where is it used?
+Linear regression is perfect when you need a simple, understandable prediction, like forecasting next month's sales based on advertising spend, or predicting a patient's blood pressure based on their weight. Logistic regression is the industry standard for binary classification: credit card fraud detection (fraud or not fraud?), medical diagnosis (sick or healthy?), and email filtering (spam or inbox?).
   `,
 
   intuition: `
-Linear regression algorithms systematically derive a 'line of best fit' through scattered multidimensional data points by mathematically minimising the aggregate squared vertical distances between the empirical observations and the model hyperplane. 
+Imagine you scatter a handful of points on a graph. Linear regression grabs a ruler and tries to draw a single straight line that gets as close to all the points as possible. It does this by measuring the vertical distance from every point to the line, squaring those distances (to make negative errors positive and punish big mistakes), and twisting the line until that total error is as small as possible.
 
-Logistic regression similarly constructs a linear decision boundary to distinctly partition two distinct classifications; however, rather than outputting a continuous raw value, it projects the distance from this boundary onto a continuous 'S-shaped' probability curve, quantifying the statistical likelihood of class membership.
+Logistic regression does something similar, but instead of trying to draw a line *through* the points, it tries to draw a line that *separates* the points into two distinct groups. It then measures how far away a point is from that boundary line to calculate the percentage chance that the point belongs to group A or group B.
   `,
 
   mathematics: `
-### 1. Ordinary Least Squares (OLS) Linear Regression
-For a specific input feature vector $x \\in \\mathbb{R}^p$, the parametric model relies on a precisely calibrated weights vector $w$:
+### 1. Ordinary Least Squares (Linear Regression)
+For a set of input features $x$, the model makes a prediction $\\hat{y}$ by multiplying each feature by a specific weight $w$ and adding a baseline number $b$:
 
 $$ \\hat{y} = w^T x + b $$
 
-Under the assumptions of Maximum Likelihood Estimation with Gaussian noise, the objective function is mathematically equivalent to minimising the Mean Squared Error (MSE):
+The goal is to find the weights that minimize the Mean Squared Error (MSE), which is the average of all the squared mistakes:
 
 $$ \\mathcal{L}(w) = \\frac{1}{n} \\|y - Xw\\|^2 $$
 
-The analytical closed-form solution (the Normal Equation) is derived algebraically as:
+Because this is a simple linear equation, we don't even need to use complex optimization algorithms to find the answer. We can solve it perfectly using a direct algebra formula (the Normal Equation):
 
 $$ \\hat{w} = (X^T X)^{-1} X^T y $$
 
-### 2. Logistic Regression Classification
-For binary classification outcomes $y \\in \\{0, 1\\}$, the linear combination is processed through the sigmoid activation function $\\sigma(z) = \\frac{1}{1 + e^{-z}}$:
+### 2. Logistic Regression
+For classification (where the answer $y$ is either 0 or 1), we take that same linear equation and pass it through a Sigmoid function $\\sigma(z) = \\frac{1}{1 + e^{-z}}$. This squashes any number into a probability between 0 and 1:
 
 $$ P(y=1|x) = \\sigma(w^T x + b) $$
 
-### 3. Binary Cross-Entropy Analytical Loss
-The optimal parametric weights are iteratively estimated by maximising mathematical likelihood, which is structurally equivalent to minimising Binary Cross-Entropy (BCE). This formulation relies structurally upon sums of logarithmic probabilities:
+### 3. Binary Cross-Entropy Loss
+To train a logistic regression model, we can't use Mean Squared Error. Instead, we use Binary Cross-Entropy (BCE), which uses logarithms to heavily penalize the model if it is highly confident but completely wrong:
 
 $$ \\mathcal{L}(w) = -\\frac{1}{n} \\sum_{i=1}^{n} \\left[ y_i \\log(\\hat{y}_i) + (1-y_i) \\log(1-\\hat{y}_i) \\right] $$
 
-The exact calculus gradient derivation required for computational optimisation is mathematically elegant:
+The calculus derivative used to update the weights during training is surprisingly simple and elegant:
 
 $$ \\nabla_w \\mathcal{L} = \\frac{1}{n} X^T (\\hat{y} - y) $$
   `,
 
   pros: [
-    "Extraordinarily interpretable mathematically: analytical feature coefficients directly explicate the model's exact inferential logic.",
-    "Remarkably computationally efficient to train, frequently providing a robust baseline parametric starting point for complex analyses."
+    "Incredibly easy to understand. You can look at the final weights and know exactly how much each feature influenced the prediction.",
+    "Extremely fast to train, making it the perfect baseline model to try before moving on to complex neural networks."
   ],
 
   cons: [
-    "Inherently incapable of capturing fully non-linear functional relationships without rigorous, manual feature engineering (e.g., polynomial basis expansion).",
-    "Exhibits severe mathematical sensitivity to extreme statistical outliers and explicit severe multicollinearity amongst input features."
+    "It assumes the relationship between variables is a perfectly straight line. If the real world is curved or complex, these models will fail.",
+    "Highly sensitive to outliers. A single extreme data point can drag the entire line out of place.",
+    "If two of your input features are highly correlated (like 'years alive' and 'age'), the math can break down."
   ],
 
   codeSnippet: `import numpy as np

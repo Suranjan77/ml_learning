@@ -4,70 +4,71 @@ export const calculus: Algorithm = {
   id: "calculus",
   title: "Calculus & Optimisation",
   category: "Calculus",
-  shortDescription: "The mathematical foundation of learning, dictating how mathematical models minimise error functions via gradient computation.",
+  shortDescription: "The math behind how AI learns from its mistakes by finding the fastest way to improve.",
 
   fullDescription: `
-Machine learning is fundamentally an optimisation paradigm. During the training phase, a computational model navigates a vast, high-dimensional parameter space to identify a global or robust local minimum of an error function. **Calculus functions as the language of continuous change**, providing the analytical framework necessary for this traversal.
+Machine learning is really just a giant game of "getting better through trial and error." During training, an AI model tries to find the best possible settings to make the fewest mistakes. **Calculus is the math of continuous change**, and it gives our models the exact instructions they need to improve.
 
-Whereas linear algebra facilitates the computation of predictive cost, calculus dictates precisely *how to adjust* the model's internal parameters to iteratively reduce that cost. Devoid of calculus, learning algorithms would be relegated to stochastic guessing. With it, models can systematically descend error surfaces, enacting calculated, infinitesimal adjustments following each observation.
+While linear algebra helps us calculate *how wrong* our model's predictions are, calculus tells us exactly *how to fix* the model's internal settings to make fewer mistakes next time. Without calculus, AI would just be guessing randomly. With it, models can take smart, calculated steps to get better after every single example they see.
 
-### Moving Beyond Single-Variable Analysis
+### Moving Beyond High School Math
 
-Whilst introductory calculus examines functions of a single variable $f(x)$, contemporary machine learning models incorporate millions or billions of parameters (weights). This necessitates the application of **Multivariate Calculus**. 
-Rather than computing a single derivative, the algorithm calculates a **Gradient**—a mathematical vector composed of partial derivatives that indicates the direction of steepest ascent. By traversing in the requisite opposite direction (Gradient Descent), architectures such as neural networks, regression models, and Support Vector Machines are guided towards optimal parameter configurations.
+In high school calculus, you might have looked at simple curves with one variable, like $f(x)$. But modern AI models have millions or even billions of variables (we call them weights). Because of this, we need **Multivariate Calculus**. 
 
-The proliferation of modern artificial intelligence is largely attributable to a specific implementation of the **Chain Rule**, known within computer science as *backpropagation*. This algorithmic technique permits the instantaneous computation of how an error at the output layer of a deep network is modulated by a single interconnected weight located ostensibly dozens of layers prior.
+Instead of finding a single slope, the AI calculates a **Gradient**—a mathematical arrow made up of many slopes that points in the direction where the error increases the fastest. By taking a step in the *opposite* direction (a process called Gradient Descent), models like neural networks slowly walk down the hill until they reach the bottom, where the error is lowest.
+
+The explosion of modern AI is mostly thanks to a specific trick from calculus called the **Chain Rule**. In computer science, we call this *backpropagation*. It's a clever way to figure out exactly how much a single tiny weight deep inside a neural network contributed to a mistake made at the very end.
   `,
 
   intuition: `
-Consider navigating a rugged topographical terrain whilst blindfolded, with the objective of locating the deepest adjacent valley (representing minimum error). Without visual feedback of the landscape, instantaneous transposition to the global minimum is impossible. 
+Imagine you're blindfolded and dropped somewhere in a hilly landscape. Your goal is to find the lowest point in the deepest valley (which represents making zero mistakes). Since you're blindfolded, you can't just look around and walk straight to the bottom.
 
-Calculus provides the mathematical equivalent of physically assessing the gradient of the terrain immediately beneath one's location. 
-By computing the derivative at a precise coordinate, one ascertains the vector of steepest inclination and its corresponding declination. A discrete step is subsequently taken in the direction of steepest descent. Iterating this procedure—assessing the local gradient and descending accordingly—will asymptotically lead the model to converge within a local minimum. 
+Calculus is like feeling the slope of the ground right under your feet. 
+By feeling the ground, you can figure out which way is uphill and which way is downhill. You then take a small step downhill. If you keep doing this—feeling the slope and taking a step down—you'll eventually reach the bottom of a valley.
 
-Within the context of machine learning:
-1. **The Terrain** represents the loss surface (characterising the error function).
-2. **The Coordinates** correspond to the model parameters (weights).
-3. **Assessing the local gradient** equates to calculating the gradient vector $\\nabla L$.
-4. **Descending the terrain** corresponds to updating the model weights.
+In machine learning:
+1. **The Landscape** is the error surface (all the possible mistakes the model could make).
+2. **Your Coordinates** are the model's current settings (weights).
+3. **Feeling the slope** is calculating the gradient vector $\\nabla L$.
+4. **Taking a step downhill** is updating the model's weights to be slightly better.
   `,
 
   mathematics: `
 ### 1. The Derivative
-A mathematical derivative quantifies the instantaneous rate of change of a function with respect to a single independent variable. Formally, it is articulated as a limit:
+A derivative simply measures how fast something is changing at a specific moment. Mathematically, it looks like this:
 
 $$ f'(x) = \\lim_{h \\to 0} \\frac{f(x + h) - f(x)}{h} $$
 
-In the domain of machine learning, if $f(x)$ denotes the loss function, $f'(x)$ specifies precisely how the loss will fluctuate given an infinitesimal perturbation to the parameter $x$.
+In machine learning, if $f(x)$ is our error (or loss), the derivative $f'(x)$ tells us exactly how much our error will go up or down if we tweak our parameter $x$ just a tiny bit.
 
 ### 2. Partial Derivatives and the Gradient
-When operating with a multivariate parameter space $\\mathbf{w} = [w_1, w_2, ..., w_n]$, isolated derivatives are computed for each individual parameter whilst holding the remainder constant. The vector comprising all such partial derivatives is defined as the **Gradient**, $\\nabla L$:
+When we have lots of parameters $\\mathbf{w} = [w_1, w_2, ..., w_n]$, we calculate the slope for each one individually while pretending the others are frozen. When we put all these individual slopes together into a list, we call it the **Gradient**, $\\nabla L$:
 
 $$ \\nabla L(\\mathbf{w}) = \\begin{bmatrix} \\frac{\\partial L}{\\partial w_1} \\\\ \\frac{\\partial L}{\\partial w_2} \\\\ \\vdots \\\\ \\frac{\\partial L}{\\partial w_n} \\end{bmatrix} $$
 
-The steepest descent parameter update rule subtracts a fraction of this gradient vector (scaled by a hyperparameter termed the learning rate, $\\alpha$):
+To improve the model, we subtract a small fraction of this gradient from our current weights. The size of the step we take is controlled by a setting called the learning rate, $\\alpha$:
 $$ \\mathbf{w}_{new} = \\mathbf{w}_{old} - \\alpha \\nabla L(\\mathbf{w}_{old}) $$
 
 ### 3. The Chain Rule
-Arguably the most consequential theorem facilitating deep learning is the Chain Rule. It prescribes the methodology for computing the derivative of composite functions. Given $y = f(u)$ and $u = g(x)$, the rule states:
+The Chain Rule is the true hero of deep learning. It tells us how to find the derivative of functions that are stuffed inside other functions. If $y = f(u)$ and $u = g(x)$, the rule says:
 
 $$ \\frac{dy}{dx} = \\frac{dy}{du} \\cdot \\frac{du}{dx} $$
 
-Neural architectures are structurally analogous to immense composite functions: $Output = f_3(f_2(f_1(X)))$. The chain rule furnishes the mechanism to systematically propagate derivatives backwards through the network, correctly attributing proportional responsibility for an output error to every constituent weight.
+Neural networks are basically just giant chains of functions: $Output = f_3(f_2(f_1(X)))$. The chain rule lets us work backwards from the final error, multiplying slopes together to figure out exactly how to adjust every single weight in the network.
   `,
 
   pros: [
-    "Facilitates gradient descent, constituting the foundational optimisation mechanism for contemporary neural networks and regression architectures.",
-    "The Chain Rule permits highly efficient algorithmic scaling (via Backpropagation) across deeply nested computational graphs.",
-    "Provides robust analytical guarantees; given a strictly convex loss function (e.g., in linear regression), calculus ensures the algebraic derivation of the exact global minimum.",
-    "Enables the utilisation of second-order optimisation techniques (such as Newton's method incorporating the Hessian matrix) to optimally navigate complex geometric curvature."
+    "It's the engine behind gradient descent, which is how almost all modern neural networks learn.",
+    "The Chain Rule (via backpropagation) makes it incredibly efficient to train massive, deep networks.",
+    "For simple problems (like linear regression), calculus can give us a math equation to find the absolute perfect answer instantly.",
+    "It lets us use advanced tricks (like looking at the curvature of the error landscape) to speed up learning."
   ],
 
   cons: [
-    "Calculus-centric optimisation demands strictly continuous, smooth, and differentiable functions, rendering it incompatible with discrete step functions or rigid algorithmic tree splits.",
-    "It exhibits vulnerability to convergence at suboptimal local minima: upon reaching a shallow local depression, the resultant gradient vanishes, erroneously suggesting the attainment of a global optima.",
-    "Vanishing Gradients phenomenon: Within deeply stacked architectures, the multiplication of infinitesimally small derivatives via the Chain Rule can attenuate the gradient to zero, resulting in a cessation of algorithmic learning.",
-    "Exploding Gradients phenomenon: Conversely, the recursive multiplication of excessively large derivatives can infinitely scale parameter updates, leading directly to numerical instability (Not a Number errors)."
+    "Calculus only works on smooth, continuous math functions. It can't handle sudden jumps or rigid rules like decision trees.",
+    "Models can get stuck in 'local minima'—shallow valleys that aren't the true bottom, but the math thinks we're done because the ground is flat.",
+    "Vanishing Gradients: In very deep networks, multiplying lots of tiny slopes together makes the final update so small that the AI stops learning.",
+    "Exploding Gradients: On the flip side, multiplying large slopes together can cause updates to spiral out of control and crash the math."
   ],
 
   codeSnippet: ``

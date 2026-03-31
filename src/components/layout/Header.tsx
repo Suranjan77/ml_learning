@@ -6,7 +6,7 @@ import { clsx } from "clsx";
 
 const navItems = [
   { label: "Home", href: "/" },
-  { label: "Curriculum", href: "/algorithms/maximum-likelihood" },
+  { label: "Curriculum", href: "/#curriculum" },
   { label: "Playground", href: "/playground", accent: true },
 ];
 
@@ -62,7 +62,7 @@ export default function Header() {
                 aria-current={active ? "page" : undefined}
                 className={clsx(
                   "relative whitespace-nowrap font-mono text-sm font-bold uppercase transition-colors hover:text-primary",
-                  active ? "text-primary" : "text-on-surface-variant"
+                  active ? "text-primary" : "text-on-surface-variant",
                 )}
               >
                 {item.label}

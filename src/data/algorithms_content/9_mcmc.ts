@@ -4,48 +4,54 @@ export const mcmc: Algorithm = {
   id: "mcmc",
   title: "Markov Chain Monte Carlo",
   category: "Markov Chain Monte Carlo",
-  shortDescription: "A formidable methodology of probabilistic statistical algorithms sampling complex posterior distributions when analytical solutions remain undeniably intractable.",
+  shortDescription: "A clever way to map out incredibly complex probabilities by taking a randomized, guided 'walk' through the data.",
 
   fullDescription: `
-Markov Chain Monte Carlo (MCMC) techniques formally address the fundamental pervasive challenge complicating advanced Bayesian inference: computing the mathematically rigorous continuous posterior distribution when the structural normalising constant (the marginal likelihood evidence integral) remains completely analytically impossible to evaluate directly. MCMC algorithms function by mathematically establishing an artificial Markov Chain—a highly stochastic sequential random walk protocol—whose steady-state equilibrium precisely empirically matches the topography of the target complex, convoluted probability distribution.
+Markov Chain Monte Carlo (MCMC) is a family of algorithms used to solve some of the hardest problems in statistics. In advanced Bayesian statistics, you often end up with a math equation for a probability distribution that is so complex, it is literally impossible to solve directly. 
 
-### Empirical Applications
-MCMC techniques are routinely deployed to resolve extraordinarily mathematically intense physics simulations, reliably fit highly generalised multi-level hierarchical Bayesian paradigms within advanced empirical medical research, and conduct exceedingly exact, high-dimensional quantitative risk and latency analysis when conventional Normal approximations predictably completely collapse.
+Instead of trying to solve the impossible math, MCMC algorithms use a clever trick: they build a simulation. They create a "Markov Chain"—a sequence of random steps—that wanders through the mathematical space. By carefully setting the rules for how this random walk behaves, the algorithm will naturally spend more time in areas of high probability and less time in areas of low probability. By just keeping track of where the algorithm walked, you get a perfect map of the complex math equation you couldn't solve!
+
+### Where is it used?
+MCMC is the heavy artillery of statistics. It is used when standard approximations fail. It's heavily used in complex physics simulations, advanced medical research (like modeling how a disease spreads through different levels of a population), and high-end financial risk analysis.
   `,
 
   intuition: `
-Consider the objective of systematically mapping the distinct topography of an immensely complex mountain range whilst entirely blindfolded. You enact an exploratory random step extending in an arbitrary direction. If this incremental step results in a measurable elevation gain, you invariably systematically accept the location change. If the arbitrary step results in an elevation loss, you explicitly solely conditionally accept it based probabilistically upon the steepness of the resultant spatial descent. 
+Imagine you are blindfolded and dropped onto a massive, complex mountain range, and your goal is to draw a topographical map of the whole area. You can't see, but you have an altimeter that tells you your current height.
 
-Iterated sufficiently over time, this highly stochastic yet probabilistically bounded wandering completely structures a functionally perfect simulated projection mapping the mountain's shape, systematically circumventing the intrinsic requirement to holistically visualise the topology simultaneously.
+Here is your strategy: You take a random step in any direction. If that step takes you *uphill*, you always take it. If that step takes you *downhill*, you roll a pair of dice. If you roll high, you take the step; if you roll low, you stay where you are. 
+
+If you do this for a million steps and drop a GPS pin at every location you visit, you will spend most of your time near the mountain peaks, and very little time in the deep valleys. If someone looks at your million GPS pins, they will see a perfect 3D map of the mountain range, even though you were blindfolded the whole time!
   `,
 
   mathematics: `
-### 1. Metropolis-Hastings Acceptance Validation
-To securely and properly sample an entirely arbitrary target density $P(x)$, the algorithm iteratively proposes a theoretical novel state derived from an asymmetric or symmetric proposal probability distribution. A candidate transition from current state $x$ to proposed state $x'$ is meticulously evaluated utilising the fundamental Metropolis-Hastings acceptance scalar ratio:
+### 1. The Metropolis-Hastings Algorithm
+To map out a target probability distribution $P(x)$, the algorithm is currently at state $x$. It proposes a random jump to a new state $x'$. It then calculates an acceptance ratio ($\\alpha$):
 
 $$ \\alpha = \\min\\left(1, \\frac{P(x')}{P(x)}\\right) $$
 
-If the stochastically uniform generated random continuous sample $u \\sim U(0,1)$ mathematically strictly satisfies $u \\le \\alpha$, the state formally sequentially transitions to $x'$; otherwise, it analytically remains strictly anchored at $x$.
+This ratio simply asks: "Is the new spot more probable than my current spot?" 
+If $P(x')$ is greater than $P(x)$, the ratio is 1, and the algorithm *always* moves to the new spot. 
+If the new spot is worse, it calculates the fraction (e.g., 0.4). It then generates a random number $u$ between 0 and 1. If $u \\le 0.4$, it accepts the bad move anyway! Otherwise, it stays at $x$.
 
-### 2. Theoretical Convergence
-The mathematically robust foundation inherent within MCMC strictly guarantees that, given sufficient unconstrained iterations spanning asymptotic lengths, the aggregate histogram comprising the visited states will explicitly theoretically converge uniformly onto the profound target posterior density function definitively regardless of initial parametrisations.
+### 2. Why it works
+Allowing the algorithm to occasionally make "bad" moves (going downhill) is crucial. It prevents the algorithm from getting permanently stuck on a small, fake peak (a local maximum) and allows it to explore the entire mathematical landscape. Given enough time, the places it visits will perfectly match the true target distribution.
   `,
 
   pros: [
-    "Structurally guarantees rigorous mathematical convergence identifying the exact true complex statistical posterior density without resorting to strictly brittle parametric approximations.",
-    "Methodically exceptionally proficient at successfully modelling enormously complex, highly structurally correlated, entirely non-Gaussian empirical posteriors."
+    "It can solve incredibly complex statistical problems that are mathematically impossible to solve any other way.",
+    "It doesn't rely on assuming your data looks like a standard Bell Curve. It can map out weird, lopsided, and multi-peaked distributions perfectly."
   ],
 
   cons: [
-    "Computationally exceptionally prolonged; producing adequately independent continuous empirical samples mandates considerable operational execution duration.",
-    "Formally assessing the true analytical absolute convergence status represents a challenging theoretical hurdle, conventionally relying extensively upon processing simultaneous multiple divergent chains."
+    "It is notoriously slow. Taking millions of tiny random steps takes a lot of computing power and time.",
+    "It can be very difficult to know exactly when the algorithm has 'finished' mapping the mountain. You often have to run multiple walkers at the same time to check if they agree."
   ],
 
   codeSnippet: `import numpy as np
 
-# Let us explicitly compute a rudimentary programmatic Metropolis-Hastings stochastic step
+# Let's build a simple MCMC walker!
 def target_density(x):
-    # A functionally identifiable but unnormalised bimodal analytic statistical distribution
+    # A weird, two-peaked math equation we want to map
     return np.exp(-0.5 * (x - 2)**2) + 0.5 * np.exp(-0.5 * (x + 2)**2)
 
 current_x = 0.0
@@ -53,16 +59,17 @@ samples = []
 n_iterations = 10000
 
 for _ in range(n_iterations):
-    # Propose an exploratory conditional step
+    # Propose a random step
     proposed_x = current_x + np.random.normal(0, 1.5)
     
-    # Calculate conditional acceptance analytical scalar probability
+    # Calculate if the new spot is better or worse
     acceptance_ratio = target_density(proposed_x) / target_density(current_x)
     
+    # Roll the dice to see if we accept the move!
     if np.random.rand() < acceptance_ratio:
         current_x = proposed_x
         
     samples.append(current_x)
 
-print(f"Algorithm Generated {len(samples)} valid stochastic empirical samples mapping the target statistical density.")`
+print(f"We took {len(samples)} steps to map the mountain!")`
 };
