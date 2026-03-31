@@ -19,9 +19,12 @@ const heroStats = [
 ] as const;
 
 const accentBorderMap = {
-  primary: "border-l-primary hover:shadow-[0_2px_16px_-4px_rgba(173,198,255,0.12)]",
-  secondary: "border-l-secondary hover:shadow-[0_2px_16px_-4px_rgba(208,188,255,0.12)]",
-  tertiary: "border-l-tertiary hover:shadow-[0_2px_16px_-4px_rgba(123,208,255,0.12)]",
+  primary:
+    "border-l-primary hover:shadow-[0_2px_16px_-4px_rgba(173,198,255,0.12)]",
+  secondary:
+    "border-l-secondary hover:shadow-[0_2px_16px_-4px_rgba(208,188,255,0.12)]",
+  tertiary:
+    "border-l-tertiary hover:shadow-[0_2px_16px_-4px_rgba(123,208,255,0.12)]",
 } as const;
 
 const accentBadgeMap = {
@@ -57,7 +60,6 @@ export default function Home() {
       {/* Hero section */}
       <section className="relative overflow-visible px-6 py-14 sm:px-8 lg:px-12 lg:py-24">
         <div className="relative z-10 mx-auto grid max-w-[1400px] gap-16 lg:grid-cols-[1fr_360px] lg:items-center">
-          
           {/* Left Column (Hero Content) */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
@@ -92,14 +94,14 @@ export default function Home() {
             {/* CTA Buttons */}
             <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:flex-wrap">
               <Link
-                href="/algorithms/supervised"
+                href="/algorithms/calculus"
                 className="inline-flex items-center justify-center border-4 border-outline-dark bg-primary px-8 py-4 font-mono text-sm font-bold uppercase tracking-wider text-outline-dark shadow-[-6px_6px_0px_0px_var(--color-outline-dark)] transition-transform hover:-translate-y-1 hover:translate-x-1 hover:shadow-[-2px_2px_0px_0px_var(--color-outline-dark)]"
               >
                 Start Learning
               </Link>
 
               <Link
-                href="/algorithms/maximum-likelihood"
+                href="#curriculum"
                 className="inline-flex items-center justify-center border-4 border-outline-dark bg-[#E5E5E5] px-8 py-4 font-mono text-sm font-bold uppercase tracking-wider text-outline-dark shadow-[-6px_6px_0px_0px_var(--color-outline-dark)] transition-transform hover:-translate-y-1 hover:translate-x-1 hover:shadow-[-2px_2px_0px_0px_var(--color-outline-dark)]"
               >
                 Explore Curriculum
@@ -122,7 +124,10 @@ export default function Home() {
               animate={{ y: [0, -15, 0] }}
               transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
             >
-              <svg viewBox="0 0 100 100" className="h-full w-full overflow-visible">
+              <svg
+                viewBox="0 0 100 100"
+                className="h-full w-full overflow-visible"
+              >
                 <polygon
                   points="50,10 90,90 10,90"
                   fill="var(--color-tertiary)"
@@ -132,13 +137,21 @@ export default function Home() {
                 />
               </svg>
             </motion.div>
-            
+
             <motion.div
               className="pointer-events-none absolute -bottom-16 -left-16 z-0 h-56 w-56"
               animate={{ y: [0, 15, 0] }}
-              transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 1 }}
+              transition={{
+                repeat: Infinity,
+                duration: 5,
+                ease: "easeInOut",
+                delay: 1,
+              }}
             >
-              <svg viewBox="0 0 100 100" className="h-full w-full overflow-visible">
+              <svg
+                viewBox="0 0 100 100"
+                className="h-full w-full overflow-visible"
+              >
                 <circle
                   cx="50"
                   cy="50"
@@ -180,14 +193,18 @@ export default function Home() {
         <div className="mr-auto max-w-[1400px]">
           <div className="mb-10 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="mb-2 font-mono text-xs font-bold uppercase tracking-[0.2em] text-secondary">
+              <p
+                className="mb-2 font-mono text-xs font-bold uppercase tracking-[0.2em] text-secondary"
+                id="curriculum"
+              >
                 Curriculum
               </p>
               <h2 className="font-headline text-4xl font-black uppercase tracking-tight text-on-surface">
                 Complete Sequence
               </h2>
               <p className="mt-2 max-w-2xl font-mono text-base font-medium leading-relaxed text-[#D4D4D4]">
-                Master the full mathematical foundations sequentially across all {algorithms.length} distinct rigorous learning modules.
+                Master the full mathematical foundations sequentially across all{" "}
+                {algorithms.length} distinct rigorous learning modules.
               </p>
             </div>
 
@@ -218,8 +235,6 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
-
-
     </div>
   );
 }

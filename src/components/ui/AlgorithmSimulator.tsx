@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 type Label = 0 | 1;
 type Preset = "linear" | "xor" | "rings" | "custom";
@@ -739,7 +745,7 @@ export default function AlgorithmSimulator() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="flex flex-col gap-6">
         <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-5">
           <div className="mb-4 flex items-start justify-between gap-4">
             <div>
@@ -985,14 +991,16 @@ export default function AlgorithmSimulator() {
                 Architecture
               </h5>
               <p className="mt-1 text-sm leading-7 text-slate-400">
-                This is a <strong className="text-slate-200">one-hidden-layer MLP</strong>{" "}
+                This is a{" "}
+                <strong className="text-slate-200">one-hidden-layer MLP</strong>{" "}
                 with architecture{" "}
                 <code className="rounded bg-white/5 px-1.5 py-0.5 font-mono text-xs text-primary">
                   2 → {hiddenUnits} → 1
                 </code>
                 . Inputs are the $(x, y)$ coordinates normalized to $[-1, 1]$.
-                The hidden layer uses <strong className="text-slate-200">tanh</strong>{" "}
-                activation; the output uses <strong className="text-slate-200">sigmoid</strong>{" "}
+                The hidden layer uses{" "}
+                <strong className="text-slate-200">tanh</strong> activation; the
+                output uses <strong className="text-slate-200">sigmoid</strong>{" "}
                 to produce a probability in $[0, 1]$.
               </p>
             </div>
@@ -1010,8 +1018,8 @@ export default function AlgorithmSimulator() {
                 <div>ŷ = σ(w₂ᵀ·a + b₂)</div>
               </div>
               <p className="mt-2 text-sm leading-7 text-slate-400">
-                where <strong className="text-slate-200">σ</strong> is the sigmoid function
-                σ(t) = 1/(1 + e⁻ᵗ).
+                where <strong className="text-slate-200">σ</strong> is the
+                sigmoid function σ(t) = 1/(1 + e⁻ᵗ).
               </p>
             </div>
 
@@ -1020,25 +1028,32 @@ export default function AlgorithmSimulator() {
                 Loss &amp; Gradient Descent
               </h5>
               <p className="mt-1 text-sm leading-7 text-slate-400">
-                The loss is <strong className="text-slate-200">binary cross-entropy</strong>:
+                The loss is{" "}
+                <strong className="text-slate-200">binary cross-entropy</strong>
+                :
               </p>
               <div className="mt-2 rounded-lg bg-black/20 px-3 py-2 font-mono text-xs leading-6 text-slate-300">
                 L = −(1/n) Σ [yᵢ log(ŷᵢ) + (1−yᵢ) log(1−ŷᵢ)]
               </div>
               <p className="mt-2 text-sm leading-7 text-slate-400">
-                Gradients are computed via <strong className="text-slate-200">backpropagation</strong>{" "}
+                Gradients are computed via{" "}
+                <strong className="text-slate-200">backpropagation</strong>{" "}
                 (chain rule through every layer). Weights are updated each epoch
-                using <strong className="text-slate-200">full-batch gradient descent</strong>:
+                using{" "}
+                <strong className="text-slate-200">
+                  full-batch gradient descent
+                </strong>
+                :
               </p>
               <div className="mt-2 rounded-lg bg-black/20 px-3 py-2 font-mono text-xs leading-6 text-slate-300">
                 θ ← θ − η·(∇L + λ·θ)
               </div>
               <p className="mt-2 text-sm leading-7 text-slate-400">
-                The <strong className="text-slate-200">λ·θ</strong> term is L2 regularization
-                (weight decay), which penalizes large weights and encourages
-                simpler decision boundaries. The ‖W‖ metric above tracks the
-                total weight norm — lower values mean stronger regularization
-                effect.
+                The <strong className="text-slate-200">λ·θ</strong> term is L2
+                regularization (weight decay), which penalizes large weights and
+                encourages simpler decision boundaries. The ‖W‖ metric above
+                tracks the total weight norm — lower values mean stronger
+                regularization effect.
               </p>
             </div>
 
@@ -1047,13 +1062,14 @@ export default function AlgorithmSimulator() {
                 Reading the Visualization
               </h5>
               <p className="mt-1 text-sm leading-7 text-slate-400">
-                The <strong className="text-slate-200">heatmap</strong> shows the predicted
-                class probability at every pixel. Tints closer to{" "}
+                The <strong className="text-slate-200">heatmap</strong> shows
+                the predicted class probability at every pixel. Tints closer to{" "}
                 <span className="text-primary">Class A color</span> mean the
                 model predicts Class A; tints closer to{" "}
-                <span className="text-secondary">Class B color</span> mean
-                Class B. The <strong className="text-slate-200">white contour</strong>{" "}
-                marks the <strong className="text-slate-200">decision boundary</strong>{" "}
+                <span className="text-secondary">Class B color</span> mean Class
+                B. The <strong className="text-slate-200">white contour</strong>{" "}
+                marks the{" "}
+                <strong className="text-slate-200">decision boundary</strong>{" "}
                 where ŷ ≈ 0.5, i.e. the model is maximally uncertain.
               </p>
             </div>

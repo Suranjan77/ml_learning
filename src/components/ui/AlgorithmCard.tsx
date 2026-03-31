@@ -68,10 +68,7 @@ export default function AlgorithmCard({
         <div className="mb-5 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span
-              className={clsx(
-                "h-1.5 w-1.5 shrink-0 rounded-full",
-                colors.dot,
-              )}
+              className={clsx("h-1.5 w-1.5 shrink-0 rounded-full", colors.dot)}
             />
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant/60">
               Algorithm
@@ -108,9 +105,7 @@ export default function AlgorithmCard({
 
         {/* Footer CTA */}
         <div className="mt-6 flex items-center justify-between border-t border-outline-variant/30 pt-4">
-          <p className="text-xs text-on-surface-variant/60">
-            Intuition · Math · Code
-          </p>
+          <p className="text-xs text-on-surface-variant/60">Intuition · Math</p>
 
           <span
             className={clsx(
