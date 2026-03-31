@@ -30,9 +30,9 @@ interface Metrics {
   accuracy: number;
 }
 
-const BOUNDARY_COLOR = "rgba(255, 255, 255, 0.9)";
-const GRID_COLOR = "rgba(255,255,255,0.08)";
-const PLOT_BG = "rgb(15, 23, 42)";
+const BOUNDARY_COLOR = "#FFFFFF"; // Stark, unyielding white boundary
+const GRID_COLOR = "rgba(255, 255, 255, 0.15)"; // More visible grid
+const PLOT_BG = "#0D0D0D"; // Deep brutalist background
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
@@ -606,11 +606,13 @@ export default function AlgorithmSimulator() {
           const classAWeight = 1 - probability;
           const classBWeight = probability;
 
-          const r = Math.round(173 * classAWeight + 208 * classBWeight);
-          const g = Math.round(198 * classAWeight + 188 * classBWeight);
-          const b = Math.round(255 * classAWeight + 255 * classBWeight);
+          // Brutalist Pink (#FF3366) and Cyan (#00FFFF)
+          const r = Math.round(255 * classAWeight + 0 * classBWeight);
+          const g = Math.round(51 * classAWeight + 255 * classBWeight);
+          const b = Math.round(102 * classAWeight + 255 * classBWeight);
 
-          context.fillStyle = `rgba(${r}, ${g}, ${b}, 0.18)`;
+          // Increased opacity to match brutalist harshness
+          context.fillStyle = `rgba(${r}, ${g}, ${b}, 0.25)`;
           context.fillRect(px, py, step, step);
 
           if (hasTrained && Math.abs(probability - 0.5) < 0.03) {
@@ -653,14 +655,14 @@ export default function AlgorithmSimulator() {
 
   return (
     <div className="flex h-full flex-col gap-5">
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <button
           type="button"
           onClick={() => applyPreset("xor")}
-          className="rounded-xl border border-primary/25 bg-primary/8 px-4 py-3 text-left text-sm font-semibold text-primary transition hover:bg-primary/12"
+          className="border-4 border-outline bg-surface-container p-4 text-left transition-all hover:-translate-y-1 hover:translate-x-1 hover:shadow-[-4px_4px_0px_var(--color-outline)]"
         >
-          Load XOR
-          <div className="mt-1 text-xs font-normal leading-5 text-slate-400">
+          <div className="font-mono text-sm font-bold uppercase tracking-wider text-primary">Load XOR</div>
+          <div className="mt-2 text-xs font-medium leading-5 text-on-surface-variant">
             Non-linear pattern that requires a hidden layer.
           </div>
         </button>
@@ -668,10 +670,10 @@ export default function AlgorithmSimulator() {
         <button
           type="button"
           onClick={() => applyPreset("linear")}
-          className="rounded-xl border border-secondary/25 bg-secondary/8 px-4 py-3 text-left text-sm font-semibold text-secondary transition hover:bg-secondary/12"
+          className="border-4 border-outline bg-surface-container p-4 text-left transition-all hover:-translate-y-1 hover:translate-x-1 hover:shadow-[-4px_4px_0px_var(--color-outline)]"
         >
-          Load Linear
-          <div className="mt-1 text-xs font-normal leading-5 text-slate-400">
+          <div className="font-mono text-sm font-bold uppercase tracking-wider text-secondary">Load Linear</div>
+          <div className="mt-2 text-xs font-medium leading-5 text-on-surface-variant">
             Easy split for sanity-checking the model.
           </div>
         </button>
@@ -679,10 +681,10 @@ export default function AlgorithmSimulator() {
         <button
           type="button"
           onClick={() => applyPreset("rings")}
-          className="rounded-xl border border-tertiary/25 bg-tertiary/8 px-4 py-3 text-left text-sm font-semibold text-tertiary transition hover:bg-tertiary/12"
+          className="border-4 border-outline bg-surface-container p-4 text-left transition-all hover:-translate-y-1 hover:translate-x-1 hover:shadow-[-4px_4px_0px_var(--color-outline)]"
         >
-          Load Rings
-          <div className="mt-1 text-xs font-normal leading-5 text-slate-400">
+          <div className="font-mono text-sm font-bold uppercase tracking-wider text-tertiary">Load Rings</div>
+          <div className="mt-2 text-xs font-medium leading-5 text-on-surface-variant">
             Curved boundary to test hidden-unit capacity.
           </div>
         </button>
@@ -690,10 +692,10 @@ export default function AlgorithmSimulator() {
         <button
           type="button"
           onClick={clearPoints}
-          className="rounded-xl border border-white/10 bg-slate-900/80 px-4 py-3 text-left text-sm font-semibold text-slate-200 transition hover:bg-slate-800"
+          className="border-4 border-outline bg-surface-highest p-4 text-left transition-all hover:-translate-y-1 hover:translate-x-1 hover:shadow-[-4px_4px_0px_var(--color-outline)]"
         >
-          Clear Canvas
-          <div className="mt-1 text-xs font-normal leading-5 text-slate-400">
+          <div className="font-mono text-sm font-bold uppercase tracking-wider text-on-surface">Clear Canvas</div>
+          <div className="mt-2 text-xs font-medium leading-5 text-on-surface-variant">
             Remove all samples and build a custom dataset.
           </div>
         </button>
@@ -703,7 +705,7 @@ export default function AlgorithmSimulator() {
         ref={plotRef}
         onClick={handlePlotClick}
         onContextMenu={handleContextMenu}
-        className="relative min-h-[360px] flex-1 overflow-hidden rounded-2xl border border-white/10 bg-slate-950"
+        className="relative min-h-[500px] flex-1 cursor-crosshair overflow-hidden border-4 border-outline bg-[#0D0D0D]"
       >
         <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
 
@@ -711,50 +713,56 @@ export default function AlgorithmSimulator() {
           {points.map((point, index) => (
             <div
               key={`${point.x}-${point.y}-${point.label}-${index}`}
-              className={`absolute h-3.5 w-3.5 -translate-x-1/2 translate-y-1/2 rounded-full border shadow-[0_0_16px_rgba(255,255,255,0.14)] ${
+              className={`absolute h-4 w-4 -translate-x-1/2 translate-y-1/2 border-2 shadow-[2px_2px_0px_0px_#000] ${
                 point.label === 0
-                  ? "border-primary/80 bg-primary"
-                  : "border-secondary/80 bg-secondary"
+                  ? "border-[#000] bg-primary"
+                  : "border-[#000] bg-secondary"
               }`}
               style={{ left: `${point.x}%`, bottom: `${point.y}%` }}
             />
           ))}
         </div>
 
-        <div className="absolute left-4 top-4 rounded-lg border border-white/10 bg-slate-900/85 px-3 py-2 text-[10px] font-mono uppercase tracking-[0.24em] text-slate-400">
-          One-hidden-layer MLP classifier
+        {/* Informative Overlays (Brutalist style) */}
+        <div className="absolute left-4 top-4 border-2 border-outline bg-surface px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface shadow-[4px_4px_0px_0px_var(--color-outline)]">
+          Neural Playground: Click to add data
         </div>
 
-        <div className="absolute right-4 top-4 rounded-lg border border-white/10 bg-slate-900/85 px-3 py-2 text-[10px] font-mono uppercase tracking-[0.2em] text-slate-400">
-          {hasTrained ? "Decision surface active" : "Random initialization"}
+        <div className="absolute right-4 top-4 border-2 border-outline bg-surface px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface shadow-[4px_4px_0px_0px_var(--color-outline)]">
+          {hasTrained ? "Boundary Actively Updating" : "Random Initial Weights"}
         </div>
 
-        <div className="absolute bottom-4 left-4 flex flex-wrap items-center gap-3 rounded-full border border-white/10 bg-slate-900/85 px-4 py-2 text-xs text-slate-300">
-          <span className="inline-flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-primary" />
+        {/* Legend / Info block */}
+        <div className="absolute bottom-4 left-4 flex flex-wrap items-center gap-4 border-2 border-outline bg-surface px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-widest text-on-surface shadow-[4px_4px_0px_0px_var(--color-outline)]">
+          <span className="flex items-center gap-2">
+            <span className="h-3 w-3 border border-outline-dark bg-primary shadow-[1px_1px_0px_0px_#000]" />
             Class A
           </span>
-          <span className="inline-flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-secondary" />
+          <span className="flex items-center gap-2">
+            <span className="h-3 w-3 border border-outline-dark bg-secondary shadow-[1px_1px_0px_0px_#000]" />
             Class B
           </span>
-          <span className="hidden text-slate-500 sm:inline">|</span>
-          <span className="text-slate-400">
-            Left click to add, right click to remove
+          <span className="hidden text-outline-variant sm:inline">|</span>
+          <span className="text-on-surface-variant">
+            Left Click: Add • Right Click: Remove
           </span>
         </div>
       </div>
 
-      <div className="flex flex-col gap-6">
-        <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-5">
-          <div className="mb-4 flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-8">
+        {/* Step 1: Data */}
+        <div className="border-4 border-outline bg-surface p-6 shadow-[-6px_6px_0px_0px_var(--color-outline)]">
+          <div className="mb-6 flex items-start justify-between gap-4 border-b-4 border-outline pb-4">
             <div>
-              <h4 className="text-sm font-semibold text-slate-100">
-                Data & Interaction
+              <div className="inline-block border-2 border-outline-dark bg-primary px-2 py-1 font-mono text-xs font-bold uppercase tracking-widest text-[#000] shadow-[2px_2px_0px_0px_#000]">
+                Step 1
+              </div>
+              <h4 className="mt-3 font-headline text-2xl font-bold uppercase text-on-surface">
+                Inject Data
               </h4>
-              <p className="mt-1 text-xs leading-6 text-slate-400">
-                Current preset:{" "}
-                <span className="font-semibold text-slate-200">
+              <p className="mt-1 font-mono text-sm leading-6 text-on-surface-variant">
+                Adjust points on the canvas. Current Map:{" "}
+                <span className="bg-surface-highest px-2 py-1 font-semibold text-primary">
                   {preset === "custom"
                     ? "Custom dataset"
                     : preset === "xor"
@@ -765,88 +773,91 @@ export default function AlgorithmSimulator() {
                 </span>
               </p>
             </div>
-
-            <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
-              2 → {hiddenUnits} → 1
+            <div className="border border-outline bg-surface-lowest px-3 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-on-surface">
+              Topology: 2 → {hiddenUnits} → 1
             </div>
           </div>
 
-          <div className="mb-4 flex flex-wrap gap-2">
+          <div className="mb-6 flex flex-wrap gap-4">
             <button
               type="button"
               onClick={() => setActiveLabel(0)}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+              className={`border-4 px-6 py-3 font-mono text-sm font-bold uppercase transition-transform hover:-translate-y-1 hover:translate-x-1 ${
                 activeLabel === 0
-                  ? "bg-primary text-slate-950"
-                  : "bg-primary/10 text-primary hover:bg-primary/15"
+                  ? "border-outline-dark bg-primary text-[#000] shadow-[-4px_4px_0px_0px_var(--color-outline-dark)]"
+                  : "border-outline bg-surface text-primary shadow-[-4px_4px_0px_0px_var(--color-outline)] hover:border-primary hover:shadow-[-4px_4px_0px_0px_var(--color-primary)]"
               }`}
             >
-              Place Class A
+              Draw Class A
             </button>
             <button
               type="button"
               onClick={() => setActiveLabel(1)}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+              className={`border-4 px-6 py-3 font-mono text-sm font-bold uppercase transition-transform hover:-translate-y-1 hover:translate-x-1 ${
                 activeLabel === 1
-                  ? "bg-secondary text-slate-950"
-                  : "bg-secondary/10 text-secondary hover:bg-secondary/15"
+                  ? "border-outline-dark bg-secondary text-[#000] shadow-[-4px_4px_0px_0px_var(--color-outline-dark)]"
+                  : "border-outline bg-surface text-secondary shadow-[-4px_4px_0px_0px_var(--color-outline)] hover:border-secondary hover:shadow-[-4px_4px_0px_0px_var(--color-secondary)]"
               }`}
             >
-              Place Class B
+              Draw Class B
             </button>
           </div>
 
-          <div className="rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3">
-            <p className="text-sm leading-7 text-slate-300">{statusText}</p>
+          <div className="border-l-4 border-tertiary bg-tertiary/10 p-4 font-mono text-sm font-medium text-tertiary">
+            Status: {statusText}
           </div>
 
-          <div className="mt-4 grid grid-cols-3 gap-3">
-            <div className="rounded-xl bg-white/[0.03] p-3">
-              <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
-                Samples
+          <div className="mt-8 grid grid-cols-3 gap-4 border-t-4 border-outline pt-6">
+            <div className="border-2 border-outline bg-surface-container p-4">
+              <div className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant">
+                Total Samples
               </div>
-              <div className="mt-2 text-xl font-bold text-slate-100">
+              <div className="mt-2 font-headline text-3xl font-black text-on-surface">
                 {datasetSummary.total}
               </div>
             </div>
-            <div className="rounded-xl bg-white/[0.03] p-3">
-              <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
+            <div className="border-2 border-outline bg-surface-container p-4 accent-left-primary">
+              <div className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant">
                 Class A
               </div>
-              <div className="mt-2 text-xl font-bold text-primary">
+              <div className="mt-2 font-headline text-3xl font-black text-primary">
                 {datasetSummary.classA}
               </div>
             </div>
-            <div className="rounded-xl bg-white/[0.03] p-3">
-              <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
+            <div className="border-2 border-outline bg-surface-container p-4 accent-left-secondary">
+              <div className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant">
                 Class B
               </div>
-              <div className="mt-2 text-xl font-bold text-secondary">
+              <div className="mt-2 font-headline text-3xl font-black text-secondary">
                 {datasetSummary.classB}
               </div>
             </div>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-5">
-          <div className="mb-4 flex items-start justify-between gap-4">
+        {/* Step 2: Training */}
+        <div className="border-4 border-outline bg-surface p-6 shadow-[-6px_6px_0px_0px_var(--color-outline)]">
+          <div className="mb-6 flex items-start justify-between gap-4 border-b-4 border-outline pb-4">
             <div>
-              <h4 className="text-sm font-semibold text-slate-100">
-                Model & Metrics
+              <div className="inline-block border-2 border-outline-dark bg-secondary px-2 py-1 font-mono text-xs font-bold uppercase tracking-widest text-[#000] shadow-[2px_2px_0px_0px_#000]">
+                Step 2
+              </div>
+              <h4 className="mt-3 font-headline text-2xl font-bold uppercase text-on-surface">
+                Train Model
               </h4>
-              <p className="mt-1 text-xs leading-6 text-slate-400">
-                Binary cross-entropy with full-batch gradient descent.
+              <p className="mt-1 font-mono text-sm leading-6 text-on-surface-variant">
+                Set capabilities, then run backpropagation to warp the canvas space.
               </p>
             </div>
-            <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
-              Browser NN
+            <div className="border border-outline bg-surface-lowest px-3 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-on-surface">
+              Engine Ready
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div>
-              <label className="mb-2 flex justify-between text-xs font-mono uppercase tracking-[0.18em] text-slate-400">
-                Hidden Units <span>{hiddenUnits}</span>
+          <div className="grid gap-6 sm:grid-cols-3">
+            <div className="border-l-4 border-primary bg-surface-container px-4 py-3">
+              <label className="mb-2 flex justify-between font-mono text-xs font-bold uppercase tracking-wider text-on-surface">
+                Capacity (Nodes) <span className="text-primary">{hiddenUnits}</span>
               </label>
               <input
                 type="range"
@@ -860,16 +871,17 @@ export default function AlgorithmSimulator() {
                   resetNetwork(
                     nextValue,
                     points,
-                    "Architecture changed. Resetting the network keeps the comparison honest.",
+                    "Architecture changed. Network has been wiped."
                   );
                 }}
                 className="w-full accent-primary"
               />
+              <p className="mt-2 text-xs text-on-surface-variant">Controls how much the decision boundary can bend.</p>
             </div>
 
-            <div>
-              <label className="mb-2 flex justify-between text-xs font-mono uppercase tracking-[0.18em] text-slate-400">
-                Learning Rate <span>{learningRate.toFixed(2)}</span>
+            <div className="border-l-4 border-tertiary bg-surface-container px-4 py-3">
+              <label className="mb-2 flex justify-between font-mono text-xs font-bold uppercase tracking-wider text-on-surface">
+                Pacing (LR) <span className="text-tertiary">{learningRate.toFixed(2)}</span>
               </label>
               <input
                 type="range"
@@ -882,11 +894,12 @@ export default function AlgorithmSimulator() {
                 }
                 className="w-full accent-tertiary"
               />
+              <p className="mt-2 text-xs text-on-surface-variant">How fast the mathematical gradient is traversed.</p>
             </div>
 
-            <div>
-              <label className="mb-2 flex justify-between text-xs font-mono uppercase tracking-[0.18em] text-slate-400">
-                L2 Regularization <span>{regularization.toFixed(4)}</span>
+            <div className="border-l-4 border-secondary bg-surface-container px-4 py-3">
+              <label className="mb-2 flex justify-between font-mono text-xs font-bold uppercase tracking-wider text-on-surface">
+                Penalty (L2) <span className="text-secondary">{regularization.toFixed(4)}</span>
               </label>
               <input
                 type="range"
@@ -899,16 +912,17 @@ export default function AlgorithmSimulator() {
                 }
                 className="w-full accent-secondary"
               />
+              <p className="mt-2 text-xs text-on-surface-variant">Stops extreme overfitting by limiting weight sizes.</p>
             </div>
           </div>
 
-          <div className="mt-5 flex flex-wrap gap-3">
+          <div className="mt-8 flex flex-wrap gap-4 border-t-4 border-outline pt-6">
             <button
               type="button"
               onClick={() => {
                 if (!canTrain) {
                   setStatusText(
-                    "Add at least one sample from each class before training.",
+                    "Error: Missing classes. Canvas must have both A and B dots.",
                   );
                   return;
                 }
@@ -916,57 +930,64 @@ export default function AlgorithmSimulator() {
                 setRunning((current) => !current);
                 setStatusText(
                   running
-                    ? "Training paused. The current surface reflects the latest fitted weights."
-                    : "Training started. Watch the heatmap sharpen into a decision boundary.",
+                    ? "SYSTEM HALTED. Map shows currently fitted weights."
+                    : "BACKPROPAGATION ENGAGED. Watch boundary morph.",
                 );
               }}
-              className="rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-slate-950 transition hover:brightness-110"
+              className={`border-4 border-outline-dark px-10 py-5 font-mono text-lg font-black uppercase tracking-widest transition-transform hover:-translate-y-1 hover:translate-x-1 ${
+                running 
+                  ? "bg-tertiary text-[#000] shadow-[-6px_6px_0px_0px_var(--color-outline-dark)]" 
+                  : "bg-primary text-[#000] shadow-[-6px_6px_0px_0px_var(--color-outline-dark)]"
+              }`}
             >
-              {running ? "Pause Training" : "Start Training"}
+              {running ? "■ Pause Training" : "▶ Start Training"}
             </button>
 
             <button
               type="button"
               onClick={() => resetNetwork()}
-              className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:bg-white/10"
+              className="border-4 border-outline bg-surface-container px-8 py-5 font-mono text-base font-bold uppercase tracking-widest text-on-surface shadow-[-4px_4px_0px_0px_var(--color-outline)] transition-transform hover:-translate-y-1 hover:translate-x-1"
             >
-              Reset Weights
+              Nuke Weights
             </button>
           </div>
 
-          <div className="mt-5 grid grid-cols-4 gap-3">
-            <div className="rounded-xl bg-white/[0.03] p-3">
-              <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
+          <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="border-2 border-outline bg-surface-container p-4">
+              <div className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant">
                 Epoch
               </div>
-              <div className="mt-2 text-2xl font-bold text-slate-100">
+              <div className="mt-2 font-headline text-3xl font-black text-on-surface">
                 {metrics.epoch}
               </div>
+              <div className="mt-1 text-xs text-on-surface-variant">Training cycles</div>
             </div>
 
-            <div className="rounded-xl bg-white/[0.03] p-3">
-              <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
+            <div className="border-2 border-outline bg-surface-container p-4 accent-left-tertiary">
+              <div className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant">
                 Loss
               </div>
-              <div className="mt-2 text-2xl font-bold text-slate-100">
+              <div className="mt-2 font-headline text-3xl font-black text-on-surface">
                 {metrics.loss.toFixed(3)}
               </div>
+              <div className="mt-1 text-xs text-tertiary">Goal: Approach 0.0</div>
             </div>
 
-            <div className="rounded-xl bg-white/[0.03] p-3">
-              <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
+            <div className="border-2 border-outline bg-surface-container p-4 accent-left-secondary">
+              <div className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant">
                 Accuracy
               </div>
-              <div className="mt-2 text-2xl font-bold text-slate-100">
+              <div className="mt-2 font-headline text-3xl font-black text-on-surface">
                 {(metrics.accuracy * 100).toFixed(0)}%
               </div>
+              <div className="mt-1 text-xs text-secondary">Correctly split dots</div>
             </div>
 
-            <div className="rounded-xl bg-white/[0.03] p-3">
-              <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
+            <div className="border-2 border-outline bg-surface-container p-4 accent-left-primary">
+              <div className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant">
                 ‖W‖
               </div>
-              <div className="mt-2 text-2xl font-bold text-slate-100">
+              <div className="mt-2 font-headline text-3xl font-black text-on-surface">
                 {(() => {
                   const net = networkRef.current;
                   const w1Norm = Math.sqrt(
@@ -978,101 +999,67 @@ export default function AlgorithmSimulator() {
                   return (w1Norm + w2Norm).toFixed(2);
                 })()}
               </div>
+              <div className="mt-1 text-xs text-primary">Overfitting penalty size</div>
             </div>
           </div>
 
-          <div className="mt-5 space-y-3">
-            <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-slate-500">
-              How It Works
-            </div>
+          <div className="mt-10 space-y-4 border-t-4 border-outline pt-8">
+            <h4 className="font-headline text-xl font-bold uppercase text-on-surface">
+              Core Mathematics
+            </h4>
 
-            <div className="rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3">
-              <h5 className="text-xs font-semibold text-slate-200">
+            <div className="border-l-4 border-outline bg-surface-container px-4 py-3">
+              <h5 className="font-mono text-xs font-bold uppercase tracking-wider text-on-surface">
                 Architecture
               </h5>
-              <p className="mt-1 text-sm leading-7 text-slate-400">
-                This is a{" "}
-                <strong className="text-slate-200">one-hidden-layer MLP</strong>{" "}
-                with architecture{" "}
-                <code className="rounded bg-white/5 px-1.5 py-0.5 font-mono text-xs text-primary">
+              <p className="mt-2 text-sm leading-7 text-on-surface-variant">
+                This relies on a{" "}
+                <strong className="text-on-surface">shallow multi-layer perceptron (MLP)</strong>{" "}
+                with a structural path of{" "}
+                <code className="bg-surface-highest border border-outline px-1 font-mono text-primary">
                   2 → {hiddenUnits} → 1
                 </code>
-                . Inputs are the $(x, y)$ coordinates normalized to $[-1, 1]$.
-                The hidden layer uses{" "}
-                <strong className="text-slate-200">tanh</strong> activation; the
-                output uses <strong className="text-slate-200">sigmoid</strong>{" "}
-                to produce a probability in $[0, 1]$.
+                . (x, y) coordinates map from $[-1, 1]$.
+                The hidden layer utilizes{" "}
+                <strong className="text-on-surface">tanh</strong> activation to warp the manifold; followed by {" "}
+                <strong className="text-on-surface">sigmoid</strong> squashing to resolve final class probability.
               </p>
             </div>
 
-            <div className="rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3">
-              <h5 className="text-xs font-semibold text-slate-200">
+            <div className="border-l-4 border-outline bg-surface-container px-4 py-3">
+              <h5 className="font-mono text-xs font-bold uppercase tracking-wider text-on-surface">
                 Forward Pass
               </h5>
-              <p className="mt-1 text-sm leading-7 text-slate-400">
-                For each point, the network computes:
+              <p className="mt-2 text-sm leading-7 text-on-surface-variant">
+                Mathematical flow for every pixel on screen:
               </p>
-              <div className="mt-2 space-y-1 rounded-lg bg-black/20 px-3 py-2 font-mono text-xs leading-6 text-slate-300">
+              <div className="mt-3 border-2 border-outline-dark bg-[#000] px-4 py-3 font-mono text-sm leading-6 text-primary shadow-[4px_4px_0px_0px_var(--color-outline-dark)]">
                 <div>z = W₁·x + b₁</div>
                 <div>a = tanh(z)</div>
                 <div>ŷ = σ(w₂ᵀ·a + b₂)</div>
               </div>
-              <p className="mt-2 text-sm leading-7 text-slate-400">
-                where <strong className="text-slate-200">σ</strong> is the
-                sigmoid function σ(t) = 1/(1 + e⁻ᵗ).
-              </p>
             </div>
 
-            <div className="rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3">
-              <h5 className="text-xs font-semibold text-slate-200">
+            <div className="border-l-4 border-outline bg-surface-container px-4 py-3">
+              <h5 className="font-mono text-xs font-bold uppercase tracking-wider text-on-surface">
                 Loss &amp; Gradient Descent
               </h5>
-              <p className="mt-1 text-sm leading-7 text-slate-400">
-                The loss is{" "}
-                <strong className="text-slate-200">binary cross-entropy</strong>
-                :
+              <p className="mt-2 text-sm leading-7 text-on-surface-variant">
+                Training strictly minimizes{" "}
+                <strong className="text-on-surface">binary cross-entropy</strong> loss iteratively:
               </p>
-              <div className="mt-2 rounded-lg bg-black/20 px-3 py-2 font-mono text-xs leading-6 text-slate-300">
+              <div className="mt-3 border-2 border-outline-dark bg-[#000] px-4 py-3 font-mono text-sm leading-6 text-tertiary shadow-[4px_4px_0px_0px_var(--color-outline-dark)]">
                 L = −(1/n) Σ [yᵢ log(ŷᵢ) + (1−yᵢ) log(1−ŷᵢ)]
               </div>
-              <p className="mt-2 text-sm leading-7 text-slate-400">
-                Gradients are computed via{" "}
-                <strong className="text-slate-200">backpropagation</strong>{" "}
-                (chain rule through every layer). Weights are updated each epoch
-                using{" "}
-                <strong className="text-slate-200">
-                  full-batch gradient descent
-                </strong>
-                :
+              <p className="mt-3 text-sm leading-7 text-on-surface-variant">
+                We calculate derivatives entirely client-side via{" "}
+                <strong className="text-on-surface">backpropagation</strong>, updating the weights constantly:
               </p>
-              <div className="mt-2 rounded-lg bg-black/20 px-3 py-2 font-mono text-xs leading-6 text-slate-300">
+              <div className="mt-3 border-2 border-outline-dark bg-[#000] px-4 py-3 font-mono text-sm leading-6 text-secondary shadow-[4px_4px_0px_0px_var(--color-outline-dark)]">
                 θ ← θ − η·(∇L + λ·θ)
               </div>
-              <p className="mt-2 text-sm leading-7 text-slate-400">
-                The <strong className="text-slate-200">λ·θ</strong> term is L2
-                regularization (weight decay), which penalizes large weights and
-                encourages simpler decision boundaries. The ‖W‖ metric above
-                tracks the total weight norm — lower values mean stronger
-                regularization effect.
-              </p>
             </div>
 
-            <div className="rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3">
-              <h5 className="text-xs font-semibold text-slate-200">
-                Reading the Visualization
-              </h5>
-              <p className="mt-1 text-sm leading-7 text-slate-400">
-                The <strong className="text-slate-200">heatmap</strong> shows
-                the predicted class probability at every pixel. Tints closer to{" "}
-                <span className="text-primary">Class A color</span> mean the
-                model predicts Class A; tints closer to{" "}
-                <span className="text-secondary">Class B color</span> mean Class
-                B. The <strong className="text-slate-200">white contour</strong>{" "}
-                marks the{" "}
-                <strong className="text-slate-200">decision boundary</strong>{" "}
-                where ŷ ≈ 0.5, i.e. the model is maximally uncertain.
-              </p>
-            </div>
           </div>
         </div>
       </div>

@@ -17,11 +17,11 @@ export default function PlaygroundPage() {
           <div className="mb-4 flex flex-wrap items-center gap-3">
             <Link
               href="/"
-              className="inline-flex items-center rounded-full bg-surface-container-high px-3 py-1.5 text-xs font-medium text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface"
+              className="inline-flex items-center border-2 border-outline bg-surface-container px-4 py-2 font-mono text-xs font-bold uppercase tracking-widest text-on-surface transition-transform hover:-translate-y-0.5 hover:translate-x-0.5 hover:shadow-[2px_2px_0px_0px_var(--color-outline)]"
             >
-              ← Back to Home
+              ← Back
             </Link>
-            <div className="inline-flex items-center rounded-full bg-tertiary/12 px-3 py-1 text-xs font-bold uppercase tracking-wider text-tertiary">
+            <div className="inline-flex items-center border-2 border-outline-dark bg-tertiary px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-wider text-[#000] shadow-[2px_2px_0px_0px_#000]">
               Interactive Lab
             </div>
           </div>
@@ -38,23 +38,23 @@ export default function PlaygroundPage() {
         </section>
 
         {/* Main simulator area */}
-        <section className="mb-10">
-          <div className="overflow-hidden rounded-2xl border border-outline-variant/50 bg-surface-container-lowest">
-            <div className="border-b border-outline-variant/50 bg-surface-container-low px-6 py-4">
+        <section className="mb-16">
+          <div className="border-4 border-outline bg-surface-container-lowest shadow-[8px_8px_0px_0px_var(--color-outline)]">
+            <div className="border-b-4 border-outline bg-surface-container-low px-6 py-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-sm font-semibold text-on-surface">
-                    Classifier Canvas
+                  <span className="font-headline text-lg font-bold uppercase text-on-surface">
+                    Playground Environment
                   </span>
-                  <p className="mt-0.5 text-xs text-on-surface-variant">
-                    Click to place samples, select a preset, then train
+                  <p className="mt-1 font-mono text-xs uppercase tracking-wider text-on-surface-variant">
+                    Interactive Neural Network Canvas
                   </p>
                 </div>
                 <Link
                   href="/algorithms/neural-networks"
-                  className="rounded-lg bg-surface-container-high px-3 py-1.5 text-xs font-semibold text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface"
+                  className="border-2 border-outline bg-surface-container px-4 py-2 font-mono text-xs font-bold uppercase tracking-widest text-on-surface transition-transform hover:-translate-y-1 hover:translate-x-1 hover:shadow-[-2px_2px_0px_0px_var(--color-outline)]"
                 >
-                  Open Full Lesson →
+                  Read Theory →
                 </Link>
               </div>
             </div>
@@ -66,12 +66,12 @@ export default function PlaygroundPage() {
         </section>
 
         {/* How to use guide */}
-        <section className="mb-10">
-          <h2 className="mb-6 font-headline text-2xl font-bold tracking-tight text-on-surface">
+        <section className="mb-16">
+          <h2 className="mb-6 font-headline text-3xl font-black uppercase tracking-tight text-on-surface">
             How to Use
           </h2>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
                 step: "1",
@@ -100,15 +100,15 @@ export default function PlaygroundPage() {
             ].map((item) => (
               <div
                 key={item.step}
-                className="rounded-xl bg-surface-container-high p-5"
+                className="group border-2 border-outline bg-surface-container p-6 transition-transform hover:-translate-y-1 hover:translate-x-1 hover:shadow-[-4px_4px_0px_0px_var(--color-outline)]"
               >
-                <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-full bg-primary/12 text-sm font-bold text-primary">
+                <div className="mb-4 flex h-10 w-10 items-center justify-center border-2 border-outline-dark bg-secondary font-mono text-lg font-black text-[#000] shadow-[2px_2px_0px_0px_#000] transition-colors group-hover:bg-primary">
                   {item.step}
                 </div>
-                <h3 className="text-sm font-semibold text-on-surface">
+                <h3 className="font-headline text-lg font-bold uppercase text-on-surface">
                   {item.title}
                 </h3>
-                <p className="mt-2 text-sm leading-6 text-on-surface-variant">
+                <p className="mt-2 font-mono text-sm leading-6 text-on-surface-variant">
                   {item.description}
                 </p>
               </div>
@@ -117,29 +117,29 @@ export default function PlaygroundPage() {
         </section>
 
         {/* Technical Deep Dive */}
-        <section className="mb-10">
-          <h2 className="mb-6 font-headline text-2xl font-bold tracking-tight text-on-surface">
+        <section className="mb-16">
+          <h2 className="mb-6 font-headline text-3xl font-black uppercase tracking-tight text-on-surface">
             Under the Hood
           </h2>
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <div className="rounded-xl border border-outline-variant/50 bg-surface-container-high p-6">
-              <h3 className="mb-3 text-base font-semibold text-on-surface">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="border-4 border-outline bg-surface-container p-6 shadow-[4px_4px_0px_0px_var(--color-outline)]">
+              <h3 className="mb-3 font-headline text-lg font-bold uppercase text-on-surface">
                 Architecture
               </h3>
-              <p className="text-sm leading-7 text-on-surface-variant">
+              <p className="font-mono text-sm leading-7 text-on-surface-variant">
                 The simulator runs a{" "}
                 <strong className="text-on-surface">
                   multi-layer perceptron (MLP)
                 </strong>{" "}
                 with a single hidden layer. The architecture is{" "}
-                <code className="rounded bg-surface-container px-1.5 py-0.5 font-mono text-xs text-primary">
+                <code className="border border-outline bg-surface-lowest px-1.5 py-0.5 font-mono text-xs font-bold text-primary">
                   2 → H → 1
                 </code>{" "}
                 where H is the number of hidden units you configure. The two
                 inputs are the (x, y) canvas coordinates normalized to [−1, 1].
               </p>
-              <div className="mt-4 space-y-1 rounded-lg bg-surface-container px-4 py-3 font-mono text-xs leading-6 text-on-surface-variant">
+              <div className="mt-4 space-y-2 border-2 border-outline-dark bg-[#000] px-4 py-3 font-mono text-sm leading-6 text-on-surface shadow-[4px_4px_0px_0px_var(--color-outline-dark)]">
                 <div>
                   <strong className="text-on-surface">Hidden:</strong> z =
                   W₁·x + b₁, &nbsp;a = tanh(z)
@@ -149,20 +149,20 @@ export default function PlaygroundPage() {
                   σ(w₂ᵀ·a + b₂)
                 </div>
               </div>
-              <p className="mt-3 text-sm leading-7 text-on-surface-variant">
+              <p className="mt-4 font-mono text-sm leading-7 text-on-surface-variant">
                 The <strong className="text-on-surface">tanh</strong> activation
                 allows hidden units to produce both positive and negative
                 values, enabling the network to carve nonlinear boundaries. The
-                output sigmoid σ(t) = 1/(1+e⁻ᵗ) squashes the result to [0, 1],
+                output sigmoid squashes the result to [0, 1],
                 representing the probability of Class B.
               </p>
             </div>
 
-            <div className="rounded-xl border border-outline-variant/50 bg-surface-container-high p-6">
-              <h3 className="mb-3 text-base font-semibold text-on-surface">
+            <div className="border-4 border-outline bg-surface-container p-6 shadow-[4px_4px_0px_0px_var(--color-outline)]">
+              <h3 className="mb-3 font-headline text-lg font-bold uppercase text-on-surface">
                 Training Loop
               </h3>
-              <p className="text-sm leading-7 text-on-surface-variant">
+              <p className="font-mono text-sm leading-7 text-on-surface-variant">
                 Each click of "Train" runs multiple epochs of{" "}
                 <strong className="text-on-surface">
                   full-batch gradient descent
@@ -170,19 +170,19 @@ export default function PlaygroundPage() {
                 . The loss function is{" "}
                 <strong className="text-on-surface">binary cross-entropy</strong>:
               </p>
-              <div className="mt-3 rounded-lg bg-surface-container px-4 py-3 font-mono text-xs leading-6 text-on-surface-variant">
+              <div className="mt-4 border-2 border-outline-dark bg-[#000] px-4 py-3 font-mono text-sm leading-6 text-tertiary shadow-[4px_4px_0px_0px_var(--color-outline-dark)]">
                 L = −(1/n) Σ [yᵢ log(ŷᵢ) + (1−yᵢ) log(1−ŷᵢ)]
               </div>
-              <p className="mt-3 text-sm leading-7 text-on-surface-variant">
+              <p className="mt-4 font-mono text-sm leading-7 text-on-surface-variant">
                 Gradients are computed via{" "}
                 <strong className="text-on-surface">backpropagation</strong> —
                 the chain rule applied through every layer. The weight update
                 includes L2 regularisation (weight decay):
               </p>
-              <div className="mt-3 rounded-lg bg-surface-container px-4 py-3 font-mono text-xs leading-6 text-on-surface-variant">
+              <div className="mt-4 border-2 border-outline-dark bg-[#000] px-4 py-3 font-mono text-sm leading-6 text-secondary shadow-[4px_4px_0px_0px_var(--color-outline-dark)]">
                 θ ← θ − η·(∇L + λ·θ)
               </div>
-              <p className="mt-3 text-sm leading-7 text-on-surface-variant">
+              <p className="mt-4 font-mono text-sm leading-7 text-on-surface-variant">
                 The <strong className="text-on-surface">‖W‖ metric</strong>{" "}
                 tracks total weight magnitude. Higher regularisation (λ) keeps
                 this small, producing simpler, smoother decision boundaries that
@@ -190,55 +190,53 @@ export default function PlaygroundPage() {
               </p>
             </div>
 
-            <div className="rounded-xl border border-outline-variant/50 bg-surface-container-high p-6">
-              <h3 className="mb-3 text-base font-semibold text-on-surface">
+            <div className="border-4 border-outline bg-surface-container p-6 shadow-[4px_4px_0px_0px_var(--color-outline)]">
+              <h3 className="mb-3 font-headline text-lg font-bold uppercase text-on-surface">
                 Why Different Datasets Matter
               </h3>
-              <ul className="space-y-3 text-sm leading-7 text-on-surface-variant">
-                <li className="flex items-start gap-3">
-                  <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
+              <ul className="space-y-4 font-mono text-sm leading-7 text-on-surface-variant">
+                <li className="flex items-start gap-4">
+                  <span className="mt-1 h-3 w-3 shrink-0 border border-[#000] bg-primary shadow-[1px_1px_0px_0px_#000]" />
                   <span>
                     <strong className="text-on-surface">Linear:</strong> A
                     single straight line can separate the classes. Even 1 hidden
                     unit suffices. This shows the model at its simplest.
                   </span>
                 </li>
-                <li className="flex items-start gap-3">
-                  <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-secondary" />
+                <li className="flex items-start gap-4">
+                  <span className="mt-1 h-3 w-3 shrink-0 border border-[#000] bg-secondary shadow-[1px_1px_0px_0px_#000]" />
                   <span>
                     <strong className="text-on-surface">XOR:</strong> No single
                     line can separate these four clusters. The network needs ≥2
-                    hidden units to combine features nonlinearly — this is the
-                    classic demonstration of why we need hidden layers.
+                    hidden units to combine features nonlinearly.
                   </span>
                 </li>
-                <li className="flex items-start gap-3">
-                  <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-tertiary" />
+                <li className="flex items-start gap-4">
+                  <span className="mt-1 h-3 w-3 shrink-0 border border-[#000] bg-tertiary shadow-[1px_1px_0px_0px_#000]" />
                   <span>
                     <strong className="text-on-surface">Rings:</strong>{" "}
                     Concentric circles require a closed-curve boundary. The
-                    network needs ~4+ hidden units to approximate this shape,
-                    showing how width controls expressiveness.
+                    network needs ~4+ hidden units to approximate this shape.
                   </span>
                 </li>
               </ul>
             </div>
 
-            <div className="rounded-xl border border-outline-variant/50 bg-surface-container-high p-6">
-              <h3 className="mb-3 text-base font-semibold text-on-surface">
+            <div className="border-4 border-outline bg-surface-container p-6 shadow-[4px_4px_0px_0px_var(--color-outline)]">
+              <h3 className="mb-3 font-headline text-lg font-bold uppercase text-on-surface">
                 Reading the Visualisation
               </h3>
-              <ul className="space-y-3 text-sm leading-7 text-on-surface-variant">
-                <li className="flex items-start gap-3">
-                  <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
+              <ul className="space-y-4 font-mono text-sm leading-7 text-on-surface-variant">
+                <li className="flex items-start gap-4">
+                  <span className="mt-1 h-3 w-3 shrink-0 border border-[#000] bg-primary shadow-[1px_1px_0px_0px_#000]" />
                   <span>
                     <strong className="text-on-surface">Heatmap:</strong> Each
-                    pixel shows the model&apos;s predicted probability. Blue-tinted
-                    areas predict Class A; orange-tinted areas predict Class B.
+                    pixel shows the model&apos;s predicted probability. Pink-tinted
+                    areas predict Class A; Cyan-tinted areas predict Class B.
                   </span>
                 </li>
-                <li className="flex items-start gap-3">
-                  <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-on-surface" />
+                <li className="flex items-start gap-4">
+                  <span className="mt-1 h-3 w-3 shrink-0 border border-outline bg-surface-highest" />
                   <span>
                     <strong className="text-on-surface">White contour:</strong>{" "}
                     The decision boundary where ŷ ≈ 0.5 — the model is
@@ -246,8 +244,8 @@ export default function PlaygroundPage() {
                     differently.
                   </span>
                 </li>
-                <li className="flex items-start gap-3">
-                  <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-error" />
+                <li className="flex items-start gap-4">
+                  <span className="mt-1 h-3 w-3 shrink-0 border border-[#000] bg-error shadow-[1px_1px_0px_0px_#000]" />
                   <span>
                     <strong className="text-on-surface">Metrics:</strong> Loss
                     should decrease over training. Accuracy shows the fraction

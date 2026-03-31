@@ -96,9 +96,15 @@ export default async function AlgorithmPage({ params }: PageProps) {
   const codeLabel = inferCodeLabel(algorithm.codeSnippet, algorithm.title);
   const supportSections = getSupportSections(algorithm.id);
 
-  const isFoundation = ["Calculus", "Linear Algebra", "Probability Theory"].includes(algorithm.category);
+  const isFoundation = [
+    "Calculus",
+    "Linear Algebra",
+    "Probability Theory",
+  ].includes(algorithm.category);
   if (isFoundation) {
-    return <FoundationView algorithm={algorithm} supportSections={supportSections} />;
+    return (
+      <FoundationView algorithm={algorithm} supportSections={supportSections} />
+    );
   }
 
   return (
@@ -172,7 +178,13 @@ export default async function AlgorithmPage({ params }: PageProps) {
           <div className="border-b border-outline-variant/30 px-6 py-5 sm:px-8">
             <div className="mb-2 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-tertiary/12 text-lg">
-                <Image src="/think.png" alt="think" width={30} height={30} className="filter invert" />
+                <Image
+                  src="/think.png"
+                  alt="think"
+                  width={30}
+                  height={30}
+                  className="filter invert"
+                />
               </div>
               <div>
                 <h2 className="font-headline text-xl font-semibold text-on-surface sm:text-2xl">
@@ -183,9 +195,9 @@ export default async function AlgorithmPage({ params }: PageProps) {
                 </p>
               </div>
             </div>
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-on-surface-variant sm:text-base">
-              {algorithm.intuition}
-            </p>
+            <div className="mt-4">
+              <LogicContent content={algorithm.intuition} />
+            </div>
           </div>
 
           <div className="p-4 sm:p-6">
@@ -225,7 +237,9 @@ export default async function AlgorithmPage({ params }: PageProps) {
               <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-on-surface-variant/60">
                 Code Example
               </p>
-              <p className="mt-1 text-sm text-on-surface-variant">{codeLabel}</p>
+              <p className="mt-1 text-sm text-on-surface-variant">
+                {codeLabel}
+              </p>
             </div>
           </div>
 
