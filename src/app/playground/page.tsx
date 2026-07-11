@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import AlgorithmSimulator from "@/components/ui/AlgorithmSimulator";
 import LogicContent from "@/components/ui/LogicContent";
+import TheaterMode from "@/components/ui/TheaterMode";
 
 export const metadata: Metadata = {
   title: "Neural Network Playground",
@@ -104,7 +105,9 @@ export default function PlaygroundPage() {
           </div>
 
           <div className="p-4 sm:p-6 lg:p-8">
-            <AlgorithmSimulator />
+            <TheaterMode title="Neural Network Playground">
+              <AlgorithmSimulator />
+            </TheaterMode>
           </div>
         </div>
       </section>

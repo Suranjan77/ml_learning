@@ -390,6 +390,98 @@ export default function AlgorithmSimulator() {
     });
   }, [initialDefaults.hiddenUnits]);
 
+  // Apply a shared configuration from the query string, e.g.
+  // /playground?preset=xor&h=8&lr=0.08&reg=0.0005&act=tanh&m=0.9
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const hasConfig = ["preset", "h", "lr", "reg", "act", "m"].some(
+      (key) => params.get(key) !== null,
+    );
+
+    if (!hasConfig) {
+      return;
+    }
+
+    const readNumber = (key: string, min: number, max: number) => {
+      const raw = params.get(key);
+      if (raw === null) return undefined;
+      const value = Number(raw);
+      return Number.isFinite(value) ? clamp(value, min, max) : undefined;
+    };
+
+    const presetParam = params.get("preset");
+    const nextPreset: Exclude<Preset, "custom"> =
+      presetParam === "xor" || presetParam === "rings"
+        ? presetParam
+        : "linear";
+    const defaults = getPresetDefaults(nextPreset);
+    const nextPoints =
+      nextPreset === "xor"
+        ? createXorDataset()
+        : nextPreset === "rings"
+          ? createRingDataset()
+          : createLinearDataset();
+
+    const nextHiddenUnits = Math.round(
+      readNumber("h", 2, 16) ?? defaults.hiddenUnits,
+    );
+    const nextLearningRate = readNumber("lr", 0.01, 0.15) ?? defaults.learningRate;
+    const nextRegularization = readNumber("reg", 0, 0.01) ?? defaults.regularization;
+    const nextMomentum = readNumber("m", 0, 0.99) ?? 0.9;
+    const actParam = params.get("act");
+    const nextActivation: Activation =
+      actParam === "relu" || actParam === "sigmoid" ? actParam : "tanh";
+
+    setPreset(nextPreset);
+    setPoints(nextPoints);
+    setHiddenUnits(nextHiddenUnits);
+    setLearningRate(nextLearningRate);
+    setRegularization(nextRegularization);
+    setMomentum(nextMomentum);
+    setActivation(nextActivation);
+
+    networkRef.current = createInitialNetwork(nextHiddenUnits);
+    setWeightNorm(calculateWeightNorm(networkRef.current));
+    const evaluation = evaluateNetwork(
+      networkRef.current,
+      nextPoints,
+      nextActivation,
+    );
+    setMetrics({ epoch: 0, loss: evaluation.loss, accuracy: evaluation.accuracy });
+    setStatusText(
+      "Shared configuration loaded. Start training to fit the model.",
+    );
+  }, []);
+
+  const copySetupLink = async () => {
+    const params = new URLSearchParams();
+    if (preset !== "custom") {
+      params.set("preset", preset);
+    }
+    params.set("h", String(hiddenUnits));
+    params.set("lr", learningRate.toFixed(2));
+    params.set("reg", regularization.toFixed(4));
+    params.set("act", activation);
+    params.set("m", momentum.toFixed(2));
+
+    const query = `?${params.toString()}`;
+    const url = `${window.location.origin}${window.location.pathname}${query}`;
+    window.history.replaceState(null, "", query);
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setStatusText(
+        preset === "custom"
+          ? "Setup link copied. Note: hand-drawn points are not included — only the model settings."
+          : "Setup link copied. Opening it restores this dataset and these settings.",
+      );
+    } catch {
+      setStatusText(
+        "Link written to the address bar — copy it from there to share this setup.",
+      );
+    }
+  };
+
   const datasetSummary = useMemo(() => {
     const classA = points.filter((point) => point.label === 0).length;
     const classB = points.length - classA;
@@ -1048,6 +1140,14 @@ export default function AlgorithmSimulator() {
               className="rounded border border-outline bg-surface-container px-6 py-4 text-base font-semibold text-on-surface transition"
             >
               Reset Weights
+            </button>
+
+            <button
+              type="button"
+              onClick={copySetupLink}
+              className="rounded border border-outline bg-surface-container px-6 py-4 text-base font-semibold text-on-surface transition hover:border-primary hover:text-primary"
+            >
+              Copy Setup Link
             </button>
           </div>
 

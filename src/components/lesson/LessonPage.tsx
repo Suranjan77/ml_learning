@@ -14,6 +14,7 @@ import CodeBlock from "@/components/ui/CodeBlock";
 import InlineMarkdown from "@/components/ui/InlineMarkdown";
 import LogicContent from "@/components/ui/LogicContent";
 import AlgorithmVisualization from "@/components/ui/AlgorithmVisualization";
+import TheaterMode from "@/components/ui/TheaterMode";
 import { VisualizationErrorBoundary } from "@/components/ui/visualizations/VisualizationErrorBoundary";
 import {
   getAccentClasses,
@@ -100,8 +101,42 @@ export default function LessonPage({ module, allModules }: LessonPageProps) {
       {/* Stacked content sections */}
       <section className="relative z-10 mx-auto max-w-6xl space-y-8">
 
-        {/* Quick review and objectives */}
+        {/* Quick review */}
         <TLDR points={module.tldr} />
+
+        {/* Interactive Visualization Section — leads the lesson */}
+        {module.hasVisualization !== false && (
+          <div
+            id="visualization"
+            className="scroll-mt-32 lg:scroll-mt-48 overflow-hidden border border-outline bg-surface-container-low"
+          >
+            <div className="border-b border-outline bg-surface-container px-6 py-5 sm:px-8">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center border border-primary/30 bg-primary/12 text-primary">
+                  <ChartNoAxesCombined size={18} strokeWidth={1.7} aria-hidden="true" />
+                </div>
+                <div>
+                  <h2 className="font-headline text-xl font-semibold tracking-normal text-on-surface sm:text-2xl">
+                    Interactive Diagram
+                  </h2>
+                  <p className="text-sm text-on-surface-variant/70">
+                    Start here — play with the model, then read on to understand what you saw
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-surface-container-low p-2 sm:p-6">
+              <TheaterMode title={module.title}>
+                <div className="min-h-[380px]">
+                  <VisualizationErrorBoundary algorithmId={module.id}>
+                    <AlgorithmVisualization algorithmId={module.id} />
+                  </VisualizationErrorBoundary>
+                </div>
+              </TheaterMode>
+            </div>
+          </div>
+        )}
+
         <LearningObjectives objectives={module.learningObjectives} />
 
         {/* Intuition Section */}
@@ -131,41 +166,7 @@ export default function LessonPage({ module, allModules }: LessonPageProps) {
           </div>
         )}
 
-        {/* Interactive Visualization Section */}
-        {module.hasVisualization !== false && (
-          <div
-            id="visualization"
-            className="scroll-mt-32 lg:scroll-mt-48 overflow-hidden border border-outline bg-surface-container-low"
-          >
-            <div className="border-b border-outline bg-surface-container px-6 py-5 sm:px-8">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center border border-primary/30 bg-primary/12 text-primary">
-                  <ChartNoAxesCombined size={18} strokeWidth={1.7} aria-hidden="true" />
-                </div>
-                <div>
-                  <h2 className="font-headline text-xl font-semibold tracking-normal text-on-surface sm:text-2xl">
-                    Interactive Diagram
-                  </h2>
-                  <p className="text-sm text-on-surface-variant/70">
-                    Test the intuition above by changing the model parameters
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-surface-container-low p-2 sm:p-6">
-              <div className="min-h-[380px]">
-                <VisualizationErrorBoundary algorithmId={module.id}>
-                  <AlgorithmVisualization algorithmId={module.id} />
-                </VisualizationErrorBoundary>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Notation Table Section */}
-        <NotationTable notationTable={module.notationTable} />
-
-        {/* Mathematics Section */}
+        {/* Mathematics Section — folded "go deeper" layer */}
         {module.mathematics && (
           <div
             id="mathematics"
@@ -185,7 +186,7 @@ export default function LessonPage({ module, allModules }: LessonPageProps) {
                     The Mathematics
                   </h2>
                   <p className="text-sm text-on-surface-variant/70">
-                    Formal formulations, equations, and derivations
+                    Go deeper — notation, formal formulations, and derivations
                   </p>
                 </div>
               </div>
@@ -195,6 +196,7 @@ export default function LessonPage({ module, allModules }: LessonPageProps) {
             </button>
             {isMathOpen && (
               <div className="px-6 py-5 sm:px-8">
+                <NotationTable notationTable={module.notationTable} />
                 <LogicContent content={module.mathematics} />
               </div>
             )}

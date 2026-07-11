@@ -6,6 +6,7 @@ import { algorithms } from "@/data/algorithms";
 
 const interactiveLabs = [
   { label: "Playground", href: "/playground" },
+  { label: "Sampling Lab", href: "/labs/sampling" },
 ] as const;
 
 const suranjanQrSvg =
@@ -203,16 +204,22 @@ export default function Home() {
             </p>
             <div className="mt-9 flex flex-col gap-4 sm:flex-row">
               <Link
-                href="/algorithms/linear-regression"
+                href="/labs"
                 className="inline-flex min-h-10 items-center justify-center border border-accent bg-accent px-8 py-3 text-[15px] font-medium tracking-tight text-on-accent hover:bg-accent-hover hover:border-accent-hover"
               >
-                Begin Curriculum
+                Explore the Labs
+              </Link>
+              <Link
+                href="/map"
+                className="inline-flex min-h-10 items-center justify-center border border-outline px-8 py-3 text-[15px] font-medium tracking-tight text-on-surface hover:border-primary hover:text-primary"
+              >
+                See the Concept Map
               </Link>
               <Link
                 href="/#curriculum"
                 className="inline-flex min-h-10 items-center justify-center border border-transparent px-8 py-3 text-[15px] font-medium tracking-tight text-primary underline-offset-[6px] decoration-1 hover:underline"
               >
-                Explore Learning Tracks →
+                Curriculum →
               </Link>
             </div>
           </div>

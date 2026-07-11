@@ -14,6 +14,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 1,
     },
+    ...["/labs", "/labs/sampling", "/playground", "/map"].map((path) => ({
+      url: getAbsoluteUrl(path),
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.9,
+    })),
   ];
 
   const algorithmRoutes: MetadataRoute.Sitemap = algorithmsList.map(
