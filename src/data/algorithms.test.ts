@@ -44,6 +44,7 @@ const requiredIds = [
   "dl-synthesis",
   "fine-tuning",
   "rag",
+  "ai-agents",
   "llm-evaluation-safety",
   "ai-inference",
   "reinforcement-learning",

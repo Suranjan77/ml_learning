@@ -4,7 +4,7 @@ export const knn: LearningModule = {
   id: "knn",
   title: "K-Nearest Neighbors",
   category: "K-Nearest Neighbors",
-  prerequisites: [],
+  prerequisites: ["applied-ml-workflow"],
   tracks: ["practitioner"],
   difficulty: 2,
   shortDescription: "A simple algorithm that makes predictions for a new data point by finding the closest, most similar historical examples.",

@@ -4,7 +4,7 @@ export const naiveBayes: LearningModule = {
   id: "naive-bayes",
   title: "Naive Bayes",
   category: "Naive Bayes",
-  prerequisites: ["nlp"],
+  prerequisites: ["applied-ml-workflow"],
   tracks: ["practitioner"],
   difficulty: 2,
   estimatedMinutes: 30,

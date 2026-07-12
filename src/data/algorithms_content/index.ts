@@ -27,6 +27,7 @@ import { backpropagation } from "./29_backpropagation";
 import { sequenceModels } from "./30_sequence_models";
 import { embeddingsTokenization } from "./31_embeddings_tokenization";
 import { rag } from "./32_rag";
+import { aiAgents } from "./46_ai_agents";
 import { fineTuning } from "./33_fine_tuning";
 import { llmEvaluationSafety } from "./34_llm_evaluation_safety";
 import { aiInference } from "./35_ai_inference";
@@ -81,6 +82,7 @@ export const algorithmsList: LearningModule[] = [
   dlSynthesis,
   fineTuning,
   rag,
+  aiAgents,
   llmEvaluationSafety,
   aiInference,
   reinforcementLearning,

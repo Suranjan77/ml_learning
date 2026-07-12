@@ -33,6 +33,7 @@ import BackpropagationViz from "./BackpropagationViz";
 import SequenceModelsViz from "./SequenceModelsViz";
 import EmbeddingsTokenizationViz from "./EmbeddingsTokenizationViz";
 import RAGViz from "./RAGViz";
+import AIAgentsViz from "./AIAgentsViz";
 import FineTuningViz from "./FineTuningViz";
 import LLMEvalSafetyViz from "./LLMEvalSafetyViz";
 import AIInferenceViz from "./AIInferenceViz";
@@ -98,6 +99,12 @@ const extendedVisualizations: Record<
     title: "Retrieval-Augmented Generation: Grounding the Answer",
     subtitle: "Ask about a private fact the model never trained on. With retrieval off it confidently makes one up; turn it on and the matching document is pulled from the knowledge base, so the answer becomes correct and cited.",
     insight: "RAG fixes hallucination without retraining by retrieving the most relevant documents at question time and answering from them — so quality hinges on the retrieval step.",
+  },
+  "ai-agents": {
+    component: AIAgentsViz,
+    title: "The ReAct Loop: Think, Act, Observe, Repeat",
+    subtitle: "Step through an agent chasing a compound goal it cannot answer from memory alone. Each click advances one Thought, Action, or Observation — watch the tool calls run for real and the history grow until the agent has enough grounded facts to answer.",
+    insight: "An agent is an LLM wrapped in a loop that interleaves reasoning with real tool calls, feeding each tool's actual result back into the next reasoning step — that grounding in real observations is what lets it solve multi-step goals a single LLM call cannot.",
   },
   "fine-tuning": {
     component: FineTuningViz,
@@ -454,6 +461,7 @@ const visualizationComponents: Record<string, React.ComponentType> = {
   "sequence-models": SequenceModelsViz,
   "embeddings-tokenization": EmbeddingsTokenizationViz,
   rag: RAGViz,
+  "ai-agents": AIAgentsViz,
   "fine-tuning": FineTuningViz,
   "llm-evaluation-safety": LLMEvalSafetyViz,
   "ai-inference": AIInferenceViz,
@@ -495,6 +503,7 @@ const accessibleLabels: Record<string, string> = {
   "sequence-models": "Sequence Models Gradient Flow Through Time",
   "embeddings-tokenization": "Subword Tokenization",
   rag: "RAG Pipeline Flow Diagram",
+  "ai-agents": "AI Agent ReAct Loop Step-Through Diagram",
   "fine-tuning": "LoRA vs Full Fine-Tuning Parameter Update Diagram",
   "llm-evaluation-safety": "LLM Model Scores Bar Chart",
   "ai-inference": "AI inference memory and throughput calculator",

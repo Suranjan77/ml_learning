@@ -4,7 +4,7 @@ export const decisionTrees: LearningModule = {
   id: "decision-trees",
   title: "Decision Trees",
   category: "Decision Trees",
-  prerequisites: [],
+  prerequisites: ["applied-ml-workflow"],
   tracks: ["practitioner"],
   difficulty: 2,
   shortDescription: "A flowchart-like model that makes decisions by asking a series of yes/no questions about features.",

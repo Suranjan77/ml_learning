@@ -4,7 +4,7 @@ export const mcmc: LearningModule = {
   id: "mcmc",
   title: "Markov Chain Monte Carlo",
   category: "Markov Chain Monte Carlo",
-  prerequisites: [],
+  prerequisites: ["gmm-em"],
   tracks: ["practitioner"],
   difficulty: 3,
   relatedModules: ["gmm-em"],

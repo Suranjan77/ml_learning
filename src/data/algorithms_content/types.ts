@@ -27,7 +27,8 @@ export type AlgorithmCategory =
   | "Retrieval-Augmented Generation"
   | "Fine-Tuning and Preference Optimization"
   | "LLM Evaluation and Safety"
-  | "AI Inference Systems";
+  | "AI Inference Systems"
+  | "AI Agents and Tool Use";
 
 export interface Algorithm {
   id: string;

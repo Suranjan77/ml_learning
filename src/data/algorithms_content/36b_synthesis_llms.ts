@@ -4,6 +4,7 @@ export const llmSynthesis: LearningModule = {
   id: "llm-synthesis",
   title: "Synthesis: LLM System Architecture",
   category: "Machine Learning Concepts",
+  prerequisites: ["rag", "fine-tuning", "llm-evaluation-safety"],
   learningObjectives: [
     'Synthesize the entire LLM pipeline from pre-training and fine-tuning to RAG and inference.',
     'Analyze the trade-offs between fine-tuning a model versus using Prompt Engineering and RAG.',

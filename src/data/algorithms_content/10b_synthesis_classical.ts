@@ -4,6 +4,7 @@ export const classicalSynthesis: LearningModule = {
   id: "classical-synthesis",
   title: "Synthesis: Classical ML Architecture Choice",
   category: "Machine Learning Concepts",
+  prerequisites: ["gradient-boosting", "support-vector-machines", "clustering"],
   learningObjectives: [
     'Synthesize and compare the performance profiles of classical ML algorithms (Linear Models, Trees, SVMs).',
     'Select appropriate algorithms based on data constraints (size, dimensionality, noise).',

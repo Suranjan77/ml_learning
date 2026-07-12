@@ -4,6 +4,7 @@ export const dlSynthesis: LearningModule = {
   id: "dl-synthesis",
   title: "Synthesis: Deep Learning Architecture Choice",
   category: "Machine Learning Concepts",
+  prerequisites: ["cnn", "sequence-models", "optimization-optimizers"],
   learningObjectives: [
     'Synthesize the architectural trade-offs between CNNs, RNNs, and basic Transformers.',
     'Select the correct deep learning architecture based on data modality (images, text, time-series) and hardware constraints.',
