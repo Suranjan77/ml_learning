@@ -61,7 +61,13 @@ export function VizCanvas({
           {children}
         </Canvas>
       ) : (
-        <div aria-hidden className="h-full w-full bg-[var(--color-surface)]" />
+        <div className="flex h-full w-full items-center justify-center bg-[var(--color-surface)] p-6 text-center">
+          <p className="max-w-xl text-sm leading-6 text-on-surface-variant">
+            {mounted
+              ? `The 3D view is unavailable in this browser. ${description ?? label}`
+              : "Preparing the 3D visualisation…"}
+          </p>
+        </div>
       )}
     </div>
   );

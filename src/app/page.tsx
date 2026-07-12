@@ -1,9 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, MoveRight, Play } from "lucide-react";
 import ExhibitCard, { ExhibitPreview } from "@/components/ExhibitCard";
 import { exhibits } from "@/features/exhibits/registry";
 
 const FEATURED_SLUG = "gradient-descent";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 const questionThemes = [
   {
@@ -16,7 +21,7 @@ const questionThemes = [
     keyword: "Boundaries",
     label: "Shape a boundary",
     description: "Transform data, compare distances, and see how simple rules produce complex decision regions.",
-    slugs: ["kernel-trick", "particle-swarm", "genetic-algorithm", "cnn-feature-maps", "backpropagation"],
+    slugs: ["regression-boundary", "decision-tree", "kernel-trick", "particle-swarm", "genetic-algorithm", "cnn-feature-maps", "backpropagation"],
   },
   {
     keyword: "Language",

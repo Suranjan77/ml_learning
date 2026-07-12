@@ -10,6 +10,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { vizStroke, vizTokens } from "@/lib/vizTokens";
 import { reduced, vizMotion } from "@/lib/vizMotion";
 import type { ExhibitSceneProps } from "../types";
+import { numberParam, replaceSceneUrlState, useSceneUrlState } from "../sceneUrlState";
 import {
   DEFAULT_DEGREE,
   DEFAULT_SEED,
@@ -83,6 +84,11 @@ export default function OverfittingScene({ step, resetKey }: ExhibitSceneProps) 
   const [seed, setSeed] = useState<number>(DEFAULT_SEED);
   const [showValidation, setShowValidation] = useState<boolean>(true);
 
+  const chooseDegree = (next: number) => {
+    setDegree(next);
+    replaceSceneUrlState([{ key: "degree", value: String(next), defaultValue: String(initialPreset.degree) }]);
+  };
+
   // visx scales own domain→pixel for both panels; content renders plot-relative
   // inside translated Groups. The error axis is sqrt-compressed, so the right
   // y-scale maps the already-compressed value in [0,1].
@@ -104,6 +110,11 @@ export default function OverfittingScene({ step, resetKey }: ExhibitSceneProps) 
     setSeed(DEFAULT_SEED);
     setShowValidation(true);
   }, [resetKey, step]);
+
+  useSceneUrlState((params) => {
+    const restored = numberParam(params, "degree", DEGREE_RANGE);
+    if (restored !== undefined) setDegree(restored);
+  });
 
   const dataset = useMemo(() => samplePoints(seed), [seed]);
   const curve = useMemo(
@@ -150,10 +161,10 @@ export default function OverfittingScene({ step, resetKey }: ExhibitSceneProps) 
   function adjustDegree(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key === "ArrowLeft") {
       event.preventDefault();
-      setDegree((value) => Math.max(DEGREE_RANGE.min, value - 1));
+      chooseDegree(Math.max(DEGREE_RANGE.min, degree - 1));
     } else if (event.key === "ArrowRight") {
       event.preventDefault();
-      setDegree((value) => Math.min(DEGREE_RANGE.max, value + 1));
+      chooseDegree(Math.min(DEGREE_RANGE.max, degree + 1));
     }
   }
 
@@ -341,7 +352,7 @@ export default function OverfittingScene({ step, resetKey }: ExhibitSceneProps) 
             max={DEGREE_RANGE.max}
             step={1}
             value={degree}
-            onChange={(event) => setDegree(Number(event.target.value))}
+            onChange={(event) => chooseDegree(Number(event.target.value))}
             className="block min-h-9"
           />
         </label>

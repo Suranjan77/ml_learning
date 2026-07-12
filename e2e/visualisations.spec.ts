@@ -12,6 +12,8 @@ const routes = [
   "/visualisations/genetic-algorithm",
   "/visualisations/pca",
   "/visualisations/backpropagation",
+  "/visualisations/regression-boundary",
+  "/visualisations/decision-tree",
 ];
 
 const viewports = [
@@ -82,6 +84,44 @@ test.describe("visualisation workspace", () => {
     await page.getByRole("button", { name: "Clear filters" }).click();
     await expect(cards).toHaveCount(routes.length);
     await expect(page).toHaveURL(/\/visualisations$/);
+  });
+
+  test("shares and restores meaningful scene state", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto("/visualisations/overfitting");
+
+    const degree = page.getByRole("slider", { name: "Degree" });
+    const stage = page.getByRole("group", { name: /Model fit and error curves/ });
+    await stage.focus();
+    await stage.press("ArrowRight");
+    const sharedDegree = await degree.inputValue();
+    expect(Number(sharedDegree)).toBeGreaterThan(1);
+    await expect.poll(() => new URL(page.url()).searchParams.get("degree")).toBe(sharedDegree);
+
+    await page.reload();
+    await expect(degree).toHaveValue(sharedDegree);
+
+    await page.getByRole("button", { name: "Copy current view" }).click();
+    await expect(page.getByRole("button", { name: "Current view copied" })).toBeVisible();
+  });
+
+  test("offers a clean, keyboard-accessible embed view", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto("/visualisations/attention?embed=1&step=1");
+
+    await expect(page.getByRole("navigation", { name: "Primary navigation" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Full view" })).toHaveAttribute("target", "_top");
+    await expect(page.getByText("Step 2 of 3")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Next", exact: true })).toBeEnabled();
+  });
+
+  test("publishes route-specific canonical and social metadata", async ({ page }) => {
+    await page.goto("/visualisations/attention");
+
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/visualisations\/attention$/);
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /\/social\/attention\.png$/);
+    const jsonLd = await page.locator('script[type="application\/ld\+json"]').textContent();
+    expect(jsonLd).toContain("LearningResource");
   });
 
   test("offers related-idea links from the insight drawer", async ({ page }) => {

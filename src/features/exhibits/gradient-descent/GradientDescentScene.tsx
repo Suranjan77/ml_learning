@@ -8,6 +8,7 @@ import * as THREE from "three";
 import { VizCanvas } from "@/lib/three/VizCanvas";
 import { vizTokens } from "@/lib/vizTokens";
 import type { ExhibitSceneProps } from "../types";
+import { enumParam, numberParam, replaceSceneUrlState, useSceneUrlState } from "../sceneUrlState";
 import {
   DEFAULT_LEARNING_RATE,
   DEFAULT_START,
@@ -301,6 +302,11 @@ export default function GradientDescentScene({ step, resetKey }: ExhibitScenePro
   const [visibleSteps, setVisibleSteps] = useState<number>(initialPreset.visibleSteps);
   const [running, setRunning] = useState(false);
 
+  const syncControls = (nextSurface: SurfaceKind, nextRate: number) => replaceSceneUrlState([
+    { key: "surface", value: nextSurface, defaultValue: initialPreset.surface },
+    { key: "lr", value: String(nextRate), defaultValue: String(initialPreset.learningRate) },
+  ]);
+
   const path = useMemo(() => descentPath(start, learningRate, surface, DEFAULT_STEPS), [learningRate, start, surface]);
   const boundedStep = Math.min(visibleSteps, DEFAULT_STEPS);
   const shown = path.slice(0, boundedStep + 1);
@@ -321,6 +327,13 @@ export default function GradientDescentScene({ step, resetKey }: ExhibitScenePro
     setVisibleSteps(preset.visibleSteps);
     setRunning(false);
   }, [resetKey, step]);
+
+  useSceneUrlState((params) => {
+    const restoredSurface = enumParam(params, "surface", ["bowl", "valley", "multimodal"] as const);
+    const restoredRate = numberParam(params, "lr", LEARNING_RATE_RANGE);
+    if (restoredSurface !== undefined) setSurface(restoredSurface);
+    if (restoredRate !== undefined) setLearningRate(restoredRate);
+  });
 
   useEffect(() => {
     if (!running || visibleSteps >= DEFAULT_STEPS) return;
@@ -415,14 +428,14 @@ export default function GradientDescentScene({ step, resetKey }: ExhibitScenePro
           <legend className="mb-1 font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant">Surface</legend>
           <div className="grid grid-cols-3">
             {(["bowl", "valley", "multimodal"] as const).map((kind, index) => (
-              <button key={kind} type="button" aria-pressed={surface === kind} onClick={() => { setSurface(kind); restartPath(); }} className={`min-h-9 border px-2 text-xs capitalize transition-colors ${index > 0 ? "-ml-px" : ""} ${surface === kind ? "relative z-10 border-primary bg-primary text-on-primary" : "border-outline bg-surface text-on-surface-variant hover:border-primary"}`}>{kind === "multimodal" ? "Many minima" : kind}</button>
+              <button key={kind} type="button" aria-pressed={surface === kind} onClick={() => { setSurface(kind); syncControls(kind, learningRate); restartPath(); }} className={`min-h-9 border px-2 text-xs capitalize transition-colors ${index > 0 ? "-ml-px" : ""} ${surface === kind ? "relative z-10 border-primary bg-primary text-on-primary" : "border-outline bg-surface text-on-surface-variant hover:border-primary"}`}>{kind === "multimodal" ? "Many minima" : kind}</button>
             ))}
           </div>
         </fieldset>
 
         <label className="min-w-0 flex-1 sm:max-w-sm">
           <span className="mb-1 flex items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant"><span>Learning rate</span><span className={regime === "diverging" ? "text-error" : regime === "crossing" ? "text-warning" : "text-primary"}>{learningRate.toFixed(2)} · {regimeLabel}</span></span>
-          <input aria-label="Learning rate" type="range" min={LEARNING_RATE_RANGE.min} max={LEARNING_RATE_RANGE.max} step={LEARNING_RATE_RANGE.step} value={learningRate} onChange={(event) => { setLearningRate(Number(event.target.value)); restartPath(); }} className="block min-h-9" />
+          <input aria-label="Learning rate" type="range" min={LEARNING_RATE_RANGE.min} max={LEARNING_RATE_RANGE.max} step={LEARNING_RATE_RANGE.step} value={learningRate} onChange={(event) => { const next = Number(event.target.value); setLearningRate(next); syncControls(surface, next); restartPath(); }} className="block min-h-9" />
         </label>
 
         <div className="col-span-2 flex min-w-0 gap-2 sm:ml-auto sm:pb-px">

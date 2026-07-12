@@ -10,6 +10,8 @@ import { cnnExhibit } from "./cnn/exhibit";
 import { geneticAlgorithmExhibit } from "./genetic-algorithm/exhibit";
 import { pcaExhibit } from "./pca/exhibit";
 import { backpropExhibit } from "./backprop/exhibit";
+import { regressionExhibit } from "./regression/exhibit";
+import { decisionTreeExhibit } from "./decision-tree/exhibit";
 
 export const exhibits: readonly ExhibitDefinition[] = [
   gradientDescentExhibit,
@@ -23,6 +25,8 @@ export const exhibits: readonly ExhibitDefinition[] = [
   geneticAlgorithmExhibit,
   pcaExhibit,
   backpropExhibit,
+  regressionExhibit,
+  decisionTreeExhibit,
 ];
 
 export function getExhibit(slug: string) {

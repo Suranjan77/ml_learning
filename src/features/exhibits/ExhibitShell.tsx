@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Lightbulb, Pause, Play, RotateCcw, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Copy, ExternalLink, Lightbulb, Pause, Play, RotateCcw, X } from "lucide-react";
 import { getExhibit } from "./registry";
 import { ExhibitScene } from "./sceneRegistry";
+import { SCENE_URL_KEYS } from "./sceneUrlState";
 
 export default function ExhibitShell({ slug }: { slug: string }) {
   const exhibit = getExhibit(slug)!;
@@ -16,13 +17,18 @@ export default function ExhibitShell({ slug }: { slug: string }) {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [embedMode, setEmbedMode] = useState(false);
   const dialogRef = useRef<HTMLElement>(null);
   const sceneId = useId();
   const current = exhibit.steps[step];
 
   useEffect(() => {
-    const raw = new URLSearchParams(window.location.search).get("step");
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("step");
     const requested = raw === null ? 0 : Number(raw);
+
+    setEmbedMode(params.get("embed") === "1");
 
     if (
       Number.isInteger(requested) &&
@@ -51,6 +57,8 @@ export default function ExhibitShell({ slug }: { slug: string }) {
     } else {
       url.searchParams.set("step", String(next));
     }
+
+    for (const key of SCENE_URL_KEYS) url.searchParams.delete(key);
 
     window.history.replaceState({}, "", url);
   }, []);
@@ -132,9 +140,30 @@ export default function ExhibitShell({ slug }: { slug: string }) {
     setResetKey((key) => key + 1);
   }
 
+  async function copyCurrentView() {
+    const href = window.location.href;
+    try {
+      await navigator.clipboard.writeText(href);
+    } catch {
+      const field = document.createElement("textarea");
+      field.value = href;
+      field.style.position = "fixed";
+      field.style.opacity = "0";
+      document.body.append(field);
+      field.select();
+      document.execCommand("copy");
+      field.remove();
+    }
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1800);
+  }
+
+  const fullViewHref = `/visualisations/${slug}`;
+
   return (
     <article
       data-testid="visualisation-workspace"
+      data-embed={embedMode ? "true" : undefined}
       className="relative grid h-full min-h-0 grid-rows-[76px_minmax(0,1fr)_148px] overflow-hidden sm:grid-rows-[72px_minmax(0,1fr)_104px]"
     >
       <header inert={detailsOpen ? true : undefined} className="border-b border-outline bg-surface px-4 sm:px-6 lg:px-8">
@@ -168,6 +197,15 @@ export default function ExhibitShell({ slug }: { slug: string }) {
               <dd>{exhibit.duration} min</dd>
             </div>
           </dl>
+          {embedMode ? (
+            <Link
+              href={fullViewHref}
+              target="_top"
+              className="absolute right-3 top-2 inline-flex min-h-9 items-center gap-1.5 border border-outline bg-surface px-3 text-xs text-primary hover:border-primary"
+            >
+              Full view <ExternalLink size={13} aria-hidden="true" />
+            </Link>
+          ) : null}
         </div>
       </header>
 
@@ -212,7 +250,7 @@ export default function ExhibitShell({ slug }: { slug: string }) {
             </p>
           </div>
 
-          <div className="grid shrink-0 grid-cols-[40px_40px_40px_40px_minmax(88px,1fr)] gap-2 sm:flex sm:items-center">
+          <div className="grid shrink-0 grid-cols-[40px_40px_40px_40px_40px_minmax(80px,1fr)] gap-1.5 sm:flex sm:items-center sm:gap-2">
             <button
               type="button"
               disabled={step === 0}
@@ -263,6 +301,15 @@ export default function ExhibitShell({ slug }: { slug: string }) {
             </button>
             <button
               type="button"
+              onClick={copyCurrentView}
+              className="inline-flex h-11 items-center justify-center border border-outline bg-background px-3 text-sm transition-colors hover:border-primary hover:text-primary"
+              aria-label={copied ? "Current view copied" : "Copy current view"}
+              title={copied ? "Copied" : "Copy current view"}
+            >
+              {copied ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
+            </button>
+            <button
+              type="button"
               disabled={step === exhibit.steps.length - 1}
               onClick={() => { setPlaying(false); chooseStep(step + 1); }}
               className="inline-flex h-11 items-center justify-center border border-accent bg-accent px-4 text-sm font-medium text-on-accent transition-colors hover:border-accent-hover hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-35"
@@ -271,6 +318,7 @@ export default function ExhibitShell({ slug }: { slug: string }) {
               <ChevronRight className="ml-1" size={17} aria-hidden="true" />
             </button>
           </div>
+          <span className="sr-only" aria-live="polite">{copied ? "Current view URL copied to the clipboard." : ""}</span>
         </div>
       </footer>
 

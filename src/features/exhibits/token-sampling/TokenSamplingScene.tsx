@@ -6,6 +6,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { vizStroke, vizTokens } from "@/lib/vizTokens";
 import { reduced, vizMotion } from "@/lib/vizMotion";
 import type { ExhibitSceneProps } from "../types";
+import { enumParam, numberParam, replaceSceneUrlState, useSceneUrlState } from "../sceneUrlState";
 import { CANDIDATES, PROMPT, TOKEN_SAMPLING_DISCLOSURE } from "./data";
 import {
   DEFAULT_TEMPERATURE,
@@ -77,6 +78,16 @@ export default function TokenSamplingScene({ step, resetKey }: ExhibitSceneProps
   const [samples, setSamples] = useState<string[]>([]);
   const [drawCount, setDrawCount] = useState(0);
 
+  const syncControls = (next: { temperature?: number; truncation?: TruncationMethod; topK?: number; topP?: number }) => {
+    const values = { temperature, truncation, topK, topP, ...next };
+    replaceSceneUrlState([
+      { key: "temperature", value: String(values.temperature), defaultValue: String(initialPreset.temperature) },
+      { key: "truncate", value: values.truncation, defaultValue: initialPreset.truncation },
+      { key: "topK", value: String(values.topK), defaultValue: String(DEFAULT_TOP_K) },
+      { key: "topP", value: String(values.topP), defaultValue: String(DEFAULT_TOP_P) },
+    ]);
+  };
+
   useEffect(() => {
     const preset = presetFor(step);
     setTemperature(preset.temperature);
@@ -86,6 +97,17 @@ export default function TokenSamplingScene({ step, resetKey }: ExhibitSceneProps
     setSamples([]);
     setDrawCount(0);
   }, [resetKey, step]);
+
+  useSceneUrlState((params) => {
+    const restoredTemperature = numberParam(params, "temperature", TEMPERATURE_RANGE);
+    const restoredTruncation = enumParam(params, "truncate", ["none", "top-k", "top-p"] as const);
+    const restoredTopK = numberParam(params, "topK", TOP_K_RANGE);
+    const restoredTopP = numberParam(params, "topP", TOP_P_RANGE);
+    if (restoredTemperature !== undefined) setTemperature(restoredTemperature);
+    if (restoredTruncation !== undefined) setTruncation(restoredTruncation);
+    if (restoredTopK !== undefined) setTopK(restoredTopK);
+    if (restoredTopP !== undefined) setTopP(restoredTopP);
+  });
 
   const fullProbabilities = useMemo(
     () => softmaxWithTemperature(CANDIDATES.map((candidate) => candidate.logit), temperature),
@@ -142,10 +164,10 @@ export default function TokenSamplingScene({ step, resetKey }: ExhibitSceneProps
   }
 
   function adjustTemperature(delta: number) {
-    setTemperature((current) => {
-      const next = Math.round((current + delta) / TEMPERATURE_RANGE.step) * TEMPERATURE_RANGE.step;
-      return Math.max(TEMPERATURE_RANGE.min, Math.min(TEMPERATURE_RANGE.max, Number(next.toFixed(2))));
-    });
+    const adjusted = Math.round((temperature + delta) / TEMPERATURE_RANGE.step) * TEMPERATURE_RANGE.step;
+    const next = Math.max(TEMPERATURE_RANGE.min, Math.min(TEMPERATURE_RANGE.max, Number(adjusted.toFixed(2))));
+    setTemperature(next);
+    syncControls({ temperature: next });
   }
 
   function handleStageKeyDown(event: KeyboardEvent<HTMLDivElement>) {
@@ -317,7 +339,7 @@ export default function TokenSamplingScene({ step, resetKey }: ExhibitSceneProps
             max={TEMPERATURE_RANGE.max}
             step={TEMPERATURE_RANGE.step}
             value={temperature}
-            onChange={(event) => setTemperature(Number(event.target.value))}
+            onChange={(event) => { const next = Number(event.target.value); setTemperature(next); syncControls({ temperature: next }); }}
             className="block min-h-9"
           />
         </label>
@@ -330,7 +352,7 @@ export default function TokenSamplingScene({ step, resetKey }: ExhibitSceneProps
                 key={option.value}
                 type="button"
                 aria-pressed={truncation === option.value}
-                onClick={() => setTruncation(option.value)}
+                onClick={() => { setTruncation(option.value); syncControls({ truncation: option.value }); }}
                 className={`min-h-9 border px-3 text-xs transition-colors ${index > 0 ? "-ml-px" : ""} ${
                   truncation === option.value
                     ? "relative z-10 border-primary bg-primary text-on-primary"
@@ -356,7 +378,7 @@ export default function TokenSamplingScene({ step, resetKey }: ExhibitSceneProps
               max={TOP_K_RANGE.max}
               step={TOP_K_RANGE.step}
               value={topK}
-              onChange={(event) => setTopK(Number(event.target.value))}
+              onChange={(event) => { const next = Number(event.target.value); setTopK(next); syncControls({ topK: next }); }}
               className="block min-h-9"
             />
           </label>
@@ -375,7 +397,7 @@ export default function TokenSamplingScene({ step, resetKey }: ExhibitSceneProps
               max={TOP_P_RANGE.max}
               step={TOP_P_RANGE.step}
               value={topP}
-              onChange={(event) => setTopP(Number(event.target.value))}
+              onChange={(event) => { const next = Number(event.target.value); setTopP(next); syncControls({ topP: next }); }}
               className="block min-h-9"
             />
           </label>

@@ -29,6 +29,8 @@ const scenes: Readonly<Record<string, ExhibitScene>> = {
   "genetic-algorithm": dynamic<ExhibitSceneProps>(() => import("./genetic-algorithm/GeneticAlgorithmScene"), { loading: SceneLoading }),
   pca: dynamic<ExhibitSceneProps>(() => import("./pca/PcaScene"), { loading: SceneLoading }),
   backpropagation: dynamic<ExhibitSceneProps>(() => import("./backprop/BackpropScene"), { loading: SceneLoading }),
+  "regression-boundary": dynamic<ExhibitSceneProps>(() => import("./regression/RegressionScene"), { loading: SceneLoading }),
+  "decision-tree": dynamic<ExhibitSceneProps>(() => import("./decision-tree/DecisionTreeScene"), { loading: SceneLoading }),
 };
 
 export function ExhibitScene({ slug, ...props }: ExhibitSceneProps & { slug: string }) {

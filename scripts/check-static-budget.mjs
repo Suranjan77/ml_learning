@@ -14,6 +14,8 @@ const routes = [
   { name: "particle-swarm", file: "out/visualisations/particle-swarm.html", budget: 280 },
   { name: "pca", file: "out/visualisations/pca.html", budget: 280 },
   { name: "token-sampling", file: "out/visualisations/token-sampling.html", budget: 280 },
+  { name: "regression-boundary", file: "out/visualisations/regression-boundary.html", budget: 280 },
+  { name: "decision-tree", file: "out/visualisations/decision-tree.html", budget: 280 },
   { name: "gradient-descent", file: "out/visualisations/gradient-descent.html", budget: 470 },
   { name: "kernel-trick", file: "out/visualisations/kernel-trick.html", budget: 470 },
 ];

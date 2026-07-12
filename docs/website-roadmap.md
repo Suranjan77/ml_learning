@@ -7,10 +7,10 @@ Updated: 2026-07-12
 
 | Release | Status | Progress |
 | --- | --- | --- |
-| Release 1: Leaner and safer | In progress | Scene bundles split; CI gates, JavaScript budgets, modal accessibility, reduced-motion handling, Chromium coverage, and Firefox smoke coverage implemented. WebKit CI verification and the real-device font/render audit remain. |
-| Release 2: Easier to explore | In progress | Client-side search, topic/difficulty/length/renderer filters with URL state, discovery tags, question-led homepage groupings, and non-prescriptive related-idea links implemented and covered by unit and Chromium tests. WebKit/Firefox smoke of the new browser and the real-device check remain. |
-| Release 3: Easier to share and trust | In progress | Per-exhibit references and assumptions/simplifications now appear in the insight drawer. URL-encoded scene state, copy-link, route-specific canonical/social metadata, methodology page, and embed view remain. |
-| Release 4: Expand carefully | Not started | Candidate selection begins after the first three releases. |
+| Release 1: Leaner and safer | Complete | Scene bundles, CI gates, JavaScript budgets, modal accessibility, reduced-motion handling, and Chromium/Firefox/WebKit coverage are verified. The optional physical-device font/render audit was skipped by maintainer direction. |
+| Release 2: Easier to explore | Complete | Search, filters with URL state, discovery tags, question-led groupings, and related ideas are complete. The library browser passes Chromium, Firefox, and containerised WebKit coverage. |
+| Release 3: Easier to share and trust | Complete | Meaningful scene state and guided steps are shareable; copy-link, clean embeds, visible WebGL fallback text, references, assumptions, methodology, unique canonical/social metadata, static preview images, and structured data are implemented and verified. |
+| Release 4: Expand carefully | Complete | Regression parameters and decision-tree partitions shipped as a two-exhibit wave with deterministic models, shareable controls, static metadata, budgets, four-viewport coverage, and Chromium/Firefox/WebKit verification. |
 
 Update this tracker in the same change that completes or materially advances a
 roadmap item. A release is complete only after its completion criteria have been
@@ -34,11 +34,10 @@ Updated: 2026-07-12
   while leaving manual step controls available.
 - [x] Verify lint, all 85 unit/component tests, the static production build,
   all route budgets, 51 Chromium browser checks, and both Firefox smoke checks.
-- [ ] Verify the two WebKit smoke checks in CI. The local host lacks WebKit's
-  runtime libraries; the deployment workflow installs them with
-  `playwright install --with-deps`.
-- [ ] Audit font loading and first render on a representative mid-range mobile
-  device.
+- [x] Verify the SVG and WebGL WebKit smoke checks in the matching official
+  Playwright 1.61.1 container.
+- [x] Skip the representative physical-device font/loading audit by maintainer
+  direction; the automated 390×844 viewport remains covered in Chromium.
 
 ### Release 2 implementation log
 
@@ -60,7 +59,10 @@ Updated: 2026-07-12
   with non-ordinal keywords instead of numbered learning paths.
 - [x] Verify lint, 119 unit/component tests (34 new), the production build, all
   route budgets (library 189.7/210 KiB), and 54 Chromium browser checks.
-- [ ] Extend Firefox/WebKit smoke coverage to the library browser (runs in CI).
+- [x] Extend Firefox/WebKit smoke coverage to the library browser.
+- [x] Verify the library browser smoke check in Firefox locally.
+- [x] Verify the library browser smoke check in the matching official
+  Playwright 1.61.1 WebKit container.
 
 ### Release 3 implementation log
 
@@ -72,12 +74,52 @@ Updated: 2026-07-12
   drawer, with external references opening in a new tab.
 - [x] Verify lint, 130 unit/component tests (11 new), the production build, all
   route budgets, and the drawer Chromium check.
-- [ ] Extend the `?step=` convention to meaningful scene parameters and add a
-  "Copy current view" action.
-- [ ] Add route-specific canonical URLs and per-exhibit social/OG metadata.
-- [ ] Add a methodology/about page (approach, author, repo, licence,
-  accessibility, privacy).
-- [ ] Add a clean embed presentation controlled by a URL parameter.
+- [x] Extend the `?step=` convention to validated, non-default scene parameters
+  for gradient-descent surface/learning rate, polynomial degree, and token
+  sampling temperature/truncation controls.
+- [x] Add a resilient "Copy current view" action and verify that a shared scene
+  state restores after reload without storage, cookies, or identifiers.
+- [x] Add a clean `embed=1` presentation without global navigation, retaining
+  keyboard controls and a link back to the full view.
+- [x] Add a visible explanatory fallback when WebGL is unavailable.
+- [x] Add unique canonical URLs and per-route Open Graph/Twitter metadata.
+- [x] Generate static 1200×630 preview images for the homepage, library,
+  methodology page, and every exhibit.
+- [x] Add `LearningResource` structured data to every exhibit without course or
+  accreditation claims.
+- [x] Add a methodology/about page covering approach, author, source, current
+  licence status, accessibility, privacy, sharing, and embedding.
+- [x] Add the methodology route to primary navigation and the sitemap.
+- [x] Verify lint, 133 unit/component tests, the static production build, every
+  JavaScript budget, all 58 Chromium checks, and all three Firefox smoke checks.
+- [x] Verify all three WebKit smoke checks in the matching official Playwright
+  1.61.1 container (3/3 passed).
+
+### Release 4 implementation log
+
+Updated: 2026-07-12
+
+- [x] Select regression parameters and decision-tree partitions as a two-exhibit
+  wave using the visual-argument test.
+- [x] Regression answers how slope/intercept move both predictions and position
+  on a loss surface; visitors manipulate model type, slope, and intercept. This
+  connects parameter geometry to loss, which the abstract optimisation exhibit
+  does not. The compact authored datasets and losses are deterministic.
+- [x] Decision trees answer how nested rules carve feature space; visitors
+  manipulate depth and the root threshold. This exposes inherited rectangular
+  partitions, which no existing boundary exhibit shows. Routing and accuracy
+  use a deterministic authored dataset.
+- [x] Add guided steps, challenges, references, simplification disclosures,
+  discovery tags, related ideas, and nonvisual live descriptions to both.
+- [x] Encode non-default regression and tree controls in shareable URLs.
+- [x] Add both routes to static generation, library/home discovery, sitemap,
+  route budgets, canonical/social metadata, and generated preview images.
+- [x] Add deterministic model tests and component interaction/preset tests.
+- [x] Verify lint, 150 unit/component tests, the 13-route static export, every
+  JavaScript budget, and all 66 Chromium checks across 390×844, 768×1024,
+  1280×720, and 1440×900.
+- [x] Verify all four smoke checks, including direct interaction with both new
+  exhibits, in Firefox and containerised WebKit (4/4 in each).
 
 ## Direction
 
@@ -102,14 +144,15 @@ The site should stay:
 
 The foundation is already strong:
 
-- eleven purpose-built visualisations cover optimisation, generalisation,
+- thirteen purpose-built visualisations cover optimisation, generalisation,
   clustering, dimensionality reduction, classical machine learning, deep
   learning, evolutionary computation, and language models;
 - every exhibit uses a compact, one-viewport workspace;
 - the site is statically generated and has no backend requirement;
 - deterministic models have unit tests and key scenes have component tests;
 - Playwright checks every exhibit at four representative viewport sizes;
-- lint, 85 unit/component tests, and the production build currently pass.
+- lint, 150 unit/component tests, the production build, route budgets, and the
+  Chromium/Firefox/WebKit suites currently pass.
 
 The next stage should improve the quality and reach of the library before
 expanding its size aggressively.
@@ -262,10 +305,10 @@ Goal: broaden the library only where a new exhibit adds a distinct visual idea.
 
 ### Candidate topics
 
-1. **Linear and logistic regression** — connect a decision boundary to a loss
-   surface and parameter changes.
-2. **Decision trees** — show how a sequence of axis-aligned splits partitions
-   feature space.
+1. **Linear and logistic regression (shipped in Release 4)** — connect a
+   decision boundary to a loss surface and parameter changes.
+2. **Decision trees (shipped in Release 4)** — show how a sequence of
+   axis-aligned splits partitions feature space.
 3. **Embeddings** — expose neighbourhoods, analogy directions, and the limits of
    distance-based interpretation.
 4. **Transformer block** — connect attention, residual connections,

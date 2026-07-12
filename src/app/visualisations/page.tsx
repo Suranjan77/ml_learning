@@ -4,7 +4,15 @@ import { exhibitSummaries } from "@/features/exhibits/registry";
 
 export const metadata: Metadata = {
   title: "Visualisations",
-  description: "Interactive visualisations of machine learning concepts.",
+  description: "Search and filter interactive machine-learning visualisations by question, topic, difficulty, duration, or renderer.",
+  alternates: { canonical: "/visualisations" },
+  openGraph: {
+    url: "/visualisations",
+    title: "Machine learning visualisation library",
+    description: "Explore machine-learning ideas through direct manipulation.",
+    images: [{ url: "/social/library.png", width: 1200, height: 630, alt: "Machine learning visualisation library" }],
+  },
+  twitter: { images: ["/social/library.png"] },
 };
 
 export default function VisualisationsPage() {

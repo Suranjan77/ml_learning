@@ -28,6 +28,17 @@ export default function Header() {
           >
             Visualisations
           </Link>
+          <Link
+            href="/methodology"
+            aria-current={pathname === "/methodology" ? "page" : undefined}
+            className={
+              pathname === "/methodology"
+                ? "flex h-full items-center border-b-2 border-primary text-primary"
+                : "flex h-full items-center border-b-2 border-transparent text-on-surface-variant transition-colors hover:text-primary"
+            }
+          >
+            About
+          </Link>
         </nav>
       </div>
     </header>
