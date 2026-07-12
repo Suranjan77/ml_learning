@@ -8,7 +8,7 @@ Updated: 2026-07-12
 | Release | Status | Progress |
 | --- | --- | --- |
 | Release 1: Leaner and safer | In progress | Scene bundles split; CI gates, JavaScript budgets, modal accessibility, reduced-motion handling, Chromium coverage, and Firefox smoke coverage implemented. WebKit CI verification and the real-device font/render audit remain. |
-| Release 2: Easier to explore | Not started | Search, filters, and non-prescriptive related ideas pending. |
+| Release 2: Easier to explore | In progress | Client-side search, topic/difficulty/length/renderer filters with URL state, discovery tags, question-led homepage groupings, and non-prescriptive related-idea links implemented and covered by unit and Chromium tests. WebKit/Firefox smoke of the new browser and the real-device check remain. |
 | Release 3: Easier to share and trust | Not started | URL state, references, metadata, social previews, and embed view pending. |
 | Release 4: Expand carefully | Not started | Candidate selection begins after the first three releases. |
 
@@ -39,6 +39,28 @@ Updated: 2026-07-12
   `playwright install --with-deps`.
 - [ ] Audit font loading and first render on a representative mid-range mobile
   device.
+
+### Release 2 implementation log
+
+Updated: 2026-07-12
+
+- [x] Give every exhibit a stable `tags` set and expose lightweight
+  `exhibitSummaries` for discovery without shipping steps/challenges.
+- [x] Add client-side search over titles, questions, summaries, and tags in a
+  pure, unit-tested `search` module (every term must match).
+- [x] Add topic, difficulty, length, and renderer filters via a
+  `LibraryBrowser` client component.
+- [x] Encode filter state in query parameters (`q`, `topic`, `difficulty`,
+  `renderer`, `duration`), omit defaults, and ignore invalid or stale values.
+- [x] Replace the inactive "All topics" label with real browsing controls, a
+  live result count, a clear-filters action, and an empty state.
+- [x] Add non-prescriptive `related` links per exhibit, surfaced as "Related
+  ideas" inside the insight drawer.
+- [x] Reframe the homepage groupings as "Explore by question" / related ideas
+  with non-ordinal keywords instead of numbered learning paths.
+- [x] Verify lint, 119 unit/component tests (34 new), the production build, all
+  route budgets (library 189.7/210 KiB), and 54 Chromium browser checks.
+- [ ] Extend Firefox/WebKit smoke coverage to the library browser (runs in CI).
 
 ## Direction
 

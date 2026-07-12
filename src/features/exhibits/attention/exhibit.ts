@@ -12,6 +12,8 @@ export const attentionExhibit: ExhibitDefinition = {
   difficulty: "Approachable",
   duration: 5,
   renderer: "SVG",
+  tags: ["transformer", "self-attention", "language model", "context", "tokens", "weights"],
+  related: ["token-sampling", "backpropagation"],
   steps: [
     {
       title: "Ask what ‘it’ refers to",

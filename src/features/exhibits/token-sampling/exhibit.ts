@@ -12,6 +12,8 @@ export const tokenSamplingExhibit: ExhibitDefinition = {
   difficulty: "Approachable",
   duration: 5,
   renderer: "SVG",
+  tags: ["language model", "softmax", "temperature", "probability", "sampling", "decoding"],
+  related: ["attention"],
   steps: [
     {
       title: "Read the distribution",

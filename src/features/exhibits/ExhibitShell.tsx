@@ -8,6 +8,9 @@ import { ExhibitScene } from "./sceneRegistry";
 
 export default function ExhibitShell({ slug }: { slug: string }) {
   const exhibit = getExhibit(slug)!;
+  const relatedExhibits = exhibit.related
+    .map((relatedSlug) => getExhibit(relatedSlug))
+    .filter((item): item is NonNullable<typeof item> => item !== undefined);
   const [step, setStep] = useState(0);
   const [resetKey, setResetKey] = useState(0);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -288,6 +291,24 @@ export default function ExhibitShell({ slug }: { slug: string }) {
                 {exhibit.challenges.map((challenge, index) => <li key={challenge} className="grid grid-cols-[28px_1fr] gap-3 py-4 text-sm leading-6 text-on-surface"><span className="font-mono text-[10px] text-primary">{String(index + 1).padStart(2, "0")}</span><span>{challenge}</span></li>)}
               </ol>
             </div>
+            {relatedExhibits.length > 0 ? (
+              <div className="mt-8">
+                <p className="font-mono text-[10px] uppercase tracking-label text-on-surface-variant">Related ideas</p>
+                <ul className="mt-3 divide-y divide-outline border-y border-outline">
+                  {relatedExhibits.map((item) => (
+                    <li key={item.slug}>
+                      <Link href={`/visualisations/${item.slug}`} className="group/related flex items-center justify-between gap-3 py-3 text-sm text-on-surface transition-colors hover:text-primary">
+                        <span>
+                          <span className="font-medium">{item.title}</span>
+                          <span className="mt-0.5 block text-xs text-on-surface-variant">{item.topic}</span>
+                        </span>
+                        <ChevronRight size={15} className="shrink-0 transition-transform group-hover/related:translate-x-1" aria-hidden="true" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
             <button type="button" onClick={closeDetails} className="mt-7 inline-flex min-h-11 w-full items-center justify-center border border-primary bg-primary px-4 text-sm font-medium text-on-primary">Return to visualisation</button>
           </aside>
         </div>

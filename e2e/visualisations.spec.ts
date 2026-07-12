@@ -57,7 +57,42 @@ test.describe("visualisation workspace", () => {
     await page.goto("/visualisations");
 
     await expect(page.locator('a[href^="/visualisations/"]')).toHaveCount(routes.length);
-    await expect(page.getByText(`${routes.length} visualisations`)).toBeVisible();
+    await expect(page.getByText(`${routes.length} of ${routes.length} visualisations`)).toBeVisible();
+  });
+
+  test("searches the library and reflects the query in the URL", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto("/visualisations");
+
+    await page.getByRole("searchbox", { name: "Search visualisations" }).fill("svm");
+
+    await expect(page.locator('a[href^="/visualisations/"]')).toHaveCount(1);
+    await expect(page.locator('a[href="/visualisations/kernel-trick"]')).toBeVisible();
+    await expect(page).toHaveURL(/\?q=svm/);
+  });
+
+  test("restores filter state from the URL and clears it", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto("/visualisations?topic=Language+models");
+
+    const cards = page.locator('a[href^="/visualisations/"]');
+    await expect(cards).toHaveCount(2);
+    await expect(page.locator('a[href="/visualisations/attention"]')).toBeVisible();
+
+    await page.getByRole("button", { name: "Clear filters" }).click();
+    await expect(cards).toHaveCount(routes.length);
+    await expect(page).toHaveURL(/\/visualisations$/);
+  });
+
+  test("offers related-idea links from the insight drawer", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto("/visualisations/token-sampling");
+
+    await page.getByRole("button", { name: "Open insight and challenges" }).click();
+    const related = page.getByRole("link", { name: /Attention/ });
+    await expect(related).toBeVisible();
+    await related.click();
+    await expect(page).toHaveURL(/\/visualisations\/attention/);
   });
 
   test("keeps step controls operable and keyboard focusable", async ({ page }) => {

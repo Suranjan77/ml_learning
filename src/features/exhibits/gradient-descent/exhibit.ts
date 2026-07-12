@@ -10,6 +10,8 @@ export const gradientDescentExhibit: ExhibitDefinition = {
   difficulty: "Approachable",
   duration: 4,
   renderer: "WebGL",
+  tags: ["optimisation", "loss surface", "learning rate", "local minima", "convergence", "training"],
+  related: ["backpropagation", "particle-swarm", "genetic-algorithm"],
   steps: [
     {
       title: "Set the starting point",

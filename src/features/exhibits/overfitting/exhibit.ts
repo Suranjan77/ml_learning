@@ -10,6 +10,8 @@ export const overfittingExhibit: ExhibitDefinition = {
   difficulty: "Approachable",
   duration: 4,
   renderer: "SVG",
+  tags: ["generalisation", "bias-variance", "regularisation", "polynomial", "noise", "model complexity"],
+  related: ["gradient-descent", "kernel-trick", "backpropagation"],
   steps: [
     {
       title: "Start with a rigid model",

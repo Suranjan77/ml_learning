@@ -22,6 +22,23 @@ export interface ExhibitDefinition {
   difficulty: ExhibitDifficulty;
   duration: number;
   renderer: ExhibitRenderer;
+  /** Discovery keywords: concepts, synonyms, and related vocabulary. */
+  tags: readonly string[];
+  /** Slugs of conceptually related exhibits. Not a prescribed next step. */
+  related: readonly string[];
   steps: readonly ExhibitStep[];
   challenges: readonly string[];
+}
+
+/** Lightweight metadata for browsing, search, and cards. */
+export interface ExhibitSummary {
+  slug: string;
+  title: string;
+  question: string;
+  summary: string;
+  topic: string;
+  difficulty: ExhibitDifficulty;
+  duration: number;
+  renderer: ExhibitRenderer;
+  tags: readonly string[];
 }

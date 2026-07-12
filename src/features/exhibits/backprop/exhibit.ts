@@ -5,6 +5,8 @@ export const backpropExhibit: ExhibitDefinition = {
   summary: "Follow inputs through a small neural network, measure prediction error, and trace the gradients that assign each weight responsibility before an update.",
   insight: "Backpropagation applies the chain rule from the loss backward. It does not move activations backward; it computes how sensitively the loss depends on each weight.",
   topic: "Deep learning", difficulty: "Technical", duration: 7, renderer: "SVG",
+  tags: ["neural network", "gradients", "chain rule", "deep learning", "training", "error"],
+  related: ["gradient-descent", "cnn-feature-maps", "attention"],
   steps: [
     { title: "Set the evidence", instruction: "Change the two inputs and inspect the weighted connections into the hidden layer.", observation: "Each hidden unit receives the same inputs but combines them with different learned weights." },
     { title: "Run the forward pass", instruction: "Read the hidden activations and final prediction from left to right.", observation: "The network composes weighted sums and nonlinear sigmoid activations to produce a probability." },

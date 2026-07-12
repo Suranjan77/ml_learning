@@ -5,21 +5,21 @@ import { exhibits } from "@/features/exhibits/registry";
 
 const FEATURED_SLUG = "gradient-descent";
 
-const learningPaths = [
+const questionThemes = [
   {
-    number: "01",
+    keyword: "Data",
     label: "Learn from data",
     description: "Optimisation, fitting, and the difference between learning a pattern and memorising noise.",
     slugs: ["gradient-descent", "overfitting", "k-means", "pca"],
   },
   {
-    number: "02",
+    keyword: "Boundaries",
     label: "Shape a boundary",
     description: "Transform data, compare distances, and see how simple rules produce complex decision regions.",
     slugs: ["kernel-trick", "particle-swarm", "genetic-algorithm", "cnn-feature-maps", "backpropagation"],
   },
   {
-    number: "03",
+    keyword: "Language",
     label: "Inside language models",
     description: "Trace contextual connections, reshape probabilities, and inspect why generated text changes.",
     slugs: ["attention", "token-sampling"],
@@ -119,20 +119,20 @@ export default function Home() {
         <div className="mx-auto max-w-content">
           <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(280px,0.45fr)] md:items-end">
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-label text-primary">Choose a route</p>
+              <p className="font-mono text-[10px] uppercase tracking-label text-primary">Explore by question</p>
               <h2 className="mt-2 max-w-3xl text-balance font-headline text-3xl font-medium leading-tight text-on-surface sm:text-4xl">Start with a question, not a syllabus.</h2>
             </div>
-            <p className="text-sm leading-6 text-on-surface-variant">Each route groups visualisations by the kind of reasoning they make visible. Jump between them freely—there are no prerequisites.</p>
+            <p className="text-sm leading-6 text-on-surface-variant">These are related ideas grouped by the kind of reasoning they make visible—not a sequence. Open any one first; there are no prerequisites or completion.</p>
           </div>
 
           <div className="mt-8 grid gap-px border border-outline-dark bg-outline-dark lg:grid-cols-3">
-            {learningPaths.map((path) => (
-              <article key={path.number} className="flex min-h-64 flex-col bg-surface p-5 sm:p-6">
-                <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-label text-on-surface-variant"><span>{path.number}</span><span>{path.slugs.length} exhibits</span></div>
-                <h3 className="mt-8 font-headline text-2xl font-medium text-on-surface">{path.label}</h3>
-                <p className="mt-3 text-sm leading-6 text-on-surface-variant">{path.description}</p>
+            {questionThemes.map((theme) => (
+              <article key={theme.keyword} className="flex min-h-64 flex-col bg-surface p-5 sm:p-6">
+                <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-label text-on-surface-variant"><span>{theme.keyword}</span><span>{theme.slugs.length} exhibits</span></div>
+                <h3 className="mt-8 font-headline text-2xl font-medium text-on-surface">{theme.label}</h3>
+                <p className="mt-3 text-sm leading-6 text-on-surface-variant">{theme.description}</p>
                 <div className="mt-auto pt-6">
-                  {path.slugs.map((slug) => {
+                  {theme.slugs.map((slug) => {
                     const exhibit = exhibits.find((item) => item.slug === slug);
                     if (!exhibit) return null;
                     return <Link key={slug} href={`/visualisations/${slug}`} className="group/link flex items-center justify-between border-t border-outline py-2.5 text-sm text-on-surface transition-colors hover:text-primary"><span>{exhibit.title}</span><MoveRight size={15} className="transition-transform group-hover/link:translate-x-1" aria-hidden="true" /></Link>;

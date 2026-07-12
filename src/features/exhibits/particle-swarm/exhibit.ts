@@ -10,6 +10,8 @@ export const particleSwarmExhibit: ExhibitDefinition = {
   difficulty: "Intermediate",
   duration: 6,
   renderer: "SVG",
+  tags: ["optimisation", "swarm", "metaheuristic", "global optimum", "population", "search"],
+  related: ["genetic-algorithm", "gradient-descent"],
   steps: [
     { title: "Scatter the search", instruction: "Inspect the particles, their small personal-best markers, and the shared star.", observation: "Unlike gradient descent, PSO evaluates many regions at once and never computes a slope." },
     { title: "Combine three forces", instruction: "Take one step and compare each particle with its faint next-move line.", observation: "Inertia preserves motion, cognitive pull returns to personal evidence, and social pull shares the best discovery." },

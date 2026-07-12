@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import ExhibitCard from "@/components/ExhibitCard";
-import { exhibits } from "@/features/exhibits/registry";
+import LibraryBrowser from "@/features/library/LibraryBrowser";
+import { exhibitSummaries } from "@/features/exhibits/registry";
 
 export const metadata: Metadata = {
   title: "Visualisations",
@@ -21,21 +21,13 @@ export default function VisualisationsPage() {
             </h1>
           </div>
           <p className="max-w-xl text-sm leading-6 text-on-surface-variant">
-            Select a concept to open its interactive workspace. Guided steps remain available below the visualisation throughout the session.
+            Search by concept or filter by topic, then open any workspace directly. There is no required order—start wherever your question is.
           </p>
         </div>
       </header>
 
       <section className="flex-1 bg-surface-dim px-4 py-5 pb-8 sm:px-6 lg:px-8">
-        <div className="mx-auto mb-3 flex w-full max-w-content items-center justify-between font-mono text-[10px] uppercase tracking-label text-on-surface-variant sm:text-[11px]">
-          <span>{exhibits.length} visualisations</span>
-          <span>All topics</span>
-        </div>
-        <div className="mx-auto grid w-full max-w-content gap-px border border-outline bg-outline md:auto-rows-fr md:grid-cols-3">
-          {exhibits.map((exhibit, index) => (
-            <ExhibitCard key={exhibit.slug} exhibit={exhibit} index={index} className={index === exhibits.length - 1 && exhibits.length % 3 === 2 ? "md:col-span-2" : ""} />
-          ))}
-        </div>
+        <LibraryBrowser exhibits={exhibitSummaries} />
       </section>
     </div>
   );

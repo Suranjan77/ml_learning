@@ -5,6 +5,8 @@ export const pcaExhibit: ExhibitDefinition = {
   summary: "Rotate a one-dimensional projection through a two-dimensional point cloud and watch retained variance trade against reconstruction error.",
   insight: "PCA keeps directions with the greatest variance. Projecting onto those axes preserves as much squared distance as a linear compression can.",
   topic: "Unsupervised learning", difficulty: "Approachable", duration: 5, renderer: "SVG",
+  tags: ["dimensionality reduction", "variance", "principal components", "projection", "unsupervised"],
+  related: ["k-means", "overfitting"],
   steps: [
     { title: "Choose a bad projection", instruction: "Inspect the long dashed reconstruction distances on the nearly perpendicular axis.", observation: "Collapsing data onto this line discards the direction where the points vary most." },
     { title: "Rotate toward the data", instruction: "Move the angle slider and watch variance rise as reconstruction error falls.", observation: "The projected points spread out when the axis aligns with structure in the data." },

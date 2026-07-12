@@ -10,6 +10,8 @@ export const kMeansExhibit: ExhibitDefinition = {
   difficulty: "Approachable",
   duration: 5,
   renderer: "SVG",
+  tags: ["clustering", "unsupervised", "centroids", "assignment", "convergence", "distance"],
+  related: ["pca", "particle-swarm"],
   steps: [
     {
       title: "Place the centroids",

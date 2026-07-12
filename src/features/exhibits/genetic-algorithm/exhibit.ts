@@ -10,6 +10,8 @@ export const geneticAlgorithmExhibit: ExhibitDefinition = {
   difficulty: "Intermediate",
   duration: 6,
   renderer: "SVG",
+  tags: ["evolution", "mutation", "crossover", "selection", "population", "metaheuristic", "optimisation"],
+  related: ["particle-swarm", "gradient-descent"],
   steps: [
     { title: "Encode candidate solutions", instruction: "Compare each binary genome with its position and fitness on the landscape.", observation: "The algorithm manipulates an encoding; decoding turns those bits into a candidate solution that can be evaluated." },
     { title: "Select and recombine", instruction: "Advance one generation and inspect the parent genomes and crossover marker.", observation: "Fitter genomes win selection more often, while crossover takes a prefix from one parent and a suffix from another." },

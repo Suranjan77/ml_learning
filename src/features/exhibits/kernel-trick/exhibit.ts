@@ -10,6 +10,8 @@ export const kernelTrickExhibit: ExhibitDefinition = {
   difficulty: "Intermediate",
   duration: 5,
   renderer: "WebGL",
+  tags: ["svm", "support vector machine", "non-linear", "feature space", "classification", "decision boundary"],
+  related: ["overfitting", "cnn-feature-maps"],
   steps: [
     { title: "Original space", instruction: "Compare possible straight boundaries with the class arrangement.", observation: "The outer class encloses the inner class, so a straight line cannot separate them." },
     { title: "Feature mapping", instruction: "Increase the lift to map radial distance onto a third axis.", observation: "Outer points rise while points near the centre remain low." },

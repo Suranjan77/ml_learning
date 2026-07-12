@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ExhibitDefinition } from "@/features/exhibits/types";
+import type { ExhibitSummary } from "@/features/exhibits/types";
 
 function GradientPreview() {
   return (
@@ -298,7 +298,7 @@ export default function ExhibitCard({
   index,
   className = "",
 }: {
-  exhibit: ExhibitDefinition;
+  exhibit: ExhibitSummary;
   index: number;
   className?: string;
 }) {
