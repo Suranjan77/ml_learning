@@ -82,12 +82,14 @@ describe('Visualization Stress Testing', () => {
     cy.contains('Visualization Error').should('not.exist');
   });
 
-  it('handles spamming select controls (Data Preparation)', () => {
-    cy.visit('/algorithms/data-preparation');
+  it('handles spamming select controls (Diffusion Models)', () => {
+    cy.visit('/algorithms/diffusion-models');
     cy.get('svg').should('exist');
 
     cy.get('body').then($body => {
-      const selects = $body.find('select');
+      // #lesson-module-select navigates between lessons — spamming it would
+      // leave the page. Only exercise visualization-level selects.
+      const selects = $body.find('select').not('#lesson-module-select');
       if (selects.length > 0) {
         cy.wrap(selects).each(($select) => {
           const options = $select.find('option');

@@ -53,6 +53,7 @@ export default function SearchBar() {
         />
         {query && (
           <button
+            aria-label="Clear search"
             onClick={() => {
               setQuery("");
               setResults([]);

@@ -28,8 +28,8 @@ describe('Smoke Tests', () => {
     cy.get('h1, h2').should('exist');
   });
 
-  it('gradforge page loads', () => {
-    cy.visit('/gradforge');
+  it('labs page loads', () => {
+    cy.visit('/labs');
     cy.get('h1, h2').should('exist');
   });
 

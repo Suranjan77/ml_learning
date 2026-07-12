@@ -29,7 +29,7 @@ describe('Mobile Viewport', () => {
     cy.get('button[aria-label="Open navigation menu"]').click();
     cy.get('#mobile-primary-navigation').should('be.visible');
     cy.get('#mobile-primary-navigation').contains('Curriculum').click();
-    cy.location('hash').should('eq', '#curriculum');
+    cy.location('pathname').should('eq', '/tracks');
   });
 
   it('keeps visualization SVGs within the viewport', () => {

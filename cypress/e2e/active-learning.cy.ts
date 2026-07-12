@@ -13,6 +13,11 @@ describe('Active Learning Features', () => {
     // Wait for Next.js hydration
     cy.wait(2000);
 
+    // The quiz is collapsed by default — open it first.
+    cy.contains('button', 'Self-Check Quiz')
+      .scrollIntoView()
+      .click({ scrollBehavior: 'center' });
+
     // Find the first question card
     cy.contains('.font-mono', 'Q1').parents('.rounded-lg').as('question');
     
