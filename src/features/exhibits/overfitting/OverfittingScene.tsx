@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useId, useMemo, useState, type KeyboardEvent } from "react";
-import { vizTokens } from "@/lib/vizTokens";
+import { scaleLinear } from "@visx/scale";
+import { LinePath } from "@visx/shape";
+import { GridColumns, GridRows } from "@visx/grid";
+import { Group } from "@visx/group";
+import { curveMonotoneX } from "@visx/curve";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { vizStroke, vizTokens } from "@/lib/vizTokens";
+import { reduced, vizMotion } from "@/lib/vizMotion";
 import type { ExhibitSceneProps } from "../types";
 import {
   DEFAULT_DEGREE,
@@ -37,6 +44,9 @@ const RIGHT_PLOT_HEIGHT = HEIGHT - RIGHT_PLOT.top - RIGHT_PLOT.bottom;
 const Y_DOMAIN = { min: -1.6, max: 1.6 } as const;
 const ERROR_CAP = 0.6;
 const CURVE_SAMPLES = 140;
+const LEFT_Y_TICKS = [-1, -0.5, 0, 0.5, 1];
+const LEFT_X_TICKS = [0, 0.25, 0.5, 0.75, 1];
+const RIGHT_Y_TICKS = [0, 0.25, 0.5, 0.75, 1];
 
 const STEP_PRESETS = [
   { degree: DEGREE_RANGE.min },
@@ -60,38 +70,33 @@ function presetFor(step: number) {
   return STEP_PRESETS[Math.max(0, Math.min(STEP_PRESETS.length - 1, step))];
 }
 
-function leftX(x: number): number {
-  return LEFT_PLOT.left + x * LEFT_PLOT_WIDTH;
-}
-
-function leftY(y: number): number {
-  return LEFT_PLOT.top + ((Y_DOMAIN.max - y) / (Y_DOMAIN.max - Y_DOMAIN.min)) * LEFT_PLOT_HEIGHT;
-}
-
 /** Square-root compression keeps small errors legible while clamping blow-ups from high-degree fits. */
 function errorScale(value: number): number {
   return Math.sqrt(Math.min(Math.max(value, 0), ERROR_CAP) / ERROR_CAP);
 }
 
-function rightX(degree: number): number {
-  return RIGHT_X + RIGHT_PLOT.left
-    + ((degree - DEGREE_RANGE.min) / (DEGREE_RANGE.max - DEGREE_RANGE.min)) * RIGHT_PLOT_WIDTH;
-}
-
-function rightY(value: number): number {
-  return HEIGHT - RIGHT_PLOT.bottom - errorScale(value) * RIGHT_PLOT_HEIGHT;
-}
-
-function polylinePoints(points: readonly { x: number; y: number }[]): string {
-  return points.map((point) => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(" ");
-}
-
 export default function OverfittingScene({ step, resetKey }: ExhibitSceneProps) {
   const initialPreset = presetFor(step);
   const clipId = useId();
+  const prefersReduced = useReducedMotion();
   const [degree, setDegree] = useState<number>(initialPreset.degree);
   const [seed, setSeed] = useState<number>(DEFAULT_SEED);
   const [showValidation, setShowValidation] = useState<boolean>(true);
+
+  // visx scales own domain→pixel for both panels; content renders plot-relative
+  // inside translated Groups. The error axis is sqrt-compressed, so the right
+  // y-scale maps the already-compressed value in [0,1].
+  const leftXScale = useMemo(() => scaleLinear({ domain: [0, 1], range: [0, LEFT_PLOT_WIDTH] }), []);
+  const leftYScale = useMemo(
+    () => scaleLinear({ domain: [Y_DOMAIN.min, Y_DOMAIN.max], range: [LEFT_PLOT_HEIGHT, 0] }),
+    [],
+  );
+  const rightXScale = useMemo(
+    () => scaleLinear({ domain: [DEGREE_RANGE.min, DEGREE_RANGE.max], range: [0, RIGHT_PLOT_WIDTH] }),
+    [],
+  );
+  const rightYScale = useMemo(() => scaleLinear({ domain: [0, 1], range: [RIGHT_PLOT_HEIGHT, 0] }), []);
+  const rightYOf = (value: number) => rightYScale(errorScale(value));
 
   useEffect(() => {
     const preset = presetFor(step);
@@ -174,58 +179,86 @@ export default function OverfittingScene({ step, resetKey }: ExhibitSceneProps) 
           className="block h-full w-full select-none"
         >
           <defs>
+            {/* Clip rects are in each Group's translated (plot-relative) space. */}
             <clipPath id={`${clipId}-left`}>
-              <rect x={LEFT_PLOT.left} y={LEFT_PLOT.top} width={LEFT_PLOT_WIDTH} height={LEFT_PLOT_HEIGHT} />
+              <rect x={0} y={0} width={LEFT_PLOT_WIDTH} height={LEFT_PLOT_HEIGHT} />
             </clipPath>
             <clipPath id={`${clipId}-right`}>
-              <rect x={RIGHT_X + RIGHT_PLOT.left} y={RIGHT_PLOT.top} width={RIGHT_PLOT_WIDTH} height={RIGHT_PLOT_HEIGHT} />
+              <rect x={0} y={0} width={RIGHT_PLOT_WIDTH} height={RIGHT_PLOT_HEIGHT} />
             </clipPath>
           </defs>
 
           <rect width={WIDTH} height={HEIGHT} fill={vizTokens.canvas} />
 
           {/* Left panel: data and fitted curve */}
-          <g clipPath={`url(#${clipId}-left)`}>
-            {[-1, -0.5, 0, 0.5, 1].map((tick) => (
-              <line key={`left-y-${tick}`} x1={LEFT_PLOT.left} x2={LEFT_WIDTH - LEFT_PLOT.right} y1={leftY(tick)} y2={leftY(tick)} stroke={vizTokens.grid} strokeWidth="1" />
-            ))}
-            {[0, 0.25, 0.5, 0.75, 1].map((tick) => (
-              <line key={`left-x-${tick}`} x1={leftX(tick)} x2={leftX(tick)} y1={LEFT_PLOT.top} y2={HEIGHT - LEFT_PLOT.bottom} stroke={vizTokens.grid} strokeWidth="1" />
-            ))}
+          <Group left={LEFT_PLOT.left} top={LEFT_PLOT.top} clipPath={`url(#${clipId}-left)`}>
+            <GridRows scale={leftYScale} width={LEFT_PLOT_WIDTH} tickValues={LEFT_Y_TICKS} stroke={vizTokens.grid} strokeWidth={vizStroke.grid} />
+            <GridColumns scale={leftXScale} height={LEFT_PLOT_HEIGHT} tickValues={LEFT_X_TICKS} stroke={vizTokens.grid} strokeWidth={vizStroke.grid} />
 
-            <polyline
-              points={polylinePoints(truthCurve.map((point) => ({ x: leftX(point.x), y: leftY(point.y) })))}
+            <LinePath<Point>
+              data={truthCurve}
+              x={(point) => leftXScale(point.x)}
+              y={(point) => leftYScale(point.y)}
               fill="none"
               stroke={vizTokens.path}
-              strokeWidth="2"
+              strokeWidth={vizStroke.marker}
               strokeDasharray="7 6"
-              opacity="0.85"
+              opacity={0.85}
             />
 
-            <polyline
-              points={polylinePoints(fittedCurve.map((point) => ({ x: leftX(point.x), y: leftY(point.y) })))}
-              fill="none"
-              stroke={vizTokens.selection}
-              strokeWidth="3"
-              className="transition-all duration-300 ease-out motion-reduce:transition-none"
-            />
+            <LinePath<Point> data={fittedCurve} x={(point) => leftXScale(point.x)} y={(point) => leftYScale(point.y)}>
+              {({ path: line }) => (
+                <motion.path
+                  fill="none"
+                  stroke={vizTokens.selection}
+                  strokeWidth={vizStroke.path}
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  initial={false}
+                  animate={{ d: line(fittedCurve) ?? "" }}
+                  transition={reduced(vizMotion.fade, prefersReduced)}
+                />
+              )}
+            </LinePath>
 
-            {showValidation && dataset.validation.map((point, index) => (
-              <circle
-                key={`validation-${index}`}
-                cx={leftX(point.x)}
-                cy={leftY(point.y)}
-                r="4.5"
-                fill={vizTokens.canvas}
-                stroke={vizTokens.classB}
-                strokeWidth="2"
+            {dataset.train.map((point, index) => (
+              <motion.line
+                key={`residual-${index}`}
+                x1={leftXScale(point.x)}
+                x2={leftXScale(point.x)}
+                y1={leftYScale(point.y)}
+                initial={false}
+                animate={{ y2: leftYScale(predict(coefficients, point.x)) }}
+                stroke={vizTokens.error}
+                strokeWidth={vizStroke.guide}
+                opacity={0.34}
+                transition={reduced(vizMotion.fade, prefersReduced)}
               />
             ))}
 
+            <AnimatePresence initial={false}>
+              {showValidation && dataset.validation.map((point, index) => (
+                <motion.circle
+                  key={`validation-${index}`}
+                  cx={leftXScale(point.x)}
+                  cy={leftYScale(point.y)}
+                  r={4.5}
+                  fill={vizTokens.canvas}
+                  stroke={vizTokens.classB}
+                  strokeWidth={vizStroke.marker}
+                  initial={prefersReduced ? false : { scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0, opacity: 0 }}
+                  transition={reduced(vizMotion.popIn, prefersReduced)}
+                  style={{ transformBox: "fill-box", transformOrigin: "center" }}
+                />
+              ))}
+            </AnimatePresence>
+
             {dataset.train.map((point, index) => (
-              <circle key={`train-${index}`} cx={leftX(point.x)} cy={leftY(point.y)} r="4.5" fill={vizTokens.classA} stroke={vizTokens.pointOutline} strokeWidth="1.5" />
+              <circle key={`train-${index}`} cx={leftXScale(point.x)} cy={leftYScale(point.y)} r={4.5} fill={vizTokens.classA} stroke={vizTokens.pointOutline} strokeWidth={vizStroke.guide} />
             ))}
-          </g>
+          </Group>
           <rect x={LEFT_PLOT.left} y={LEFT_PLOT.top} width={LEFT_PLOT_WIDTH} height={LEFT_PLOT_HEIGHT} fill="none" stroke={vizTokens.border} />
           <text x={LEFT_PLOT.left + 8} y={LEFT_PLOT.top + 18} fill={vizTokens.mutedInk} fontSize="12" fontFamily="var(--font-dm-mono)">TRAIN AND VALIDATION DATA</text>
           <text x={LEFT_PLOT.left} y={HEIGHT - 10} fill={vizTokens.mutedInk} fontSize="11" fontFamily="var(--font-dm-mono)">x</text>
@@ -233,50 +266,59 @@ export default function OverfittingScene({ step, resetKey }: ExhibitSceneProps) 
           <text x={LEFT_WIDTH - LEFT_PLOT.right} y={HEIGHT - 24} textAnchor="end" fill={vizTokens.classB} fontSize="11" fontFamily="var(--font-dm-mono)">○ validation</text>
 
           {/* Right panel: error vs degree */}
-          <g clipPath={`url(#${clipId}-right)`}>
-            {[0, 0.25, 0.5, 0.75, 1].map((tick) => (
+          <Group left={RIGHT_X + RIGHT_PLOT.left} top={RIGHT_PLOT.top} clipPath={`url(#${clipId}-right)`}>
+            <GridRows scale={rightYScale} width={RIGHT_PLOT_WIDTH} tickValues={RIGHT_Y_TICKS} stroke={vizTokens.grid} strokeWidth={vizStroke.grid} />
+
+            {curve.degrees.map((value, index) => (
               <line
-                key={`right-y-${tick}`}
-                x1={RIGHT_X + RIGHT_PLOT.left}
-                x2={RIGHT_X + RIGHT_WIDTH - RIGHT_PLOT.right}
-                y1={HEIGHT - RIGHT_PLOT.bottom - tick * RIGHT_PLOT_HEIGHT}
-                y2={HEIGHT - RIGHT_PLOT.bottom - tick * RIGHT_PLOT_HEIGHT}
-                stroke={vizTokens.grid}
-                strokeWidth="1"
+                key={`gap-${value}`}
+                x1={rightXScale(value)}
+                x2={rightXScale(value)}
+                y1={rightYOf(curve.trainError[index])}
+                y2={rightYOf(curve.validationError[index])}
+                stroke={value === degree ? vizTokens.selection : vizTokens.classB}
+                strokeWidth={value === degree ? 8 : 3}
+                opacity={value === degree ? 0.26 : 0.09}
               />
             ))}
 
-            <polyline
-              points={polylinePoints(curve.degrees.map((d, i) => ({ x: rightX(d), y: rightY(curve.trainError[i]) })))}
+            <LinePath
+              data={curve.degrees.map((d, i) => ({ degree: d, value: curve.trainError[i] }))}
+              x={(point) => rightXScale(point.degree)}
+              y={(point) => rightYOf(point.value)}
+              curve={curveMonotoneX}
               fill="none"
               stroke={vizTokens.classA}
-              strokeWidth="2.5"
+              strokeWidth={vizStroke.contourStrong}
             />
-            <polyline
-              points={polylinePoints(curve.degrees.map((d, i) => ({ x: rightX(d), y: rightY(curve.validationError[i]) })))}
+            <LinePath
+              data={curve.degrees.map((d, i) => ({ degree: d, value: curve.validationError[i] }))}
+              x={(point) => rightXScale(point.degree)}
+              y={(point) => rightYOf(point.value)}
+              curve={curveMonotoneX}
               fill="none"
               stroke={vizTokens.classB}
-              strokeWidth="2.5"
+              strokeWidth={vizStroke.contourStrong}
             />
 
-            <line
-              x1={rightX(degree)}
-              x2={rightX(degree)}
-              y1={RIGHT_PLOT.top}
-              y2={HEIGHT - RIGHT_PLOT.bottom}
+            <motion.line
+              y1={0}
+              y2={RIGHT_PLOT_HEIGHT}
               stroke={vizTokens.selection}
-              strokeWidth="2"
+              strokeWidth={vizStroke.marker}
               strokeDasharray="4 3"
-              className="transition-all duration-300 ease-out motion-reduce:transition-none"
+              initial={false}
+              animate={{ x1: rightXScale(degree), x2: rightXScale(degree) }}
+              transition={reduced(vizMotion.markerSpring, prefersReduced)}
             />
 
             {bestDegree > DEGREE_RANGE.min && (
-              <text x={rightX((DEGREE_RANGE.min + bestDegree) / 2)} y={HEIGHT - RIGHT_PLOT.bottom + 18} textAnchor="middle" fill={vizTokens.mutedInk} fontSize="10" fontFamily="var(--font-dm-mono)" letterSpacing="0.08em">UNDERFIT</text>
+              <text x={rightXScale((DEGREE_RANGE.min + bestDegree) / 2)} y={RIGHT_PLOT_HEIGHT + 18} textAnchor="middle" fill={vizTokens.mutedInk} fontSize="10" fontFamily="var(--font-dm-mono)" letterSpacing="0.08em">UNDERFIT</text>
             )}
             {bestDegree < DEGREE_RANGE.max && (
-              <text x={rightX((bestDegree + DEGREE_RANGE.max) / 2)} y={HEIGHT - RIGHT_PLOT.bottom + 18} textAnchor="middle" fill={vizTokens.mutedInk} fontSize="10" fontFamily="var(--font-dm-mono)" letterSpacing="0.08em">OVERFIT</text>
+              <text x={rightXScale((bestDegree + DEGREE_RANGE.max) / 2)} y={RIGHT_PLOT_HEIGHT + 18} textAnchor="middle" fill={vizTokens.mutedInk} fontSize="10" fontFamily="var(--font-dm-mono)" letterSpacing="0.08em">OVERFIT</text>
             )}
-          </g>
+          </Group>
           <rect x={RIGHT_X + RIGHT_PLOT.left} y={RIGHT_PLOT.top} width={RIGHT_PLOT_WIDTH} height={RIGHT_PLOT_HEIGHT} fill="none" stroke={vizTokens.border} />
           <text x={RIGHT_X + RIGHT_PLOT.left} y={RIGHT_PLOT.top - 6} fill={vizTokens.mutedInk} fontSize="12" fontFamily="var(--font-dm-mono)">ERROR VS DEGREE</text>
           <text x={RIGHT_X + RIGHT_PLOT.left} y={RIGHT_PLOT.top + 16} fill={vizTokens.classA} fontSize="11" fontFamily="var(--font-dm-mono)">— train</text>

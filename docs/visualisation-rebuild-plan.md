@@ -127,7 +127,7 @@ control strip instead of extending the page.
 - `npm run test` — 6 files, 23 tests passed.
 - `npm run build` — passed; static export contains only the index,
   visualisation library, three visualisation routes, and metadata routes.
-- `npx cypress run --spec cypress/e2e/visualisations.cy.ts` — 13/13 passed.
+- `npm run test:e2e` (Playwright) — 13/13 passed.
 - Production-only hydration checks — passed after correcting the attention SVG
   title to use a single text node.
 - Screenshot review — homepage and all three workspaces reviewed at desktop;
@@ -158,7 +158,7 @@ Presentation changes with the expansion:
   library; `/visualisations` scrolls normally and scales to any exhibit count.
 - Each new exhibit received a purpose-drawn card vignette in
   `src/components/ExhibitCard.tsx`.
-- The Cypress suite covers all six workspace routes at the four target
+- The Playwright suite covers all six workspace routes at the four target
   viewports, plus a library-index listing check.
 
 ## Completion criteria
@@ -170,3 +170,59 @@ Presentation changes with the expansion:
   their previous versions.
 - No invented brand language remains in visible UI or metadata.
 - The static export and automated verification suite pass.
+
+## Three-dimensional renderer pass
+
+Added 2026-07-12 after reviewing where dimensionality was being flattened:
+
+- Gradient descent now uses a real WebGL loss surface. The two parameter axes
+  lie on the ground plane, loss is height, and the computed update trajectory
+  follows the surface. The start remains pointer- and keyboard-adjustable, and
+  the camera can orbit without changing the optimisation model.
+- The kernel exhibit now uses real 3D feature coordinates instead of an SVG
+  perspective projection. Its separator is the hard-margin SVM midpoint
+  between the closest lifted samples, with margin planes and support vectors
+  shown explicitly. The plane's preimage remains the circular input boundary.
+- Both scenes retain accessible live descriptions and usable controls when a
+  WebGL context is unavailable.
+
+## Library expansion — optimisation and deep learning
+
+Added 2026-07-12 as a question-led expansion of the library:
+
+- **Particle swarm optimisation** exposes inertia, personal memory, and social
+  pull on a multimodal landscape, making population search directly comparable
+  with the local trajectory in gradient descent.
+- **CNN feature maps** traces a selected activation back to its receptive
+  field, filter dot product, ReLU response, and pooled representation.
+- **Genetic algorithm** makes binary encoding, selection, crossover, mutation,
+  elitism, fitness, and population diversity visible on a two-peak objective.
+- **Principal component analysis** connects rotation of a projection axis to
+  retained variance and reconstruction error.
+- **Backpropagation** separates forward activations, cross-entropy loss,
+  backward gradients, and the resulting parameter update.
+
+The homepage was rebuilt around a single recommended entry point, a concise
+interaction method, question-led routes, and the complete library. Every
+workspace now exposes its authored insight and challenges in context rather
+than leaving those fields unreachable.
+
+## Explanatory geometry and causal motion pass
+
+Added 2026-07-12 after reviewing every exhibit as a visual argument rather
+than a collection of controls:
+
+- Gradient descent gained a multimodal 3D landscape, distinct local-basin
+  markers, destination forecasting, and explicit local-versus-global outcomes.
+- K-means gained continuously recomputed Voronoi ownership regions;
+  overfitting gained residuals and generalisation-gap marks; PCA gained a
+  covariance ellipse and continuous projection motion; kernel SVM gained its
+  explicit lifted feature surface.
+- CNN gained a scanning receptive field; attention gained moving signal flow;
+  sampling gained a cumulative unit-interval draw; backpropagation gained
+  forward activation and backward gradient pulses.
+- PSO gained global-best history, while the genetic algorithm now preserves
+  parental colour through the displayed crossover child.
+
+All motion respects reduced-motion preferences where continuous animation is
+not essential to the interaction.

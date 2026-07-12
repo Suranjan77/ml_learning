@@ -47,4 +47,10 @@ describe("GradientDescentScene", () => {
     fireEvent.click(screen.getByRole("button", { name: "Take step" }));
     expect(screen.getByText(/Loss increased/)).toBeInTheDocument();
   });
+
+  it("shows a distinct multimodal failure case", () => {
+    render(<GradientDescentScene step={3} resetKey={0} />);
+    expect(screen.getByRole("button", { name: "Many minima" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText(/local basin|global minimum/i)).toBeInTheDocument();
+  });
 });

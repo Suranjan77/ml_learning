@@ -68,4 +68,15 @@ describe("AttentionScene", () => {
       "true",
     );
   });
+
+  it("applies guided step presets for autoplay", () => {
+    const { rerender } = render(<AttentionScene step={0} />);
+    expect(screen.getByRole("button", { name: "Use sentence ending in tired" })).toHaveAttribute("aria-pressed", "true");
+
+    rerender(<AttentionScene step={1} />);
+    expect(screen.getByRole("button", { name: "Use sentence ending in wide" })).toHaveAttribute("aria-pressed", "true");
+
+    rerender(<AttentionScene step={2} />);
+    expect(screen.getByRole("button", { name: "Show Previous token attention pattern" })).toHaveAttribute("aria-pressed", "true");
+  });
 });

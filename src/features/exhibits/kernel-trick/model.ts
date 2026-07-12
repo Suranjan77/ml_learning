@@ -14,13 +14,23 @@ export interface ScreenPoint {
 }
 
 export const MAX_RADIUS = 3.35;
-export const SEPARATING_HEIGHT = 0.4;
-export const BOUNDARY_RADIUS = MAX_RADIUS * Math.sqrt(SEPARATING_HEIGHT);
 
 const INNER_POINTS = [
   [0, 0], [0.7, 0.4], [-0.6, 0.5], [0.4, -0.7], [-0.5, -0.5],
   [0.9, -0.2], [-0.9, 0.1], [0.1, 0.9], [-0.2, -0.9],
 ] as const;
+
+const INNER_MARGIN_HEIGHT = Math.max(...INNER_POINTS.map(([x, y]) => radialLift(x, y)));
+const OUTER_MARGIN_HEIGHT = Math.min(...Array.from({ length: 14 }, (_, index) => {
+  const angle = (index / 14) * Math.PI * 2;
+  const radius = 2.85 + 0.35 * Math.sin(angle * 3.1);
+  return radialLift(radius, 0);
+}));
+
+/** Hard-margin separator halfway between the closest lifted samples. */
+export const SEPARATING_HEIGHT = (INNER_MARGIN_HEIGHT + OUTER_MARGIN_HEIGHT) / 2;
+export const BOUNDARY_RADIUS = MAX_RADIUS * Math.sqrt(SEPARATING_HEIGHT);
+export const SVM_MARGIN_HEIGHTS = [INNER_MARGIN_HEIGHT, OUTER_MARGIN_HEIGHT] as const;
 
 /** A deterministic core-and-ring dataset that cannot be separated by a line in 2D. */
 export function buildConcentricDataset(): KernelPoint[] {

@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
-import { vizTokens } from "@/lib/vizTokens";
+import { scaleLinear } from "@visx/scale";
+import { GridColumns, GridRows } from "@visx/grid";
+import { Group } from "@visx/group";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { vizStroke, vizTokens } from "@/lib/vizTokens";
+import { reduced, vizMotion } from "@/lib/vizMotion";
 import type { ExhibitSceneProps } from "../types";
 import {
   BAD_INITIAL_CENTROIDS_K3,
@@ -24,6 +29,8 @@ const HEIGHT = 520;
 const PLOT = { left: 52, right: 24, top: 24, bottom: 42 } as const;
 const PLOT_WIDTH = WIDTH - PLOT.left - PLOT.right;
 const PLOT_HEIGHT = HEIGHT - PLOT.top - PLOT.bottom;
+const X_TICKS = [-4, -2, 0, 2, 4];
+const Y_TICKS = [-2, 0, 2];
 const PALETTE = [vizTokens.classA, vizTokens.classB, vizTokens.path, vizTokens.target] as const;
 const K_OPTIONS = [2, 3, 4] as const satisfies readonly KValue[];
 const MAX_ITERATIONS = DEFAULT_MAX_ITERATIONS;
@@ -46,20 +53,6 @@ const STEP_PRESETS = [
   { k: 3, initialCentroids: INITIAL_CENTROIDS[3], halfStepIndex: 2 },
   { k: 3, initialCentroids: BAD_INITIAL_CENTROIDS_K3, halfStepIndex: 2 },
 ] as const satisfies readonly { k: KValue; initialCentroids: readonly Point[]; halfStepIndex: number }[];
-
-function toSvg(point: Point): Point {
-  return {
-    x: PLOT.left + ((point.x - DOMAIN.xMin) / (DOMAIN.xMax - DOMAIN.xMin)) * PLOT_WIDTH,
-    y: PLOT.top + ((DOMAIN.yMax - point.y) / (DOMAIN.yMax - DOMAIN.yMin)) * PLOT_HEIGHT,
-  };
-}
-
-function fromSvg(point: Point): Point {
-  return clampToDomain({
-    x: DOMAIN.xMin + ((point.x - PLOT.left) / PLOT_WIDTH) * (DOMAIN.xMax - DOMAIN.xMin),
-    y: DOMAIN.yMax - ((point.y - PLOT.top) / PLOT_HEIGHT) * (DOMAIN.yMax - DOMAIN.yMin),
-  });
-}
 
 /** Replay assign/update phases from a starting position, one entry per half-step. */
 function buildHalfSteps(
@@ -107,12 +100,26 @@ export default function KMeansScene({ step, resetKey }: ExhibitSceneProps) {
   const initialPreset = presetFor(step);
   const svgRef = useRef<SVGSVGElement>(null);
   const stageId = useId();
+  const prefersReduced = useReducedMotion();
   const [k, setK] = useState<KValue>(initialPreset.k);
   const [initialCentroids, setInitialCentroids] = useState<Point[]>(() => initialPreset.initialCentroids.map((point) => ({ ...point })));
   const [halfStepIndex, setHalfStepIndex] = useState<number>(initialPreset.halfStepIndex);
   const [selectedCentroid, setSelectedCentroid] = useState(0);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const [running, setRunning] = useState(false);
+
+  // visx scales own domain→pixel; plotted content renders plot-relative inside
+  // the translated Group. Pointer drags invert through the same scales.
+  const xScale = useMemo(
+    () => scaleLinear({ domain: [DOMAIN.xMin, DOMAIN.xMax], range: [0, PLOT_WIDTH] }),
+    [],
+  );
+  const yScale = useMemo(
+    () => scaleLinear({ domain: [DOMAIN.yMin, DOMAIN.yMax], range: [PLOT_HEIGHT, 0] }),
+    [],
+  );
+  const sx = (value: number) => xScale(value);
+  const sy = (value: number) => yScale(value);
 
   const steps = useMemo(
     () => buildHalfSteps(DATASET, initialCentroids, MAX_ITERATIONS, TOLERANCE),
@@ -130,6 +137,19 @@ export default function KMeansScene({ step, resetKey }: ExhibitSceneProps) {
   const beforeInertia = boundedHalfStep >= 2 ? steps[boundedHalfStep - 2].inertia : afterInertia;
   const inertiaDelta = afterInertia - beforeInertia;
   const changePercent = beforeInertia > 0 ? Math.abs((inertiaDelta / beforeInertia) * 100) : 0;
+  const decisionCells = useMemo(() => {
+    const columns = 36;
+    const rows = 20;
+    return Array.from({ length: columns * rows }, (_, index) => {
+      const column = index % columns;
+      const row = Math.floor(index / columns);
+      const point = {
+        x: DOMAIN.xMin + ((column + 0.5) / columns) * (DOMAIN.xMax - DOMAIN.xMin),
+        y: DOMAIN.yMax - ((row + 0.5) / rows) * (DOMAIN.yMax - DOMAIN.yMin),
+      };
+      return { column, row, cluster: assignPoints([point], centroids.slice(0, k))[0], columns, rows };
+    });
+  }, [centroids, k]);
 
   useEffect(() => {
     const preset = presetFor(step);
@@ -176,23 +196,30 @@ export default function KMeansScene({ step, resetKey }: ExhibitSceneProps) {
   function moveCentroidFromPointer(index: number, clientX: number, clientY: number) {
     const svg = svgRef.current;
     if (!svg) return;
+
+    const toDomain = (localX: number, localY: number) =>
+      clampToDomain({
+        x: xScale.invert(localX - PLOT.left),
+        y: yScale.invert(localY - PLOT.top),
+      });
+
     const matrix = svg.getScreenCTM();
     if (matrix) {
       const pointer = svg.createSVGPoint();
       pointer.x = clientX;
       pointer.y = clientY;
       const local = pointer.matrixTransform(matrix.inverse());
-      moveCentroid(index, fromSvg({ x: local.x, y: local.y }));
+      moveCentroid(index, toDomain(local.x, local.y));
       return;
     }
 
     // JSDOM and older embedded browsers may not expose the SVG transform matrix.
     const rect = svg.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) return;
-    moveCentroid(index, fromSvg({
-      x: ((clientX - rect.left) / rect.width) * WIDTH,
-      y: ((clientY - rect.top) / rect.height) * HEIGHT,
-    }));
+    moveCentroid(index, toDomain(
+      ((clientX - rect.left) / rect.width) * WIDTH,
+      ((clientY - rect.top) / rect.height) * HEIGHT,
+    ));
   }
 
   function handleStageKeyDown(event: KeyboardEvent<HTMLDivElement>) {
@@ -284,65 +311,72 @@ export default function KMeansScene({ step, resetKey }: ExhibitSceneProps) {
           className="block h-full w-full touch-none select-none"
         >
           <rect width={WIDTH} height={HEIGHT} fill={vizTokens.canvas} />
-          <rect x={PLOT.left} y={PLOT.top} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill={vizTokens.canvas} stroke="none" />
 
-          {[-4, -2, 0, 2, 4].map((tick) => {
-            const x = toSvg({ x: tick, y: 0 }).x;
-            return <line key={`x-${tick}`} x1={x} x2={x} y1={PLOT.top} y2={HEIGHT - PLOT.bottom} stroke={vizTokens.grid} strokeWidth="1" />;
-          })}
-          {[-2, 0, 2].map((tick) => {
-            const y = toSvg({ x: 0, y: tick }).y;
-            return <line key={`y-${tick}`} x1={PLOT.left} x2={WIDTH - PLOT.right} y1={y} y2={y} stroke={vizTokens.grid} strokeWidth="1" />;
-          })}
+          <Group left={PLOT.left} top={PLOT.top}>
+            <rect width={PLOT_WIDTH} height={PLOT_HEIGHT} fill={vizTokens.canvas} stroke="none" />
+            {decisionCells.map((cell) => <rect key={`${cell.column}-${cell.row}`} x={cell.column * PLOT_WIDTH / cell.columns} y={cell.row * PLOT_HEIGHT / cell.rows} width={PLOT_WIDTH / cell.columns + 0.5} height={PLOT_HEIGHT / cell.rows + 0.5} fill={PALETTE[cell.cluster]} opacity="0.09" />)}
+            <GridColumns scale={xScale} height={PLOT_HEIGHT} tickValues={X_TICKS} stroke={vizTokens.grid} strokeWidth={vizStroke.grid} />
+            <GridRows scale={yScale} width={PLOT_WIDTH} tickValues={Y_TICKS} stroke={vizTokens.grid} strokeWidth={vizStroke.grid} />
 
-          {current?.phase === "assign" && assignments && DATASET.map((point, index) => {
-            const pointScreen = toSvg(point);
-            const centroidScreen = toSvg(centroids[assignments[index]]);
-            return (
-              <line
-                key={`link-${index}`}
-                x1={pointScreen.x}
-                y1={pointScreen.y}
-                x2={centroidScreen.x}
-                y2={centroidScreen.y}
-                stroke={PALETTE[assignments[index]]}
-                strokeWidth="1"
-                strokeOpacity="0.22"
-              />
-            );
-          })}
-
-          {DATASET.map((point, index) => {
-            const screen = toSvg(point);
-            const fill = assignments ? PALETTE[assignments[index]] : vizTokens.mutedInk;
-            return <circle key={index} cx={screen.x} cy={screen.y} r="4" fill={fill} stroke={vizTokens.pointOutline} strokeWidth="1" />;
-          })}
-
-          {centroids.slice(0, k).map((centroid, index) => {
-            const screen = toSvg(centroid);
-            const color = PALETTE[index];
-            const selected = selectedCentroid === index;
-            return (
-              <g
-                key={index}
-                style={{ transform: `translate(${screen.x}px, ${screen.y}px)` }}
-                className={`transition-transform ease-out motion-reduce:transition-none ${draggingIndex === index ? "duration-0" : "duration-500"}`}
-              >
-                {selected && <circle r="23" fill="none" stroke={vizTokens.selection} strokeWidth="1.5" opacity="0.5" />}
-                <circle r="15" fill={vizTokens.canvas} fillOpacity="0.85" stroke={color} strokeWidth="3" />
-                <circle r="4" fill={color} />
-                <circle
-                  data-testid={`centroid-handle-${index}`}
-                  r="20"
-                  fill="transparent"
-                  className="cursor-grab touch-none"
-                  {...centroidHandlers(index)}
+            <AnimatePresence>
+              {current?.phase === "assign" && assignments && DATASET.map((point, index) => (
+                <motion.line
+                  key={`link-${index}`}
+                  x1={sx(point.x)}
+                  y1={sy(point.y)}
+                  x2={sx(centroids[assignments[index]].x)}
+                  y2={sy(centroids[assignments[index]].y)}
+                  stroke={PALETTE[assignments[index]]}
+                  strokeWidth={vizStroke.hairline}
+                  initial={prefersReduced ? false : { opacity: 0 }}
+                  animate={{ opacity: 0.22 }}
+                  exit={{ opacity: 0 }}
+                  transition={reduced(vizMotion.fade, prefersReduced)}
                 />
-              </g>
-            );
-          })}
+              ))}
+            </AnimatePresence>
+
+            {DATASET.map((point, index) => (
+              <motion.circle
+                key={index}
+                cx={sx(point.x)}
+                cy={sy(point.y)}
+                r={4}
+                stroke={vizTokens.pointOutline}
+                strokeWidth={vizStroke.hairline}
+                initial={false}
+                animate={{ fill: assignments ? PALETTE[assignments[index]] : vizTokens.mutedInk }}
+                transition={reduced(vizMotion.fade, prefersReduced)}
+              />
+            ))}
+
+            {centroids.slice(0, k).map((centroid, index) => {
+              const color = PALETTE[index];
+              const selected = selectedCentroid === index;
+              return (
+                <motion.g
+                  key={index}
+                  initial={false}
+                  animate={{ x: sx(centroid.x), y: sy(centroid.y) }}
+                  transition={draggingIndex === index ? { duration: 0 } : reduced(vizMotion.markerSpring, prefersReduced)}
+                >
+                  {selected && <circle r={23} fill="none" stroke={vizTokens.selection} strokeWidth={vizStroke.guide} opacity={0.5} />}
+                  <circle r={15} fill={vizTokens.canvas} fillOpacity={0.85} stroke={color} strokeWidth={vizStroke.markerStrong} />
+                  <circle r={4} fill={color} />
+                  <circle
+                    data-testid={`centroid-handle-${index}`}
+                    r={20}
+                    fill="transparent"
+                    className="cursor-grab touch-none"
+                    {...centroidHandlers(index)}
+                  />
+                </motion.g>
+              );
+            })}
+          </Group>
 
           <rect x={PLOT.left} y={PLOT.top} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke={vizTokens.border} />
+          <text x={PLOT.left + 10} y={PLOT.top + 18} fill={vizTokens.mutedInk} fontSize="10" fontFamily="var(--font-dm-mono)">TINT = NEAREST-CENTROID REGION</text>
 
           <g transform={`translate(${WIDTH - 326} ${PLOT.top + 18})`}>
             <rect width="282" height="86" fill={vizTokens.canvas} fillOpacity="0.94" stroke={vizTokens.border} />

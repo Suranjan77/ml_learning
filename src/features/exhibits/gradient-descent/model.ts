@@ -1,4 +1,4 @@
-export type SurfaceKind = "bowl" | "valley";
+export type SurfaceKind = "bowl" | "valley" | "multimodal";
 
 export interface Point {
   x: number;
@@ -58,12 +58,22 @@ export function fromPrincipalCoordinates(point: Point): Point {
 
 export function lossAt(point: Point, surface: SurfaceKind): number {
   if (surface === "bowl") return 0.5 * (point.x ** 2 + point.y ** 2);
+  if (surface === "multimodal") {
+    return 0.12 * (point.x ** 2 + point.y ** 2)
+      + 0.55 * (2 - Math.cos(2.4 * point.x) - Math.cos(2.4 * point.y));
+  }
   const principal = principalCoordinates(point);
   return VALLEY_SHALLOW * principal.x ** 2 + VALLEY_STEEP * principal.y ** 2;
 }
 
 export function gradientAt(point: Point, surface: SurfaceKind): Point {
   if (surface === "bowl") return { x: point.x, y: point.y };
+  if (surface === "multimodal") {
+    return {
+      x: 0.24 * point.x + 1.32 * Math.sin(2.4 * point.x),
+      y: 0.24 * point.y + 1.32 * Math.sin(2.4 * point.y),
+    };
+  }
 
   const principal = principalCoordinates(point);
   const du = 2 * VALLEY_SHALLOW * principal.x;
@@ -101,7 +111,7 @@ export function descentPath(
 }
 
 export function learningRegime(learningRate: number, surface: SurfaceKind): LearningRegime {
-  const steepestCurvature = surface === "bowl" ? 1 : 2 * VALLEY_STEEP;
+  const steepestCurvature = surface === "bowl" ? 1 : surface === "valley" ? 2 * VALLEY_STEEP : 3.408;
   if (learningRate >= 2 / steepestCurvature) return "diverging";
   if (learningRate > 1 / steepestCurvature) return "crossing";
   return "steady";
@@ -112,7 +122,13 @@ export function assessStep(before: DescentState, after: DescentState, surface: S
   const relativeLossDelta = before.loss <= EPSILON ? 0 : lossDelta / before.loss;
   const crossedMinimum = surface === "bowl"
     ? before.x * after.x + before.y * after.y < 0
-    : principalCoordinates(before).y * principalCoordinates(after).y < 0;
+    : surface === "valley"
+      ? principalCoordinates(before).y * principalCoordinates(after).y < 0
+      : (() => {
+          const beforeGradient = gradientAt(before, surface);
+          const afterGradient = gradientAt(after, surface);
+          return beforeGradient.x * afterGradient.x + beforeGradient.y * afterGradient.y < 0;
+        })();
 
   let behaviour: StepBehaviour = "steady";
   if (before.loss <= EPSILON) behaviour = "settled";
@@ -130,14 +146,27 @@ export function contourPoints(surface: SurfaceKind, level: number, samples = 96)
     if (surface === "bowl") {
       const radius = Math.sqrt(2 * level);
       points.push({ x: radius * Math.cos(angle), y: radius * Math.sin(angle) });
-    } else {
+    } else if (surface === "valley") {
       points.push(fromPrincipalCoordinates({
         x: Math.sqrt(level / VALLEY_SHALLOW) * Math.cos(angle),
         y: Math.sqrt(level / VALLEY_STEEP) * Math.sin(angle),
       }));
-    }
+    } else break;
   }
   return points;
+}
+
+/** Numerically locate the distinct basins reached from a regular seed grid. */
+export function multimodalMinima(): DescentState[] {
+  const minima: DescentState[] = [];
+  for (let x = -5.2; x <= 5.2; x += 1.3) {
+    for (let y = -2.6; y <= 2.6; y += 1.3) {
+      const endpoint = descentPath({ x, y }, 0.08, "multimodal", 100).at(-1)!;
+      if (endpoint.x < DOMAIN.xMin || endpoint.x > DOMAIN.xMax || endpoint.y < DOMAIN.yMin || endpoint.y > DOMAIN.yMax) continue;
+      if (!minima.some((item) => Math.hypot(item.x - endpoint.x, item.y - endpoint.y) < 0.18)) minima.push(endpoint);
+    }
+  }
+  return minima.sort((a, b) => a.loss - b.loss);
 }
 
 export function clampToDomain(point: Point): Point {

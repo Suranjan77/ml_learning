@@ -9,6 +9,7 @@ import {
   initialState,
   learningRegime,
   lossAt,
+  multimodalMinima,
   principalCoordinates,
 } from "./model";
 
@@ -56,5 +57,12 @@ describe("gradient descent model", () => {
         expect(lossAt(point, surface)).toBeCloseTo(2.4, 8);
       });
     }
+  });
+
+  it("contains distinct local minima above the global multimodal minimum", () => {
+    const minima = multimodalMinima();
+    expect(minima.length).toBeGreaterThan(4);
+    expect(minima[0].loss).toBeCloseTo(0, 3);
+    expect(minima.some((minimum) => minimum.loss > 0.5)).toBe(true);
   });
 });

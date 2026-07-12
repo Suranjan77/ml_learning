@@ -8,11 +8,13 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { reduced, vizMotion } from "@/lib/vizMotion";
 import type { ExhibitSceneProps } from "../types";
 import { ATTENTION_DATA_DISCLOSURE, attentionExamples } from "./data";
 import { describeAttention, topTargets } from "./model";
 
-type AttentionSceneProps = Partial<Pick<ExhibitSceneProps, "resetKey">>;
+type AttentionSceneProps = Partial<Pick<ExhibitSceneProps, "resetKey" | "step">>;
 
 const DIAGRAM_WIDTH = 1000;
 const DIAGRAM_HEIGHT = 180;
@@ -34,7 +36,8 @@ function formatWeight(weight: number): string {
   return percentage < 1 ? "<1%" : `${percentage}%`;
 }
 
-export default function AttentionScene({ resetKey = 0 }: AttentionSceneProps = {}) {
+export default function AttentionScene({ resetKey = 0, step = 0 }: AttentionSceneProps = {}) {
+  const prefersReduced = useReducedMotion();
   const [exampleIndex, setExampleIndex] = useState(0);
   const [headIndex, setHeadIndex] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState(() =>
@@ -58,6 +61,7 @@ export default function AttentionScene({ resetKey = 0 }: AttentionSceneProps = {
     [weights],
   );
   const description = describeAttention(example, head, sourceIndex);
+  const strongestTarget = targets[0]?.index;
 
   useEffect(() => {
     interactionReady.current = true;
@@ -67,11 +71,13 @@ export default function AttentionScene({ resetKey = 0 }: AttentionSceneProps = {
   }, []);
 
   useEffect(() => {
-    const initial = attentionExamples[0];
-    setExampleIndex(0);
-    setHeadIndex(0);
+    const preset = Math.max(0, Math.min(2, step));
+    const nextExampleIndex = preset === 1 ? 1 : 0;
+    const initial = attentionExamples[nextExampleIndex];
+    setExampleIndex(nextExampleIndex);
+    setHeadIndex(preset === 2 ? 1 : 0);
     setSelectedIndex(initial.tokens.indexOf(initial.focusToken));
-  }, [resetKey]);
+  }, [resetKey, step]);
 
   function chooseExample(index: number) {
     const nextExample = attentionExamples[index];
@@ -239,24 +245,34 @@ export default function AttentionScene({ resetKey = 0 }: AttentionSceneProps = {
             {description} Line width and target rank both indicate relative weight. These are
             illustrative weights, not measurements from a model.
           </desc>
-          {connections.map(({ index, weight }) => {
-            const rank = rankByIndex.get(index);
-            const strongest = rank === 1;
-            return (
-              <path
-                key={index}
-                d={connectionPath(sourceIndex, index, example.tokens.length)}
-                fill="none"
-                stroke={strongest ? "var(--color-accent)" : "var(--color-primary)"}
-                strokeWidth={0.75 + weight * 9}
-                strokeOpacity={strongest ? 0.95 : 0.28 + weight * 0.8}
-                strokeDasharray={rank ? undefined : "2 5"}
-                strokeLinecap="round"
-                vectorEffect="non-scaling-stroke"
-                aria-hidden="true"
-              />
-            );
-          })}
+          <AnimatePresence>
+            {connections.map(({ index, weight }) => {
+              const rank = rankByIndex.get(index);
+              const strongest = rank === 1;
+              return (
+                <motion.path
+                  key={index}
+                  fill="none"
+                  stroke={strongest ? "var(--color-accent)" : "var(--color-primary)"}
+                  strokeWidth={0.75 + weight * 9}
+                  strokeOpacity={strongest ? 0.95 : 0.28 + weight * 0.8}
+                  strokeDasharray={rank ? undefined : "2 5"}
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
+                  aria-hidden="true"
+                  initial={false}
+                  animate={{ d: connectionPath(sourceIndex, index, example.tokens.length) }}
+                  exit={{ opacity: 0 }}
+                  transition={reduced(vizMotion.markerSpring, prefersReduced)}
+                />
+              );
+            })}
+          </AnimatePresence>
+          {strongestTarget !== undefined && !prefersReduced ? (
+            <circle r="6" fill="var(--color-accent)" aria-hidden="true">
+              <animateMotion path={connectionPath(sourceIndex, strongestTarget, example.tokens.length)} dur="1.6s" repeatCount="indefinite" />
+            </circle>
+          ) : null}
         </svg>
 
         <div>

@@ -4,20 +4,20 @@ import type { ExhibitDefinition } from "@/features/exhibits/types";
 function GradientPreview() {
   return (
     <svg viewBox="0 0 360 150" className="h-full w-full" aria-hidden="true">
-      <g fill="none" stroke="var(--color-outline-dark)">
-        <ellipse cx="184" cy="76" rx="128" ry="55" />
-        <ellipse cx="184" cy="76" rx="94" ry="40" />
-        <ellipse cx="184" cy="76" rx="58" ry="25" />
+      <g fill="none" stroke="var(--color-outline-dark)" opacity="0.8">
+        <ellipse cx="102" cy="70" rx="56" ry="34" /><ellipse cx="102" cy="70" rx="34" ry="20" /><ellipse cx="102" cy="70" rx="15" ry="9" />
+        <ellipse cx="254" cy="82" rx="72" ry="42" /><ellipse cx="254" cy="82" rx="44" ry="26" /><ellipse cx="254" cy="82" rx="20" ry="12" />
       </g>
+      <path d="M171 12 C171 48 173 102 174 140" stroke="var(--color-error)" strokeDasharray="5 5" opacity="0.55" />
       <path
-        d="M70 42 C98 45 104 76 130 71 S154 101 181 84 S207 80 224 76"
+        d="M43 30 C64 33 62 55 82 55 S91 70 102 70"
         fill="none"
         stroke="var(--color-accent)"
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth="3"
       />
-      {["70,42", "105,65", "130,71", "158,92", "181,84", "224,76"].map(
+      {["43,30", "64,40", "82,55", "94,66", "102,70"].map(
         (point, index) => {
           const [cx, cy] = point.split(",");
           return (
@@ -31,7 +31,10 @@ function GradientPreview() {
           );
         },
       )}
-      <circle cx="184" cy="76" r="6" fill="var(--color-primary)" />
+      <circle cx="102" cy="70" r="6" fill="var(--color-accent)" />
+      <circle cx="254" cy="82" r="7" fill="var(--color-primary)" />
+      <text x="102" y="103" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="9" fill="var(--color-accent)">local</text>
+      <text x="254" y="119" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="9" fill="var(--color-primary)">global</text>
     </svg>
   );
 }
@@ -239,26 +242,70 @@ function TokenSamplingPreview() {
   );
 }
 
-function ExhibitPreview({ slug }: { slug: string }) {
+function ParticleSwarmPreview() {
+  const particles = [[58, 48], [92, 102], [130, 67], [172, 111], [222, 52], [270, 96], [313, 45], [245, 122], [144, 34]] as const;
+  return <svg viewBox="0 0 360 150" className="h-full w-full" aria-hidden="true">
+    {[30, 54, 82].map((radius) => <ellipse key={radius} cx="196" cy="78" rx={radius * 1.45} ry={radius * 0.62} fill="none" stroke="var(--color-outline-dark)" opacity="0.65" />)}
+    {particles.map(([x, y], index) => <g key={index}><line x1={x} y1={y} x2="196" y2="78" stroke="var(--color-primary)" strokeDasharray="3 4" opacity="0.35" /><circle cx={x} cy={y} r="5" fill="var(--color-error)" /></g>)}
+    <path d="M196 63 l4 10 11 1-8 7 3 11-10-6-10 6 3-11-8-7 11-1z" fill="var(--color-accent)" />
+  </svg>;
+}
+
+function CnnPreview() {
+  const image = [0,0,1,1,0,0, 0,1,1,1,1,0, 1,1,0,0,1,1, 1,0,1,1,0,1, 1,1,1,1,1,1, 0,0,0,0,0,0];
+  return <svg viewBox="0 0 360 150" className="h-full w-full" aria-hidden="true">
+    {image.map((value, index) => <rect key={index} x={36 + (index % 6) * 17} y={24 + Math.floor(index / 6) * 17} width="15" height="15" fill={value ? "var(--color-primary)" : "var(--color-surface)"} stroke="var(--color-outline)" />)}
+    <path d="M152 75 H190" stroke="var(--color-outline-dark)" /><path d="M190 75 l-7-4v8z" fill="var(--color-outline-dark)" />
+    {Array.from({ length: 9 }, (_, index) => <rect key={index} x={202 + (index % 3) * 22} y={43 + Math.floor(index / 3) * 22} width="20" height="20" fill={index % 3 === 0 ? "var(--color-error)" : index % 3 === 2 ? "var(--color-primary)" : "var(--color-surface)"} opacity="0.75" />)}
+    <path d="M278 75 H310" stroke="var(--color-outline-dark)" /><circle cx="324" cy="75" r="13" fill="var(--color-accent)" />
+  </svg>;
+}
+
+function GeneticPreview() {
+  const genomes = ["101101001010", "101111001010", "101111101010", "101111101110"];
+  return <svg viewBox="0 0 360 150" className="h-full w-full" aria-hidden="true">
+    <path d="M24 48 C75 45 82 91 132 82 S210 105 248 48 S305 28 336 64" fill="none" stroke="var(--color-primary)" strokeWidth="2.5" />
+    {genomes.map((genome, row) => <g key={genome} transform={`translate(40 ${62 + row * 20})`}><text fontFamily="var(--font-mono)" fontSize="10" fill="var(--color-on-surface)">{genome}</text><rect x="105" y="-9" width={70 + row * 32} height="11" fill={row === genomes.length - 1 ? "var(--color-accent)" : "var(--color-primary)"} opacity={0.55 + row * 0.14} /></g>)}
+  </svg>;
+}
+
+function PcaPreview() {
+  const points = Array.from({ length: 18 }, (_, index) => ({ x: 55 + index * 14, y: 112 - index * 3.4 + Math.sin(index * 2.2) * 15 }));
+  return <svg viewBox="0 0 360 150" className="h-full w-full" aria-hidden="true"><line x1="38" y1="128" x2="326" y2="35" stroke="var(--color-accent)" strokeWidth="3" />{points.map((point,index) => <g key={index}><line x1={point.x} y1={point.y} x2={point.x+3} y2={point.y-1} stroke="var(--color-error)" opacity="0.4" /><circle cx={point.x} cy={point.y} r="4" fill="var(--color-primary)" /></g>)}</svg>;
+}
+
+function BackpropPreview() {
+  const inputs = [[60,45],[60,105]]; const hidden = [[180,38],[180,112]]; const output = [300,75];
+  return <svg viewBox="0 0 360 150" className="h-full w-full" aria-hidden="true">{inputs.flatMap((a,i) => hidden.map((b,j) => <line key={`${i}-${j}`} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} stroke={(i+j)%2 ? "var(--color-error)" : "var(--color-primary)"} strokeWidth={2+(i+j)} opacity="0.6" />))}{hidden.map((a,i)=><line key={i} x1={a[0]} y1={a[1]} x2={output[0]} y2={output[1]} stroke="var(--color-accent)" strokeWidth={i?2:5} opacity="0.65" />)}{inputs.map((p,i)=><circle key={i} cx={p[0]} cy={p[1]} r="12" fill="var(--color-surface)" stroke="var(--color-primary)" strokeWidth="3" />)}{hidden.map((p,i)=><circle key={i} cx={p[0]} cy={p[1]} r="15" fill="var(--color-primary-container)" stroke="var(--color-primary)" strokeWidth="3" />)}<circle cx={output[0]} cy={output[1]} r="19" fill="var(--color-accent-container)" stroke="var(--color-accent)" strokeWidth="3" /></svg>;
+}
+
+export function ExhibitPreview({ slug }: { slug: string }) {
   if (slug === "gradient-descent") return <GradientPreview />;
   if (slug === "attention") return <AttentionPreview />;
   if (slug === "overfitting") return <OverfittingPreview />;
   if (slug === "k-means") return <KMeansPreview />;
   if (slug === "token-sampling") return <TokenSamplingPreview />;
+  if (slug === "particle-swarm") return <ParticleSwarmPreview />;
+  if (slug === "cnn-feature-maps") return <CnnPreview />;
+  if (slug === "genetic-algorithm") return <GeneticPreview />;
+  if (slug === "pca") return <PcaPreview />;
+  if (slug === "backpropagation") return <BackpropPreview />;
   return <KernelPreview />;
 }
 
 export default function ExhibitCard({
   exhibit,
   index,
+  className = "",
 }: {
   exhibit: ExhibitDefinition;
   index: number;
+  className?: string;
 }) {
   return (
     <Link
       href={`/visualisations/${exhibit.slug}`}
-      className="group grid h-full min-h-[310px] grid-rows-[auto_minmax(120px,1fr)_auto] overflow-hidden bg-surface transition-colors hover:bg-surface-container-low focus-visible:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:min-h-0"
+      className={`group grid h-full min-h-[310px] grid-rows-[auto_minmax(120px,1fr)_auto] overflow-hidden bg-surface transition-colors hover:bg-surface-container-low focus-visible:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:min-h-0 ${className}`}
     >
       <div className="flex items-center justify-between gap-4 border-b border-outline px-4 py-3 font-mono text-[10px] uppercase tracking-label text-on-surface-variant sm:px-5">
         <span className="truncate">

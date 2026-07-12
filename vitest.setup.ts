@@ -1,14 +1,6 @@
 import '@testing-library/jest-dom';
 import React from 'react';
 import { vi } from 'vitest';
-import { MotionGlobalConfig } from 'framer-motion';
-
-// Disable framer-motion animations for synchronous testing
-try {
-  MotionGlobalConfig.skipAnimations = true;
-} catch (e) {
-  // Fallback
-}
 
 // Mock ResizeObserver
 class ResizeObserverMock {

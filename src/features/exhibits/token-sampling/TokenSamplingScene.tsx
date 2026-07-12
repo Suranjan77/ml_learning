@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useId, useMemo, useState, type KeyboardEvent } from "react";
-import { vizTokens } from "@/lib/vizTokens";
+import { scaleLinear } from "@visx/scale";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { vizStroke, vizTokens } from "@/lib/vizTokens";
+import { reduced, vizMotion } from "@/lib/vizMotion";
 import type { ExhibitSceneProps } from "../types";
 import { CANDIDATES, PROMPT, TOKEN_SAMPLING_DISCLOSURE } from "./data";
 import {
@@ -61,9 +64,12 @@ function truncationSummary(method: TruncationMethod, topK: number, topP: number,
   return `${survivingCount} of ${total} tokens remain`;
 }
 
+const widthScale = scaleLinear({ domain: [0, 1], range: [0, BAR_MAX_WIDTH] });
+
 export default function TokenSamplingScene({ step, resetKey }: ExhibitSceneProps) {
   const initialPreset = presetFor(step);
   const sceneId = useId();
+  const prefersReduced = useReducedMotion();
   const [temperature, setTemperature] = useState<number>(initialPreset.temperature);
   const [truncation, setTruncation] = useState<TruncationMethod>(initialPreset.truncation);
   const [topK, setTopK] = useState<number>(DEFAULT_TOP_K);
@@ -106,6 +112,12 @@ export default function TokenSamplingScene({ step, resetKey }: ExhibitSceneProps
 
   const favourite = ranked[0];
   const lastSample = samples.at(-1);
+  const lastDraw = drawCount > 0 ? SAMPLE_DRAWS[(drawCount - 1) % SAMPLE_DRAWS.length] : null;
+  const rouletteSegments = truncationResult.probabilities.reduce<Array<{ index: number; start: number; width: number }>>((segments, probability, index) => {
+    const start = segments.length === 0 ? 0 : segments.at(-1)!.start + segments.at(-1)!.width;
+    segments.push({ index, start, width: probability });
+    return segments;
+  }, []);
 
   // Where the top-p nucleus closes: the row boundary after the last surviving
   // (highest-probability-first) bar, so the cut is visible as a line rather
@@ -179,68 +191,97 @@ export default function TokenSamplingScene({ step, resetKey }: ExhibitSceneProps
 
           <text x={LABEL_LEFT} y={30} fill={vizTokens.mutedInk} fontSize="11" fontFamily="var(--font-dm-mono)" letterSpacing="1.3">PROMPT</text>
           <text x={LABEL_LEFT} y={54} fill={vizTokens.ink} fontSize="19" fontFamily="var(--font-dm-mono)">{PROMPT} …</text>
-          <line x1={LABEL_LEFT} x2={WIDTH - LABEL_LEFT} y1={PROMPT_BAND_HEIGHT} y2={PROMPT_BAND_HEIGHT} stroke={vizTokens.border} strokeWidth="1" />
+          <g transform="translate(350 34)">
+            <text x="0" y="-6" fill={vizTokens.mutedInk} fontSize="9" fontFamily="var(--font-dm-mono)">UNIT INTERVAL USED BY THE RANDOM DRAW</text>
+            {rouletteSegments.map((segment) => <rect key={segment.index} x={segment.start * 480} width={Math.max(1, segment.width * 480)} height="17" fill={segment.index % 2 === 0 ? vizTokens.classA : vizTokens.path} opacity={0.38 + segment.index % 2 * 0.22} />)}
+            {lastDraw !== null ? <g><line x1={lastDraw * 480} x2={lastDraw * 480} y1="-2" y2="24" stroke={vizTokens.selection} strokeWidth="3" /><path d={`M${lastDraw * 480 - 5} -2 h10 l-5 7 z`} fill={vizTokens.selection} /></g> : null}
+          </g>
+          <line x1={LABEL_LEFT} x2={WIDTH - LABEL_LEFT} y1={PROMPT_BAND_HEIGHT} y2={PROMPT_BAND_HEIGHT} stroke={vizTokens.border} strokeWidth={vizStroke.grid} />
 
           {ranked.map((entry, row) => {
-            const y = CHART_TOP + row * ROW_HEIGHT;
-            const barWidth = Math.max(2, entry.probability * BAR_MAX_WIDTH);
+            const rowY = CHART_TOP + row * ROW_HEIGHT;
+            const barWidth = Math.max(2, widthScale(entry.probability));
             const sampled = entry.token === lastSample;
             const barColour = entry.surviving ? vizTokens.classA : vizTokens.border;
             const textColour = entry.surviving ? vizTokens.ink : vizTokens.mutedInk;
 
+            // Each row springs to its ranked position, so re-ranking on a
+            // temperature change reads as bars sliding past each other.
             return (
-              <g key={entry.token}>
-                <text x={LABEL_LEFT} y={y + BAR_HEIGHT * 0.72} fill={textColour} fontSize="14" fontFamily="var(--font-dm-mono)">{entry.token}</text>
-                <rect
+              <motion.g
+                key={entry.token}
+                initial={false}
+                animate={{ y: rowY }}
+                transition={reduced(vizMotion.markerSpring, prefersReduced)}
+              >
+                <text x={LABEL_LEFT} y={BAR_HEIGHT * 0.72} fill={textColour} fontSize="14" fontFamily="var(--font-dm-mono)">{entry.token}</text>
+                <motion.rect
                   x={BAR_LEFT}
-                  y={y}
-                  width={barWidth}
+                  y={0}
                   height={BAR_HEIGHT}
                   fill={entry.surviving ? barColour : "none"}
                   stroke={barColour}
-                  strokeWidth={entry.surviving ? 0 : 1.5}
+                  strokeWidth={entry.surviving ? 0 : vizStroke.guide}
                   fillOpacity={entry.surviving ? 0.88 : 1}
-                  className="transition-[width] duration-300 ease-out motion-reduce:transition-none"
+                  initial={false}
+                  animate={{ width: barWidth }}
+                  transition={reduced(vizMotion.fade, prefersReduced)}
                 />
-                {sampled && (
-                  <rect
-                    x={BAR_LEFT - 4}
-                    y={y - 3}
-                    width={barWidth + 8}
-                    height={BAR_HEIGHT + 6}
-                    fill="none"
-                    stroke={vizTokens.selection}
-                    strokeWidth="2.5"
-                  />
-                )}
-                <text x={FIGURE_LEFT} y={y + BAR_HEIGHT * 0.72} fill={textColour} fontSize="13" fontFamily="var(--font-dm-mono)">{formatPercent(entry.probability)}</text>
-              </g>
+                <AnimatePresence>
+                  {sampled && (
+                    <motion.rect
+                      key="sampled"
+                      x={BAR_LEFT - 4}
+                      y={-3}
+                      width={barWidth + 8}
+                      height={BAR_HEIGHT + 6}
+                      fill="none"
+                      stroke={vizTokens.selection}
+                      strokeWidth={vizStroke.contourStrong}
+                      initial={prefersReduced ? false : { opacity: 0, scale: 0.96 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={reduced(vizMotion.popIn, prefersReduced)}
+                      style={{ transformBox: "fill-box", transformOrigin: "center" }}
+                    />
+                  )}
+                </AnimatePresence>
+                <text x={FIGURE_LEFT} y={BAR_HEIGHT * 0.72} fill={textColour} fontSize="13" fontFamily="var(--font-dm-mono)">{formatPercent(entry.probability)}</text>
+              </motion.g>
             );
           })}
 
-          {nucleusBoundaryRow >= 0 && nucleusBoundaryRow < CANDIDATES.length - 1 && (
-            <g>
-              <line
-                x1={LABEL_LEFT}
-                x2={WIDTH - LABEL_LEFT}
-                y1={CHART_TOP + (nucleusBoundaryRow + 1) * ROW_HEIGHT - ROW_HEIGHT * 0.19}
-                y2={CHART_TOP + (nucleusBoundaryRow + 1) * ROW_HEIGHT - ROW_HEIGHT * 0.19}
-                stroke={vizTokens.path}
-                strokeWidth="1.5"
-                strokeDasharray="6 5"
-              />
-              <text
-                x={WIDTH - LABEL_LEFT}
-                y={CHART_TOP + (nucleusBoundaryRow + 1) * ROW_HEIGHT - ROW_HEIGHT * 0.19 - 6}
-                textAnchor="end"
-                fill={vizTokens.path}
-                fontSize="11"
-                fontFamily="var(--font-dm-mono)"
+          <AnimatePresence>
+            {nucleusBoundaryRow >= 0 && nucleusBoundaryRow < CANDIDATES.length - 1 && (
+              <motion.g
+                key="nucleus"
+                initial={prefersReduced ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={reduced(vizMotion.fade, prefersReduced)}
               >
-                nucleus closes at {formatPercent(nucleusCumulative)}
-              </text>
-            </g>
-          )}
+                <line
+                  x1={LABEL_LEFT}
+                  x2={WIDTH - LABEL_LEFT}
+                  y1={CHART_TOP + (nucleusBoundaryRow + 1) * ROW_HEIGHT - ROW_HEIGHT * 0.19}
+                  y2={CHART_TOP + (nucleusBoundaryRow + 1) * ROW_HEIGHT - ROW_HEIGHT * 0.19}
+                  stroke={vizTokens.path}
+                  strokeWidth={vizStroke.guide}
+                  strokeDasharray="6 5"
+                />
+                <text
+                  x={WIDTH - LABEL_LEFT}
+                  y={CHART_TOP + (nucleusBoundaryRow + 1) * ROW_HEIGHT - ROW_HEIGHT * 0.19 - 6}
+                  textAnchor="end"
+                  fill={vizTokens.path}
+                  fontSize="11"
+                  fontFamily="var(--font-dm-mono)"
+                >
+                  nucleus closes at {formatPercent(nucleusCumulative)}
+                </text>
+              </motion.g>
+            )}
+          </AnimatePresence>
 
           <g transform={`translate(${WIDTH - 300} ${8})`}>
             <rect width="276" height="54" fill={vizTokens.canvas} fillOpacity="0.94" stroke={vizTokens.border} />

@@ -24,12 +24,6 @@ const eslintConfig = defineConfig([
       "react-hooks/set-state-in-effect": "off",
     },
   },
-  {
-    files: ["cypress/**/*.ts"],
-    rules: {
-      "@typescript-eslint/no-unused-expressions": "off",
-    },
-  },
 ]);
 
 export default eslintConfig;

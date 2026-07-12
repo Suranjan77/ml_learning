@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { Line, OrbitControls } from "@react-three/drei";
+import type { ThreeEvent } from "@react-three/fiber";
+import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
+import { useReducedMotion } from "motion/react";
+import * as THREE from "three";
+import { VizCanvas } from "@/lib/three/VizCanvas";
 import { vizTokens } from "@/lib/vizTokens";
 import type { ExhibitSceneProps } from "../types";
 import {
@@ -15,45 +20,42 @@ import {
   descentPath,
   gradientAt,
   learningRegime,
+  lossAt,
+  multimodalMinima,
+  principalCoordinates,
+  type DescentState,
   type Point,
   type SurfaceKind,
 } from "./model";
 
-const WIDTH = 1_180;
-const HEIGHT = 520;
-const PLOT = { left: 52, right: 24, top: 24, bottom: 42 } as const;
-const PLOT_WIDTH = WIDTH - PLOT.left - PLOT.right;
-const PLOT_HEIGHT = HEIGHT - PLOT.top - PLOT.bottom;
 const STEP_PRESETS = [
   { surface: "bowl", learningRate: DEFAULT_LEARNING_RATE, visibleSteps: 0 },
   { surface: "bowl", learningRate: DEFAULT_LEARNING_RATE, visibleSteps: 1 },
   { surface: "valley", learningRate: 0.9, visibleSteps: 3 },
+  { surface: "multimodal", learningRate: 0.24, visibleSteps: 8 },
 ] as const satisfies readonly { surface: SurfaceKind; learningRate: number; visibleSteps: number }[];
 
+const HEIGHT_SCALE = 0.22;
+const MAX_HEIGHT = 4.8;
 const CONTOUR_LEVELS = {
-  bowl: [0.45, 1.25, 2.5, 4.5, 7.5],
-  valley: [0.5, 1.5, 3.2, 5.8, 9.5],
+  bowl: [0.45, 1.2, 2.3, 3.8],
+  valley: [0.35, 0.9, 1.8, 3.2, 5],
 } as const;
+const MULTIMODAL_MINIMA = multimodalMinima();
 
-function toSvg(point: Point): Point {
-  return {
-    x: PLOT.left + ((point.x - DOMAIN.xMin) / (DOMAIN.xMax - DOMAIN.xMin)) * PLOT_WIDTH,
-    y: PLOT.top + ((DOMAIN.yMax - point.y) / (DOMAIN.yMax - DOMAIN.yMin)) * PLOT_HEIGHT,
-  };
+function surfaceHeight(point: Point, surface: SurfaceKind) {
+  return Math.min(MAX_HEIGHT, lossAt(point, surface) * HEIGHT_SCALE);
 }
 
-function fromSvg(point: Point): Point {
-  return clampToDomain({
-    x: DOMAIN.xMin + ((point.x - PLOT.left) / PLOT_WIDTH) * (DOMAIN.xMax - DOMAIN.xMin),
-    y: DOMAIN.yMax - ((point.y - PLOT.top) / PLOT_HEIGHT) * (DOMAIN.yMax - DOMAIN.yMin),
-  });
+function scenePoint(point: Point & { loss?: number }): [number, number, number] {
+  const x = Math.max(DOMAIN.xMin, Math.min(DOMAIN.xMax, point.x));
+  const y = Math.max(DOMAIN.yMin, Math.min(DOMAIN.yMax, point.y));
+  const loss = point.loss ?? 0;
+  return [x, Math.min(MAX_HEIGHT, loss * HEIGHT_SCALE) + 0.055, y];
 }
 
-function pathPoints(points: readonly Point[]): string {
-  return points.map((point) => {
-    const screen = toSvg(point);
-    return `${screen.x.toFixed(1)},${screen.y.toFixed(1)}`;
-  }).join(" ");
+function presetFor(step: number) {
+  return STEP_PRESETS[Math.max(0, Math.min(STEP_PRESETS.length - 1, step))];
 }
 
 function outcomeLabel(state: ReturnType<typeof assessStep>): string {
@@ -63,26 +65,243 @@ function outcomeLabel(state: ReturnType<typeof assessStep>): string {
   return "Loss decreased";
 }
 
-function presetFor(step: number) {
-  return STEP_PRESETS[Math.max(0, Math.min(STEP_PRESETS.length - 1, step))];
+function buildSurfaceGeometry(surface: SurfaceKind) {
+  const xSegments = 64;
+  const ySegments = 40;
+  const positions: number[] = [];
+  const colours: number[] = [];
+  const indices: number[] = [];
+  const low = new THREE.Color(vizTokens.canvas);
+  const high = new THREE.Color(surface === "bowl" ? "#D1C8B9" : surface === "valley" ? "#BD9187" : "#C6A777");
+
+  for (let row = 0; row <= ySegments; row += 1) {
+    const y = DOMAIN.yMin + (row / ySegments) * (DOMAIN.yMax - DOMAIN.yMin);
+    for (let column = 0; column <= xSegments; column += 1) {
+      const x = DOMAIN.xMin + (column / xSegments) * (DOMAIN.xMax - DOMAIN.xMin);
+      const height = surfaceHeight({ x, y }, surface);
+      positions.push(x, height, y);
+      const colour = low.clone().lerp(high, Math.min(1, height / MAX_HEIGHT));
+      colours.push(colour.r, colour.g, colour.b);
+    }
+  }
+
+  for (let row = 0; row < ySegments; row += 1) {
+    for (let column = 0; column < xSegments; column += 1) {
+      const a = row * (xSegments + 1) + column;
+      const b = a + 1;
+      const c = a + xSegments + 1;
+      const d = c + 1;
+      indices.push(a, c, b, b, c, d);
+    }
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute("color", new THREE.Float32BufferAttribute(colours, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+function LossSurface({
+  surface,
+  onChooseStart,
+  onDraggingChange,
+}: {
+  surface: SurfaceKind;
+  onChooseStart: (point: Point) => void;
+  onDraggingChange: (dragging: boolean) => void;
+}) {
+  const geometry = useMemo(() => buildSurfaceGeometry(surface), [surface]);
+
+  useEffect(() => () => geometry.dispose(), [geometry]);
+
+  const choose = (event: ThreeEvent<PointerEvent>) => {
+    event.stopPropagation();
+    onChooseStart(clampToDomain({ x: event.point.x, y: event.point.z }));
+  };
+
+  return (
+    <mesh
+      geometry={geometry}
+      onPointerDown={(event) => {
+        choose(event);
+        onDraggingChange(true);
+        (event.target as unknown as Element).setPointerCapture(event.pointerId);
+      }}
+      onPointerMove={(event) => {
+        if ((event.target as unknown as Element).hasPointerCapture(event.pointerId)) choose(event);
+      }}
+      onPointerUp={(event) => {
+        const target = event.target as unknown as Element;
+        if (target.hasPointerCapture(event.pointerId)) target.releasePointerCapture(event.pointerId);
+        onDraggingChange(false);
+      }}
+      onPointerCancel={() => onDraggingChange(false)}
+    >
+      <meshStandardMaterial vertexColors roughness={0.88} metalness={0} side={THREE.DoubleSide} />
+    </mesh>
+  );
+}
+
+function SceneAxes() {
+  const gridLines = useMemo(() => {
+    const lines: [number, number, number][][] = [];
+    for (let x = -6; x <= 6; x += 1) lines.push([[x, 0, DOMAIN.yMin], [x, 0, DOMAIN.yMax]]);
+    for (let y = -3; y <= 3; y += 1) lines.push([[DOMAIN.xMin, 0, y], [DOMAIN.xMax, 0, y]]);
+    return lines;
+  }, []);
+
+  return (
+    <group>
+      {gridLines.map((points, index) => <Line key={index} points={points} color={vizTokens.grid} lineWidth={1} />)}
+      <Line points={[[DOMAIN.xMin, 0, 0], [DOMAIN.xMax, 0, 0]]} color={vizTokens.axis} lineWidth={1.4} />
+      <Line points={[[0, 0, DOMAIN.yMin], [0, 0, DOMAIN.yMax]]} color={vizTokens.axis} lineWidth={1.4} />
+      <Line points={[[DOMAIN.xMin, 0, DOMAIN.yMin], [DOMAIN.xMin, MAX_HEIGHT, DOMAIN.yMin]]} color={vizTokens.axis} lineWidth={1.4} />
+    </group>
+  );
+}
+
+function SurfaceContours({ surface }: { surface: SurfaceKind }) {
+  if (surface === "multimodal") return null;
+  return (
+    <group>
+      {CONTOUR_LEVELS[surface].map((level, index) => (
+        <Line
+          key={`${surface}-${level}`}
+          points={contourPoints(surface, level, 120).map((point) => [
+            point.x,
+            Math.min(MAX_HEIGHT, level * HEIGHT_SCALE) + 0.035,
+            point.y,
+          ] as [number, number, number])}
+          color={index === 0 ? vizTokens.classA : vizTokens.border}
+          lineWidth={index === 0 ? 2.4 : 1.25}
+          transparent
+          opacity={index === 0 ? 0.9 : 0.72}
+        />
+      ))}
+    </group>
+  );
+}
+
+function inDomain(point: Point) {
+  return point.x >= DOMAIN.xMin && point.x <= DOMAIN.xMax && point.y >= DOMAIN.yMin && point.y <= DOMAIN.yMax;
+}
+
+function drawablePath(path: DescentState[]) {
+  const visible: DescentState[] = [];
+  for (const point of path) {
+    if (!inDomain(point)) break;
+    visible.push(point);
+  }
+  return visible;
+}
+
+function DescentScene3D({
+  surface,
+  path,
+  shown,
+  current,
+  start,
+  onChooseStart,
+  reducedMotion,
+}: {
+  surface: SurfaceKind;
+  path: DescentState[];
+  shown: DescentState[];
+  current: DescentState;
+  start: Point;
+  onChooseStart: (point: Point) => void;
+  reducedMotion: boolean;
+}) {
+  const [dragging, setDragging] = useState(false);
+  const trajectory = shown.map(scenePoint);
+  const forecast = drawablePath(path).slice(Math.max(0, shown.length - 1)).map(scenePoint);
+  const currentPosition = scenePoint(current);
+  const gradient = gradientAt(current, surface);
+  const magnitude = Math.hypot(gradient.x, gradient.y);
+  const downhill = magnitude < 0.0001 ? null : {
+    x: current.x - (gradient.x / magnitude) * 0.9,
+    y: current.y - (gradient.y / magnitude) * 0.9,
+  };
+  const downhillPosition = downhill
+    ? [downhill.x, surfaceHeight(downhill, surface) + 0.16, downhill.y] as [number, number, number]
+    : null;
+
+  return (
+    <VizCanvas
+      label="Three-dimensional loss landscape"
+      description="A rotatable loss surface. Height is loss; the highlighted points trace gradient descent through two parameter dimensions."
+      className="h-full w-full"
+      camera={{ position: [11, 8.5, 12.5], fov: 47, near: 0.1, far: 80 }}
+      frameloop={reducedMotion ? "demand" : "always"}
+    >
+      <ambientLight intensity={1.6} />
+      <directionalLight position={[5, 9, 6]} intensity={2.2} />
+      <SceneAxes />
+      <LossSurface surface={surface} onChooseStart={onChooseStart} onDraggingChange={setDragging} />
+      <SurfaceContours surface={surface} />
+
+      {forecast.length > 1 ? <Line points={forecast} color={vizTokens.path} lineWidth={2} dashed dashSize={0.12} gapSize={0.1} transparent opacity={0.34} /> : null}
+      {trajectory.length > 1 ? <Line points={trajectory} color={vizTokens.path} lineWidth={4} /> : null}
+      {shown.slice(0, -1).map((point) => (
+        <mesh key={point.iteration} position={scenePoint(point)}>
+          <sphereGeometry args={[0.09, 16, 16]} />
+          <meshBasicMaterial color={vizTokens.path} />
+        </mesh>
+      ))}
+
+      <mesh position={scenePoint({ ...start, loss: lossAt(start, surface) })} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.16, 0.23, 28]} />
+        <meshBasicMaterial color={vizTokens.path} side={THREE.DoubleSide} transparent opacity={0.78} />
+      </mesh>
+      <mesh position={[0, 0.08, 0]}>
+        <sphereGeometry args={[0.14, 20, 20]} />
+        <meshBasicMaterial color={vizTokens.classA} />
+      </mesh>
+      {surface === "multimodal" ? MULTIMODAL_MINIMA.map((minimum, index) => {
+        const position = scenePoint(minimum);
+        const global = index === 0;
+        return <group key={`${minimum.x}-${minimum.y}`}>
+          <Line points={[[position[0], 0, position[2]], position]} color={global ? vizTokens.classA : vizTokens.path} lineWidth={1} dashed dashSize={0.06} gapSize={0.05} transparent opacity={0.5} />
+          <mesh position={position} rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={global ? [0.18, 0.29, 28] : [0.12, 0.2, 24]} />
+            <meshBasicMaterial color={global ? vizTokens.classA : vizTokens.path} side={THREE.DoubleSide} transparent opacity={global ? 1 : 0.72} />
+          </mesh>
+        </group>;
+      }) : null}
+      <mesh position={currentPosition}>
+        <sphereGeometry args={[0.2, 24, 24]} />
+        <meshStandardMaterial color={vizTokens.selection} roughness={0.55} />
+      </mesh>
+      {downhillPosition ? (
+        <Line points={[currentPosition, downhillPosition]} color={vizTokens.classA} lineWidth={3} dashed dashSize={0.12} gapSize={0.08} />
+      ) : null}
+
+      <OrbitControls
+        makeDefault
+        enabled={!dragging}
+        enablePan={false}
+        minDistance={8}
+        maxDistance={24}
+        minPolarAngle={0.35}
+        maxPolarAngle={Math.PI / 2.08}
+        target={[0, 1.15, 0]}
+      />
+    </VizCanvas>
+  );
 }
 
 export default function GradientDescentScene({ step, resetKey }: ExhibitSceneProps) {
   const initialPreset = presetFor(step);
-  const svgRef = useRef<SVGSVGElement>(null);
-  const clipId = useId();
-  const arrowId = useId();
-  const gradientId = useId();
+  const prefersReduced = Boolean(useReducedMotion());
   const [surface, setSurface] = useState<SurfaceKind>(initialPreset.surface);
   const [learningRate, setLearningRate] = useState<number>(initialPreset.learningRate);
   const [start, setStart] = useState<Point>(DEFAULT_START);
   const [visibleSteps, setVisibleSteps] = useState<number>(initialPreset.visibleSteps);
   const [running, setRunning] = useState(false);
 
-  const path = useMemo(
-    () => descentPath(start, learningRate, surface, DEFAULT_STEPS),
-    [learningRate, start, surface],
-  );
+  const path = useMemo(() => descentPath(start, learningRate, surface, DEFAULT_STEPS), [learningRate, start, surface]);
   const boundedStep = Math.min(visibleSteps, DEFAULT_STEPS);
   const shown = path.slice(0, boundedStep + 1);
   const current = shown[shown.length - 1];
@@ -90,19 +309,9 @@ export default function GradientDescentScene({ step, resetKey }: ExhibitScenePro
   const after = boundedStep === 0 ? path[1] : current;
   const assessment = assessStep(before, after, surface);
   const regime = learningRegime(learningRate, surface);
-  const currentScreen = toSvg(current);
-  const startScreen = toSvg(start);
-
-  const downhillArrow = (() => {
-    const gradient = gradientAt(current, surface);
-    const magnitude = Math.hypot(gradient.x, gradient.y);
-    if (magnitude < 0.0001) return null;
-    const length = 0.72;
-    return toSvg({
-      x: current.x - (gradient.x / magnitude) * length,
-      y: current.y - (gradient.y / magnitude) * length,
-    });
-  })();
+  const stepGradient = gradientAt(before, surface);
+  const principalGradient = principalCoordinates(stepGradient);
+  const update = { x: after.x - before.x, y: after.y - before.y };
 
   useEffect(() => {
     const preset = presetFor(step);
@@ -121,54 +330,25 @@ export default function GradientDescentScene({ step, resetKey }: ExhibitScenePro
         if (next === DEFAULT_STEPS) setRunning(false);
         return next;
       });
-    }, 520);
+    }, prefersReduced ? 120 : 520);
     return () => window.clearTimeout(timeout);
-  }, [running, visibleSteps]);
+  }, [prefersReduced, running, visibleSteps]);
 
-  function restartPath() {
+  const restartPath = () => {
     setVisibleSteps(0);
     setRunning(false);
-  }
+  };
 
-  function chooseSurface(next: SurfaceKind) {
-    setSurface(next);
-    restartPath();
-  }
-
-  function chooseStart(next: Point) {
+  const chooseStart = (next: Point) => {
     setStart(clampToDomain(next));
     restartPath();
-  }
-
-  function setStartFromPointer(clientX: number, clientY: number) {
-    const svg = svgRef.current;
-    if (!svg) return;
-    const matrix = svg.getScreenCTM();
-    if (matrix) {
-      const pointer = svg.createSVGPoint();
-      pointer.x = clientX;
-      pointer.y = clientY;
-      const local = pointer.matrixTransform(matrix.inverse());
-      chooseStart(fromSvg({ x: local.x, y: local.y }));
-      return;
-    }
-
-    // JSDOM and older embedded browsers may not expose the SVG transform matrix.
-    const rect = svg.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) return;
-    chooseStart(fromSvg({
-      x: ((clientX - rect.left) / rect.width) * WIDTH,
-      y: ((clientY - rect.top) / rect.height) * HEIGHT,
-    }));
-  }
+  };
 
   function nudgeStart(event: KeyboardEvent<HTMLDivElement>) {
     const amount = event.shiftKey ? 0.4 : 0.16;
     const offsets: Partial<Record<string, Point>> = {
-      ArrowLeft: { x: -amount, y: 0 },
-      ArrowRight: { x: amount, y: 0 },
-      ArrowUp: { x: 0, y: amount },
-      ArrowDown: { x: 0, y: -amount },
+      ArrowLeft: { x: -amount, y: 0 }, ArrowRight: { x: amount, y: 0 },
+      ArrowUp: { x: 0, y: amount }, ArrowDown: { x: 0, y: -amount },
     };
     const offset = offsets[event.key];
     if (!offset) return;
@@ -176,216 +356,79 @@ export default function GradientDescentScene({ step, resetKey }: ExhibitScenePro
     chooseStart({ x: start.x + offset.x, y: start.y + offset.y });
   }
 
-  const comparisonTone = assessment.behaviour === "diverging"
-    ? vizTokens.error
-    : assessment.behaviour === "overshoot"
-      ? vizTokens.path
-      : vizTokens.classA;
-  const changePercent = Math.abs(assessment.relativeLossDelta * 100);
   const regimeLabel = regime === "diverging" ? "unstable" : regime === "crossing" ? "overshoot range" : "steady";
-  const statusDescription = `Step ${boundedStep}. Current loss ${current.loss.toFixed(3)}. ${outcomeLabel(assessment)} on the ${surface} surface. Learning rate ${learningRate.toFixed(2)}.`;
+  const surfaceExplanation = surface === "bowl"
+    ? "Equal curvature: updates contract toward the minimum along a direct route."
+    : surface === "multimodal"
+      ? "Gradient descent only sees the nearby slope. A surrounding ridge can hide a better basin."
+      : assessment.crossedMinimum
+      ? "Steep across the valley: this update crosses the floor, producing a zig-zag."
+      : "Unequal curvature: the steep correction dominates the shallow forward progress.";
+  const statusText = `Step ${boundedStep}. Current loss ${current.loss.toFixed(3)}.`;
+  const statusDescription = `${statusText} ${outcomeLabel(assessment)} on the ${surface} surface. Learning rate ${learningRate.toFixed(2)}.`;
+  const forecastEnd = useMemo(() => descentPath(start, learningRate, surface, 80).at(-1)!, [learningRate, start, surface]);
+  const basinOutcome = surface !== "multimodal"
+    ? null
+    : forecastEnd.loss < 0.02
+      ? "Forecast reaches the global minimum"
+      : `Forecast gets trapped in a local basin · loss ${forecastEnd.loss.toFixed(2)}`;
 
   return (
     <section aria-label="Gradient descent visualisation" className="grid h-full min-h-[22rem] min-w-0 grid-rows-[minmax(0,1fr)_auto] overflow-hidden border border-outline bg-surface">
       <div
         role="group"
         tabIndex={0}
+        data-testid="loss-landscape"
         aria-label={`Loss landscape. Start point x ${start.x.toFixed(2)}, y ${start.y.toFixed(2)}. Use arrow keys to move the start point; hold Shift for larger moves.`}
-        aria-describedby={`${gradientId}-keyboard-help`}
         aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown"
         onKeyDown={nudgeStart}
-        className="relative min-h-0 overflow-hidden bg-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-primary"
-        data-testid="loss-landscape"
+        className="relative min-h-0 overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-primary"
       >
-        <span id={`${gradientId}-keyboard-help`} className="sr-only">Drag across the chart to position the starting point, or use the arrow keys while the chart is focused.</span>
-        <svg
-          ref={svgRef}
-          viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-          preserveAspectRatio="xMidYMid meet"
-          aria-hidden="true"
-          className="block h-full w-full touch-none select-none"
-          onPointerDown={(event) => {
-            event.currentTarget.setPointerCapture(event.pointerId);
-            setStartFromPointer(event.clientX, event.clientY);
-          }}
-          onPointerMove={(event) => {
-            if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-              setStartFromPointer(event.clientX, event.clientY);
-            }
-          }}
-          onPointerUp={(event) => {
-            if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-              event.currentTarget.releasePointerCapture(event.pointerId);
-            }
-          }}
-        >
-          <defs>
-            <clipPath id={clipId}>
-              <rect x={PLOT.left} y={PLOT.top} width={PLOT_WIDTH} height={PLOT_HEIGHT} />
-            </clipPath>
-            <marker id={arrowId} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill={vizTokens.classA} />
-            </marker>
-            <radialGradient id={gradientId} cx="50%" cy="50%" r="70%">
-              <stop offset="0%" stopColor={vizTokens.canvas} />
-              <stop offset="62%" stopColor="#EFEADF" />
-              <stop offset="100%" stopColor="#EAD7D3" />
-            </radialGradient>
-          </defs>
+        <DescentScene3D surface={surface} path={path} shown={shown} current={current} start={start} onChooseStart={chooseStart} reducedMotion={prefersReduced} />
 
-          <rect width={WIDTH} height={HEIGHT} fill={vizTokens.canvas} />
-          <g clipPath={`url(#${clipId})`}>
-            <rect x={PLOT.left} y={PLOT.top} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill={`url(#${gradientId})`} />
-
-            {[-4, -2, 0, 2, 4].map((tick) => {
-              const x = toSvg({ x: tick, y: 0 }).x;
-              return <line key={`x-${tick}`} x1={x} x2={x} y1={PLOT.top} y2={HEIGHT - PLOT.bottom} stroke={vizTokens.grid} strokeWidth="1" />;
-            })}
-            {[-2, 0, 2].map((tick) => {
-              const y = toSvg({ x: 0, y: tick }).y;
-              return <line key={`y-${tick}`} x1={PLOT.left} x2={WIDTH - PLOT.right} y1={y} y2={y} stroke={vizTokens.grid} strokeWidth="1" />;
-            })}
-
-            {CONTOUR_LEVELS[surface].map((level, index) => (
-              <polyline
-                key={level}
-                points={pathPoints(contourPoints(surface, level))}
-                fill="none"
-                stroke={index === 0 ? vizTokens.classA : vizTokens.border}
-                strokeWidth={index === 0 ? 2.4 : 1.4}
-                strokeOpacity={0.92 - index * 0.09}
-              />
-            ))}
-
-            {surface === "valley" && (() => {
-              const floor = [
-                toSvg({ x: -6, y: -6 * Math.tan(Math.PI / 6) }),
-                toSvg({ x: 6, y: 6 * Math.tan(Math.PI / 6) }),
-              ];
-              return <line x1={floor[0].x} y1={floor[0].y} x2={floor[1].x} y2={floor[1].y} stroke={vizTokens.path} strokeWidth="1.5" strokeDasharray="7 7" opacity="0.8" />;
-            })()}
-
-            <polyline points={pathPoints(shown)} fill="none" stroke={vizTokens.path} strokeWidth="4" strokeLinejoin="round" strokeLinecap="round" />
-            {shown.slice(0, -1).map((point) => {
-              const screen = toSvg(point);
-              return <circle key={point.iteration} cx={screen.x} cy={screen.y} r="4" fill={vizTokens.path} stroke={vizTokens.pointOutline} strokeWidth="1.5" />;
-            })}
-
-            {boundedStep > 0 && (
-              <circle cx={startScreen.x} cy={startScreen.y} r="10" fill={vizTokens.canvas} fillOpacity="0.72" stroke={vizTokens.path} strokeWidth="2" strokeDasharray="4 3" />
-            )}
-
-            {downhillArrow && (
-              <g>
-                <line
-                  x1={currentScreen.x}
-                  y1={currentScreen.y}
-                  x2={downhillArrow.x}
-                  y2={downhillArrow.y}
-                  stroke={vizTokens.classA}
-                  strokeWidth="3"
-                  markerEnd={`url(#${arrowId})`}
-                />
-                <text x={downhillArrow.x + 11} y={downhillArrow.y - 8} fill={vizTokens.classA} fontSize="12" fontFamily="var(--font-dm-mono)">local downhill</text>
-              </g>
-            )}
-
-            <g transform={`translate(${toSvg({ x: 0, y: 0 }).x} ${toSvg({ x: 0, y: 0 }).y})`}>
-              <circle r="10" fill={vizTokens.canvas} stroke={vizTokens.classA} strokeWidth="2.5" />
-              <circle r="3" fill={vizTokens.classA} />
-            </g>
-
-            <g
-              style={{ transform: `translate(${currentScreen.x}px, ${currentScreen.y}px)` }}
-              className="transition-transform duration-500 ease-out motion-reduce:transition-none"
-            >
-              <circle r="13" fill={vizTokens.selection} stroke={vizTokens.pointOutline} strokeWidth="3" />
-              <circle r="20" fill="none" stroke={vizTokens.selection} strokeWidth="1.5" opacity="0.38" />
-            </g>
-          </g>
-
-          <rect x={PLOT.left} y={PLOT.top} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke={vizTokens.border} />
-          <text x={PLOT.left + 10} y={PLOT.top + 20} fill={vizTokens.mutedInk} fontSize="12" fontFamily="var(--font-dm-mono)">HIGHER LOSS</text>
-          <text x={toSvg({ x: 0, y: 0 }).x + 15} y={toSvg({ x: 0, y: 0 }).y - 15} fill={vizTokens.classA} fontSize="12" fontFamily="var(--font-dm-mono)">minimum</text>
-          {surface === "valley" && <text x={WIDTH - 39} y={PLOT.top + 21} textAnchor="end" fill={vizTokens.path} fontSize="12" fontFamily="var(--font-dm-mono)">VALLEY FLOOR</text>}
-
-          <g transform={`translate(${WIDTH - 326} ${PLOT.top + 18})`}>
-            <rect width="282" height="86" fill={vizTokens.canvas} fillOpacity="0.94" stroke={vizTokens.border} />
-            <text x="14" y="20" fill={vizTokens.mutedInk} fontSize="10" fontFamily="var(--font-dm-mono)" letterSpacing="1.3">{boundedStep === 0 ? "NEXT STEP PREVIEW" : `STEP ${boundedStep - 1} → ${boundedStep}`}</text>
-            <text x="14" y="49" fill={vizTokens.ink} fontSize="21" fontFamily="var(--font-dm-mono)">{before.loss.toFixed(3)}</text>
-            <text x="106" y="48" fill={vizTokens.mutedInk} fontSize="17">→</text>
-            <text x="137" y="49" fill={comparisonTone} fontSize="21" fontFamily="var(--font-dm-mono)">{after.loss.toFixed(3)}</text>
-            <text x="14" y="72" fill={comparisonTone} fontSize="11" fontFamily="var(--font-dm-mono)">{outcomeLabel(assessment).toUpperCase()}</text>
-            <text x="268" y="72" textAnchor="end" fill={comparisonTone} fontSize="11" fontFamily="var(--font-dm-mono)">{changePercent.toFixed(1)}%</text>
-          </g>
-        </svg>
-
-        <p className="sr-only" aria-live="polite">{statusDescription}</p>
+        <div className="pointer-events-none absolute left-3 top-3 hidden border border-outline bg-surface/90 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.08em] text-on-surface-variant backdrop-blur-sm sm:left-4 sm:top-4 sm:block">
+          <span>parameters x₁, x₂</span><span className="px-2 text-outline-dark">→</span><span className="text-primary">height = loss</span>
+        </div>
+        <div className="pointer-events-none absolute left-3 right-3 top-3 border border-outline bg-surface/94 px-3 py-2 backdrop-blur-sm sm:left-auto sm:right-4 sm:top-4 sm:w-72">
+          <div className="flex items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant">
+            <span>{boundedStep === 0 ? "Next update" : `Update ${boundedStep}`}</span>
+            <span className="text-primary">{surface === "bowl" ? "isotropic bowl" : surface === "valley" ? "narrow valley" : "many basins"}</span>
+          </div>
+          <div className="mt-1 flex items-baseline gap-2 font-mono text-sm text-on-surface"><span>L {before.loss.toFixed(3)}</span><span className="text-on-surface-variant">→</span><span className={assessment.behaviour === "diverging" ? "text-error" : "text-primary"}>{after.loss.toFixed(3)}</span></div>
+          <div className="mt-1 grid grid-cols-[auto_1fr] gap-x-2 font-mono text-[9px] leading-4 text-on-surface-variant">
+            <span>{surface === "valley" ? "∇L shallow,steep" : "∇L x₁,x₂"}</span>
+            <span className="text-right text-on-surface">[{(surface === "valley" ? principalGradient.x : stepGradient.x).toFixed(2)}, {(surface === "valley" ? principalGradient.y : stepGradient.y).toFixed(2)}]</span>
+            <span>Δ parameters</span><span className="text-right text-on-surface">[{update.x.toFixed(2)}, {update.y.toFixed(2)}]</span>
+          </div>
+          <p className={`mt-1 font-mono text-[9px] uppercase ${assessment.behaviour === "diverging" ? "text-error" : assessment.behaviour === "overshoot" ? "text-warning" : "text-primary"}`}>{outcomeLabel(assessment)}</p>
+          <p className="mt-1 text-[10px] leading-snug text-on-surface-variant">{surfaceExplanation}</p>
+          {basinOutcome ? <p className={`mt-1 border-t border-outline pt-1 font-mono text-[9px] uppercase ${forecastEnd.loss < 0.02 ? "text-primary" : "text-warning"}`}>{basinOutcome}</p> : null}
+        </div>
+        <div className="pointer-events-none absolute bottom-3 left-3 border border-outline bg-surface/90 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.08em] text-on-surface-variant sm:left-4">
+          <span className="text-primary">Solid: completed</span><span className="px-2">·</span><span>Dashed: route forecast</span><span className="hidden px-2 sm:inline">·</span><span className="hidden sm:inline">Drag surface to move start</span>
+        </div>
+        <p className="sr-only" aria-live="polite" aria-label={statusDescription}>{statusText}</p>
       </div>
 
       <div className="grid shrink-0 grid-cols-[auto_minmax(8rem,1fr)] gap-x-3 gap-y-2 border-t border-outline bg-surface-container-low p-2 sm:flex sm:items-end sm:gap-4 sm:px-3 sm:py-2">
         <fieldset className="min-w-0">
           <legend className="mb-1 font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant">Surface</legend>
-          <div className="grid grid-cols-2">
-            {(["bowl", "valley"] as const).map((kind) => (
-              <button
-                key={kind}
-                type="button"
-                aria-pressed={surface === kind}
-                onClick={() => chooseSurface(kind)}
-                className={`min-h-9 border px-3 text-xs capitalize transition-colors ${kind === "valley" ? "-ml-px" : ""} ${surface === kind ? "relative z-10 border-primary bg-primary text-on-primary" : "border-outline bg-surface text-on-surface-variant hover:border-primary"}`}
-              >
-                {kind}
-              </button>
+          <div className="grid grid-cols-3">
+            {(["bowl", "valley", "multimodal"] as const).map((kind, index) => (
+              <button key={kind} type="button" aria-pressed={surface === kind} onClick={() => { setSurface(kind); restartPath(); }} className={`min-h-9 border px-2 text-xs capitalize transition-colors ${index > 0 ? "-ml-px" : ""} ${surface === kind ? "relative z-10 border-primary bg-primary text-on-primary" : "border-outline bg-surface text-on-surface-variant hover:border-primary"}`}>{kind === "multimodal" ? "Many minima" : kind}</button>
             ))}
           </div>
         </fieldset>
 
         <label className="min-w-0 flex-1 sm:max-w-sm">
-          <span className="mb-1 flex items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant">
-            <span>Learning rate</span>
-            <span className={regime === "diverging" ? "text-error" : regime === "crossing" ? "text-warning" : "text-primary"}>
-              {learningRate.toFixed(2)} · {regimeLabel}
-            </span>
-          </span>
-          <input
-            aria-label="Learning rate"
-            type="range"
-            min={LEARNING_RATE_RANGE.min}
-            max={LEARNING_RATE_RANGE.max}
-            step={LEARNING_RATE_RANGE.step}
-            value={learningRate}
-            onChange={(event) => {
-              setLearningRate(Number(event.target.value));
-              restartPath();
-            }}
-            className="block min-h-9"
-          />
+          <span className="mb-1 flex items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant"><span>Learning rate</span><span className={regime === "diverging" ? "text-error" : regime === "crossing" ? "text-warning" : "text-primary"}>{learningRate.toFixed(2)} · {regimeLabel}</span></span>
+          <input aria-label="Learning rate" type="range" min={LEARNING_RATE_RANGE.min} max={LEARNING_RATE_RANGE.max} step={LEARNING_RATE_RANGE.step} value={learningRate} onChange={(event) => { setLearningRate(Number(event.target.value)); restartPath(); }} className="block min-h-9" />
         </label>
 
         <div className="col-span-2 flex min-w-0 gap-2 sm:ml-auto sm:pb-px">
-          <button
-            type="button"
-            onClick={() => {
-              setRunning(false);
-              setVisibleSteps((value) => Math.min(DEFAULT_STEPS, value + 1));
-            }}
-            disabled={visibleSteps >= DEFAULT_STEPS}
-            className="min-h-9 flex-1 border border-primary bg-primary px-3 text-xs text-on-primary disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none"
-          >
-            Take step
-          </button>
-          <button
-            type="button"
-            onClick={() => setRunning((value) => !value)}
-            disabled={visibleSteps >= DEFAULT_STEPS}
-            className="min-h-9 flex-1 border border-outline bg-surface px-3 text-xs text-on-surface hover:border-primary disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none"
-          >
-            {running ? "Pause" : "Run path"}
-          </button>
-          <button type="button" onClick={restartPath} className="min-h-9 flex-1 border border-outline px-3 text-xs text-on-surface-variant hover:border-primary sm:flex-none">
-            Restart
-          </button>
+          <button type="button" onClick={() => { setRunning(false); setVisibleSteps((value) => Math.min(DEFAULT_STEPS, value + 1)); }} disabled={visibleSteps >= DEFAULT_STEPS} className="min-h-9 flex-1 border border-primary bg-primary px-3 text-xs text-on-primary disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none">Take step</button>
+          <button type="button" onClick={() => setRunning((value) => !value)} disabled={visibleSteps >= DEFAULT_STEPS} className="min-h-9 flex-1 border border-outline bg-surface px-3 text-xs text-on-surface hover:border-primary disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none">{running ? "Pause" : "Run path"}</button>
+          <button type="button" onClick={restartPath} className="min-h-9 flex-1 border border-outline px-3 text-xs text-on-surface-variant hover:border-primary sm:flex-none">Restart</button>
         </div>
       </div>
     </section>

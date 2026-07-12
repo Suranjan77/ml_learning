@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Lightbulb, Pause, Play, RotateCcw, X } from "lucide-react";
 import { getExhibit } from "./registry";
 
 export default function ExhibitShell({ slug }: { slug: string }) {
   const exhibit = getExhibit(slug)!;
   const [step, setStep] = useState(0);
   const [resetKey, setResetKey] = useState(0);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [playing, setPlaying] = useState(false);
   const sceneId = useId();
   const Scene = exhibit.component;
   const current = exhibit.steps[step];
@@ -26,7 +28,7 @@ export default function ExhibitShell({ slug }: { slug: string }) {
     }
   }, [exhibit.steps.length]);
 
-  function chooseStep(next: number) {
+  const chooseStep = useCallback((next: number) => {
     setStep(next);
     const url = new URL(window.location.href);
 
@@ -37,9 +39,20 @@ export default function ExhibitShell({ slug }: { slug: string }) {
     }
 
     window.history.replaceState({}, "", url);
-  }
+  }, []);
+
+  useEffect(() => {
+    if (!playing) return;
+    if (step >= exhibit.steps.length - 1) {
+      setPlaying(false);
+      return;
+    }
+    const timer = window.setTimeout(() => chooseStep(step + 1), 3200);
+    return () => window.clearTimeout(timer);
+  }, [chooseStep, exhibit.steps.length, playing, step]);
 
   function reset() {
+    setPlaying(false);
     chooseStep(0);
     setResetKey((key) => key + 1);
   }
@@ -47,7 +60,7 @@ export default function ExhibitShell({ slug }: { slug: string }) {
   return (
     <article
       data-testid="visualisation-workspace"
-      className="grid h-full min-h-0 grid-rows-[76px_minmax(0,1fr)_148px] overflow-hidden sm:grid-rows-[72px_minmax(0,1fr)_104px]"
+      className="relative grid h-full min-h-0 grid-rows-[76px_minmax(0,1fr)_148px] overflow-hidden sm:grid-rows-[72px_minmax(0,1fr)_104px]"
     >
       <header className="border-b border-outline bg-surface px-4 sm:px-6 lg:px-8">
         <div className="mx-auto grid h-full max-w-[1600px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
@@ -95,12 +108,24 @@ export default function ExhibitShell({ slug }: { slug: string }) {
       <footer className="border-t border-outline bg-surface px-3 py-3 sm:px-6 lg:px-8">
         <div className="mx-auto flex h-full max-w-[1600px] min-w-0 flex-col justify-between gap-2 sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-6">
           <div className="min-w-0" aria-live="polite">
-            <p className="flex min-w-0 items-baseline gap-2">
+            <p className="flex min-w-0 items-center gap-2">
               <span className="shrink-0 font-mono text-[10px] uppercase tracking-label text-primary">
                 Step {step + 1} of {exhibit.steps.length}
               </span>
               <span className="truncate text-sm font-medium text-on-surface">
                 {current.title}
+              </span>
+              <span className="ml-1 hidden items-center gap-1 md:flex" aria-label="Guided step progress">
+                {exhibit.steps.map((item, index) => (
+                  <button
+                    key={item.title}
+                    type="button"
+                    onClick={() => { setPlaying(false); chooseStep(index); }}
+                    aria-label={`Go to step ${index + 1}: ${item.title}`}
+                    aria-current={index === step ? "step" : undefined}
+                    className={`h-1.5 transition-all ${index === step ? "w-6 bg-primary" : "w-3 bg-outline-dark hover:bg-primary"}`}
+                  />
+                ))}
               </span>
             </p>
             <p className="mt-1 line-clamp-2 text-sm leading-5 text-on-surface sm:line-clamp-1">
@@ -111,17 +136,44 @@ export default function ExhibitShell({ slug }: { slug: string }) {
             </p>
           </div>
 
-          <div className="grid shrink-0 grid-cols-[44px_44px_minmax(96px,1fr)] gap-2 sm:flex sm:items-center">
+          <div className="grid shrink-0 grid-cols-[40px_40px_40px_40px_minmax(88px,1fr)] gap-2 sm:flex sm:items-center">
             <button
               type="button"
               disabled={step === 0}
-              onClick={() => chooseStep(step - 1)}
+              onClick={() => { setPlaying(false); chooseStep(step - 1); }}
               className="inline-flex h-11 items-center justify-center border border-outline bg-background px-3 text-sm transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-35"
               aria-label="Previous step"
               title="Previous step"
             >
               <ChevronLeft size={17} aria-hidden="true" />
               <span className="ml-1 hidden lg:inline">Previous</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (playing) {
+                  setPlaying(false);
+                } else {
+                  if (step === exhibit.steps.length - 1) chooseStep(0);
+                  setPlaying(true);
+                }
+              }}
+              className={`inline-flex h-11 items-center justify-center border px-3 text-sm transition-colors ${playing ? "border-primary bg-primary text-on-primary" : "border-outline bg-background hover:border-primary hover:text-primary"}`}
+              aria-label={playing ? "Pause guided walkthrough" : "Play guided walkthrough"}
+              aria-pressed={playing}
+              title={playing ? "Pause guided walkthrough" : "Play guided walkthrough"}
+            >
+              {playing ? <Pause size={16} fill="currentColor" aria-hidden="true" /> : <Play size={16} fill="currentColor" aria-hidden="true" />}
+              <span className="ml-1.5 hidden lg:inline">{playing ? "Pause" : "Play"}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setPlaying(false); setDetailsOpen(true); }}
+              className="inline-flex h-11 items-center justify-center border border-outline bg-background px-3 text-sm transition-colors hover:border-primary hover:text-primary"
+              aria-label="Open insight and challenges"
+              title="Insight and challenges"
+            >
+              <Lightbulb size={16} aria-hidden="true" />
             </button>
             <button
               type="button"
@@ -135,7 +187,7 @@ export default function ExhibitShell({ slug }: { slug: string }) {
             <button
               type="button"
               disabled={step === exhibit.steps.length - 1}
-              onClick={() => chooseStep(step + 1)}
+              onClick={() => { setPlaying(false); chooseStep(step + 1); }}
               className="inline-flex h-11 items-center justify-center border border-accent bg-accent px-4 text-sm font-medium text-on-accent transition-colors hover:border-accent-hover hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-35"
             >
               Next
@@ -144,6 +196,28 @@ export default function ExhibitShell({ slug }: { slug: string }) {
           </div>
         </div>
       </footer>
+
+      {detailsOpen ? (
+        <div className="absolute inset-0 z-50 flex items-end bg-on-surface/20 backdrop-blur-[2px] sm:items-stretch sm:justify-end" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setDetailsOpen(false); }}>
+          <aside role="dialog" aria-modal="true" aria-labelledby={`${sceneId}-insight-title`} className="max-h-[82%] w-full overflow-y-auto border-t border-outline-dark bg-surface p-5 sm:max-h-none sm:w-[min(30rem,42vw)] sm:border-l sm:border-t-0 sm:p-7">
+            <div className="flex items-start justify-between gap-5">
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-label text-primary">What to take away</p>
+                <h2 id={`${sceneId}-insight-title`} className="mt-2 font-headline text-2xl font-medium leading-tight text-on-surface">{exhibit.title}</h2>
+              </div>
+              <button type="button" onClick={() => setDetailsOpen(false)} className="inline-flex h-10 w-10 shrink-0 items-center justify-center border border-outline hover:border-primary hover:text-primary" aria-label="Close insight panel"><X size={18} aria-hidden="true" /></button>
+            </div>
+            <p className="mt-6 border-l-2 border-primary pl-4 text-base leading-7 text-on-surface">{exhibit.insight}</p>
+            <div className="mt-8">
+              <p className="font-mono text-[10px] uppercase tracking-label text-on-surface-variant">Try these challenges</p>
+              <ol className="mt-3 divide-y divide-outline border-y border-outline">
+                {exhibit.challenges.map((challenge, index) => <li key={challenge} className="grid grid-cols-[28px_1fr] gap-3 py-4 text-sm leading-6 text-on-surface"><span className="font-mono text-[10px] text-primary">{String(index + 1).padStart(2, "0")}</span><span>{challenge}</span></li>)}
+              </ol>
+            </div>
+            <button type="button" onClick={() => setDetailsOpen(false)} className="mt-7 inline-flex min-h-11 w-full items-center justify-center border border-primary bg-primary px-4 text-sm font-medium text-on-primary">Return to visualisation</button>
+          </aside>
+        </div>
+      ) : null}
     </article>
   );
 }

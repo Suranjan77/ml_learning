@@ -1,10 +1,5 @@
-import type { ExhibitDefinition, ExhibitSceneProps } from "../types";
-import { createElement } from "react";
+import type { ExhibitDefinition } from "../types";
 import AttentionScene from "./AttentionScene";
-
-function AttentionExhibitScene({ resetKey }: ExhibitSceneProps) {
-  return createElement(AttentionScene, { key: resetKey });
-}
 
 export const attentionExhibit: ExhibitDefinition = {
   slug: "attention",
@@ -46,5 +41,5 @@ export const attentionExhibit: ExhibitDefinition = {
     "Use only the keyboard to compare ‘it’ in both sentences.",
     "Explain why a large attention weight is not, by itself, proof of model reasoning.",
   ],
-  component: AttentionExhibitScene,
+  component: AttentionScene,
 };

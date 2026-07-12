@@ -33,7 +33,7 @@ export default function VisualisationsPage() {
         </div>
         <div className="mx-auto grid w-full max-w-content gap-px border border-outline bg-outline md:auto-rows-fr md:grid-cols-3">
           {exhibits.map((exhibit, index) => (
-            <ExhibitCard key={exhibit.slug} exhibit={exhibit} index={index} />
+            <ExhibitCard key={exhibit.slug} exhibit={exhibit} index={index} className={index === exhibits.length - 1 && exhibits.length % 3 === 2 ? "md:col-span-2" : ""} />
           ))}
         </div>
       </section>
