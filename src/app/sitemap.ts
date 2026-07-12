@@ -14,7 +14,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 1,
     },
-    ...["/labs", "/labs/sampling", "/playground", "/map"].map((path) => ({
+    ...[
+      "/labs",
+      "/labs/sampling",
+      "/labs/gradient-descent",
+      "/labs/overfitting",
+      "/labs/attention",
+      "/labs/tokenizer",
+      "/playground",
+      "/map",
+      "/tracks",
+    ].map((path) => ({
       url: getAbsoluteUrl(path),
       lastModified: now,
       changeFrequency: "monthly" as const,
