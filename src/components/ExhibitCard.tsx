@@ -139,9 +139,112 @@ function KernelPreview() {
   );
 }
 
+function OverfittingPreview() {
+  const points = [
+    [52, 96], [86, 62], [120, 84], [154, 48], [188, 70],
+    [222, 44], [256, 78], [290, 52], [316, 88],
+  ] as const;
+
+  return (
+    <svg viewBox="0 0 360 150" className="h-full w-full" aria-hidden="true">
+      <path
+        d="M40 104 C110 42 250 92 324 56"
+        fill="none"
+        stroke="var(--color-primary)"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+      <path
+        d="M40 110 L86 62 L120 92 L154 40 L188 78 L222 36 L256 86 L290 44 L324 96"
+        fill="none"
+        stroke="var(--color-accent)"
+        strokeWidth="2"
+        strokeDasharray="1 0"
+        opacity="0.85"
+      />
+      {points.map(([cx, cy]) => (
+        <circle
+          key={`${cx}-${cy}`}
+          cx={cx}
+          cy={cy}
+          r="4.5"
+          fill="var(--color-on-surface)"
+          stroke="var(--color-surface)"
+          strokeWidth="2"
+        />
+      ))}
+    </svg>
+  );
+}
+
+function KMeansPreview() {
+  const clusters = [
+    { colour: "var(--color-primary)", cx: 92, cy: 62, points: [[-26, -12], [-6, 14], [16, -16], [4, -2], [-18, 18]] },
+    { colour: "var(--color-accent)", cx: 218, cy: 100, points: [[-22, 6], [-2, -14], [18, 10], [8, 22], [-12, -4]] },
+    { colour: "var(--color-error)", cx: 296, cy: 46, points: [[-18, 10], [2, -10], [14, 14], [-4, 4]] },
+  ] as const;
+
+  return (
+    <svg viewBox="0 0 360 150" className="h-full w-full" aria-hidden="true">
+      {clusters.map(({ colour, cx, cy, points }) => (
+        <g key={colour}>
+          {points.map(([dx, dy]) => (
+            <circle key={`${dx}-${dy}`} cx={cx + dx} cy={cy + dy} r="4" fill={colour} opacity="0.75" />
+          ))}
+          <circle cx={cx} cy={cy} r="9" fill="var(--color-surface)" stroke={colour} strokeWidth="3" />
+          <circle cx={cx} cy={cy} r="2.5" fill={colour} />
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+function TokenSamplingPreview() {
+  const bars = [
+    { width: 208, label: "dusk", highlighted: true },
+    { width: 132, label: "dark", highlighted: false },
+    { width: 84, label: "noon", highlighted: false },
+    { width: 46, label: "rain", highlighted: false },
+    { width: 22, label: "socks", highlighted: false },
+  ] as const;
+
+  return (
+    <svg viewBox="0 0 360 150" className="h-full w-full" aria-hidden="true">
+      {bars.map(({ width, label, highlighted }, index) => {
+        const y = 18 + index * 24;
+        return (
+          <g key={label}>
+            <text
+              x="52"
+              y={y + 12}
+              textAnchor="end"
+              fontFamily="var(--font-mono)"
+              fontSize="11"
+              fill="var(--color-on-surface)"
+            >
+              {label}
+            </text>
+            <rect
+              x="62"
+              y={y}
+              width={width}
+              height="16"
+              fill={highlighted ? "var(--color-accent)" : "var(--color-primary)"}
+              opacity={highlighted ? 1 : 0.45 + (4 - index) * 0.08}
+            />
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
 function ExhibitPreview({ slug }: { slug: string }) {
   if (slug === "gradient-descent") return <GradientPreview />;
   if (slug === "attention") return <AttentionPreview />;
+  if (slug === "overfitting") return <OverfittingPreview />;
+  if (slug === "k-means") return <KMeansPreview />;
+  if (slug === "token-sampling") return <TokenSamplingPreview />;
   return <KernelPreview />;
 }
 

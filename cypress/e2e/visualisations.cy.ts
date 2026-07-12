@@ -2,6 +2,9 @@ const routes = [
   "/visualisations/gradient-descent",
   "/visualisations/attention",
   "/visualisations/kernel-trick",
+  "/visualisations/overfitting",
+  "/visualisations/k-means",
+  "/visualisations/token-sampling",
 ];
 
 const viewports = [
@@ -18,7 +21,7 @@ describe("visualisation workspace", () => {
         cy.viewport(viewport.width, viewport.height);
         cy.visit(route);
         cy.get('[data-testid="visualisation-workspace"]').should("be.visible");
-        cy.get('[data-testid="visualisation-workspace"] [role="img"], [data-testid="visualisation-workspace"] [role="group"][aria-label*="Loss landscape"]')
+        cy.get('[data-testid="visualisation-workspace"] [role="img"], [data-testid="visualisation-workspace"] [role="group"]')
           .first()
           .should("be.visible");
         cy.contains("button", "Next").should("be.visible");
@@ -30,6 +33,13 @@ describe("visualisation workspace", () => {
       });
     }
   }
+
+  it("lists every visualisation on the library index", () => {
+    cy.viewport(1280, 720);
+    cy.visit("/visualisations");
+    cy.get('a[href^="/visualisations/"]').should("have.length", routes.length);
+    cy.contains(`${routes.length} visualisations`).should("be.visible");
+  });
 
   it("keeps step controls operable and keyboard focusable", () => {
     cy.viewport(1280, 720);

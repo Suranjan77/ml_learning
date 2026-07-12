@@ -1,6 +1,6 @@
 # Interactive Visualisation Rebuild
 
-Status: complete  
+Status: complete; library expanded to six visualisations  
 Updated: 2026-07-12
 
 Current validation: TypeScript and ESLint pass; 23 unit/component tests pass;
@@ -133,6 +133,33 @@ control strip instead of extending the page.
 - Screenshot review — homepage and all three workspaces reviewed at desktop;
   attention and gradient descent reviewed at 390×844; kernel class bounds were
   adjusted to prevent point clipping in the short desktop workspace.
+
+## Library expansion — wave 2
+
+Added 2026-07-12, following the "Adding a visualisation" checklist in the
+README. Three exhibits covering the topic areas the initial trio lacked:
+
+- **Overfitting** (`overfitting`, Generalisation) — polynomial degree against
+  deterministic noisy samples, with a paired train/validation error panel.
+  Regime labels derive from the empirical validation-error minimum with a 25%
+  tolerance band.
+- **K-means clustering** (`k-means`, Unsupervised learning) — draggable
+  centroids over an authored three-blob dataset, explicit assign/update
+  half-iteration stepping, animated run to convergence, and an authored bad
+  initialisation that settles into a visibly poor local optimum.
+- **Token sampling** (`token-sampling`, Language models) — temperature and
+  top-k/top-p reshaping a hand-authored next-token distribution, with
+  deterministic sampling from a fixed draw sequence. The attention exhibit's
+  topic facet was renamed to match ("Language models").
+
+Presentation changes with the expansion:
+
+- The homepage now shows a curated featured trio and links to the full
+  library; `/visualisations` scrolls normally and scales to any exhibit count.
+- Each new exhibit received a purpose-drawn card vignette in
+  `src/components/ExhibitCard.tsx`.
+- The Cypress suite covers all six workspace routes at the four target
+  viewports, plus a library-index listing check.
 
 ## Completion criteria
 

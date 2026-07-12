@@ -2,7 +2,14 @@ import Link from "next/link";
 import ExhibitCard from "@/components/ExhibitCard";
 import { exhibits } from "@/features/exhibits/registry";
 
+const FEATURED_SLUGS = ["gradient-descent", "attention", "k-means"];
+
 export default function Home() {
+  const featured = FEATURED_SLUGS.map((slug) =>
+    exhibits.find((exhibit) => exhibit.slug === slug),
+  ).filter((exhibit) => exhibit !== undefined);
+  const shown = featured.length === 3 ? featured : exhibits.slice(0, 3);
+
   return (
     <div className="md:flex md:h-[calc(100dvh-60px)] md:min-h-0 md:flex-col md:overflow-hidden">
       <section className="shrink-0 border-b border-outline px-4 py-7 sm:px-6 md:py-8 lg:px-8">
@@ -33,20 +40,27 @@ export default function Home() {
         <div className="mx-auto flex w-full max-w-content items-end justify-between gap-4">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-label text-on-surface-variant sm:text-[11px]">
-              Available now
+              Featured
             </p>
             <h2 className="mt-1 font-headline text-2xl font-medium text-on-surface sm:text-3xl">
               Visualisations
             </h2>
           </div>
-          <p className="hidden max-w-md text-right text-sm text-on-surface-variant lg:block">
-            Optimisation, transformer attention, and nonlinear classification
-          </p>
+          <Link
+            href="/visualisations"
+            className="hidden text-sm font-medium text-primary hover:underline lg:block"
+          >
+            Browse all {exhibits.length} visualisations →
+          </Link>
         </div>
 
         <div className="mx-auto mt-4 grid w-full max-w-content gap-px border border-outline bg-outline md:min-h-0 md:flex-1 md:grid-cols-3">
-          {exhibits.map((exhibit, index) => (
-            <ExhibitCard key={exhibit.slug} exhibit={exhibit} index={index} />
+          {shown.map((exhibit) => (
+            <ExhibitCard
+              key={exhibit.slug}
+              exhibit={exhibit}
+              index={exhibits.indexOf(exhibit)}
+            />
           ))}
         </div>
       </section>

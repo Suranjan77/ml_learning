@@ -14,7 +14,7 @@ export const attentionExhibit: ExhibitDefinition = {
     "Select a token and inspect the weighted connections it makes to the rest of a sentence.",
   insight:
     "Attention builds a context-sensitive mixture of other token representations; changing one word can shift which connection receives the most weight.",
-  topic: "Language & Transformers",
+  topic: "Language models",
   difficulty: "Approachable",
   duration: 5,
   renderer: "SVG",
