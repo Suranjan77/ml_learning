@@ -12,6 +12,14 @@ export const kMeansExhibit: ExhibitDefinition = {
   renderer: "SVG",
   tags: ["clustering", "unsupervised", "centroids", "assignment", "convergence", "distance"],
   related: ["pca", "particle-swarm"],
+  assumptions: [
+    "Points and initial centroids are hand-placed 2-D examples; runs use Lloyd's algorithm with Euclidean distance and a fixed k.",
+    "The result is a local optimum that depends on initialisation—no k-means++ seeding or multiple restarts are shown.",
+  ],
+  references: [
+    { label: "Lloyd, Least Squares Quantization in PCM (1982), IEEE Trans. Information Theory" },
+    { label: "MacQueen, Some Methods for Classification and Analysis of Multivariate Observations (1967)" },
+  ],
   steps: [
     {
       title: "Place the centroids",

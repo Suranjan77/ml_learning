@@ -291,6 +291,35 @@ export default function ExhibitShell({ slug }: { slug: string }) {
                 {exhibit.challenges.map((challenge, index) => <li key={challenge} className="grid grid-cols-[28px_1fr] gap-3 py-4 text-sm leading-6 text-on-surface"><span className="font-mono text-[10px] text-primary">{String(index + 1).padStart(2, "0")}</span><span>{challenge}</span></li>)}
               </ol>
             </div>
+            <div className="mt-8">
+              <p className="font-mono text-[10px] uppercase tracking-label text-on-surface-variant">What is simplified</p>
+              <ul className="mt-3 space-y-2 border-l-2 border-outline pl-4 text-sm leading-6 text-on-surface-variant">
+                {exhibit.assumptions.map((assumption) => (
+                  <li key={assumption}>{assumption}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="mt-8">
+              <p className="font-mono text-[10px] uppercase tracking-label text-on-surface-variant">References</p>
+              <ul className="mt-3 space-y-2 text-sm leading-6">
+                {exhibit.references.map((reference) =>
+                  reference.href ? (
+                    <li key={reference.label}>
+                      <a
+                        href={reference.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-primary underline decoration-outline underline-offset-2 hover:decoration-primary"
+                      >
+                        {reference.label}
+                      </a>
+                    </li>
+                  ) : (
+                    <li key={reference.label} className="text-on-surface-variant">{reference.label}</li>
+                  ),
+                )}
+              </ul>
+            </div>
             {relatedExhibits.length > 0 ? (
               <div className="mt-8">
                 <p className="font-mono text-[10px] uppercase tracking-label text-on-surface-variant">Related ideas</p>

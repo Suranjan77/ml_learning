@@ -7,6 +7,14 @@ export const pcaExhibit: ExhibitDefinition = {
   topic: "Unsupervised learning", difficulty: "Approachable", duration: 5, renderer: "SVG",
   tags: ["dimensionality reduction", "variance", "principal components", "projection", "unsupervised"],
   related: ["k-means", "overfitting"],
+  assumptions: [
+    "The dataset is hand-authored 2-D points; the principal components are the exact eigenvectors of their covariance.",
+    "Only the first component and its projection are emphasised; scaling choices and higher-dimensional behaviour are simplified.",
+  ],
+  references: [
+    { label: "Pearson, On Lines and Planes of Closest Fit to Systems of Points in Space (1901), Phil. Mag." },
+    { label: "Jolliffe, Principal Component Analysis (2002)" },
+  ],
   steps: [
     { title: "Choose a bad projection", instruction: "Inspect the long dashed reconstruction distances on the nearly perpendicular axis.", observation: "Collapsing data onto this line discards the direction where the points vary most." },
     { title: "Rotate toward the data", instruction: "Move the angle slider and watch variance rise as reconstruction error falls.", observation: "The projected points spread out when the axis aligns with structure in the data." },

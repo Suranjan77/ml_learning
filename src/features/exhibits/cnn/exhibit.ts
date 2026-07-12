@@ -12,6 +12,14 @@ export const cnnExhibit: ExhibitDefinition = {
   renderer: "SVG",
   tags: ["convolution", "filters", "feature maps", "deep learning", "image", "kernels"],
   related: ["backpropagation", "kernel-trick"],
+  assumptions: [
+    "The input image and convolution kernels are small hand-authored grids chosen to make edges and textures visible.",
+    "A single convolution and activation step is shown; stride, padding, pooling, and multi-channel stacks are simplified away.",
+  ],
+  references: [
+    { label: "LeCun et al., Gradient-Based Learning Applied to Document Recognition (1998), Proc. IEEE" },
+    { label: "Goodfellow, Bengio & Courville, Deep Learning (2016), ch. 9" },
+  ],
   steps: [
     { title: "Read pixels locally", instruction: "Inspect the highlighted 3×3 receptive field inside the 8×8 image.", observation: "A convolutional unit sees a local patch, not the complete image." },
     { title: "Slide one shared filter", instruction: "Click output cells and compare the highlighted patch with the dot-product result.", observation: "The same nine filter weights are reused at every position, which is why the layer can detect a pattern anywhere." },

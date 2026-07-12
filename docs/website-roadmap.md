@@ -9,7 +9,7 @@ Updated: 2026-07-12
 | --- | --- | --- |
 | Release 1: Leaner and safer | In progress | Scene bundles split; CI gates, JavaScript budgets, modal accessibility, reduced-motion handling, Chromium coverage, and Firefox smoke coverage implemented. WebKit CI verification and the real-device font/render audit remain. |
 | Release 2: Easier to explore | In progress | Client-side search, topic/difficulty/length/renderer filters with URL state, discovery tags, question-led homepage groupings, and non-prescriptive related-idea links implemented and covered by unit and Chromium tests. WebKit/Firefox smoke of the new browser and the real-device check remain. |
-| Release 3: Easier to share and trust | Not started | URL state, references, metadata, social previews, and embed view pending. |
+| Release 3: Easier to share and trust | In progress | Per-exhibit references and assumptions/simplifications now appear in the insight drawer. URL-encoded scene state, copy-link, route-specific canonical/social metadata, methodology page, and embed view remain. |
 | Release 4: Expand carefully | Not started | Candidate selection begins after the first three releases. |
 
 Update this tracker in the same change that completes or materially advances a
@@ -61,6 +61,23 @@ Updated: 2026-07-12
 - [x] Verify lint, 119 unit/component tests (34 new), the production build, all
   route budgets (library 189.7/210 KiB), and 54 Chromium browser checks.
 - [ ] Extend Firefox/WebKit smoke coverage to the library browser (runs in CI).
+
+### Release 3 implementation log
+
+Updated: 2026-07-12
+
+- [x] Add concise assumptions/simplifications and references to each exhibit's
+  metadata (`assumptions`, `references` with optional stable links).
+- [x] Render "What is simplified" and "References" sections in the insight
+  drawer, with external references opening in a new tab.
+- [x] Verify lint, 130 unit/component tests (11 new), the production build, all
+  route budgets, and the drawer Chromium check.
+- [ ] Extend the `?step=` convention to meaningful scene parameters and add a
+  "Copy current view" action.
+- [ ] Add route-specific canonical URLs and per-exhibit social/OG metadata.
+- [ ] Add a methodology/about page (approach, author, repo, licence,
+  accessibility, privacy).
+- [ ] Add a clean embed presentation controlled by a URL parameter.
 
 ## Direction
 

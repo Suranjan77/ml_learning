@@ -89,6 +89,21 @@ describe("hasActiveFilters", () => {
   });
 });
 
+describe("authority metadata", () => {
+  it.each(exhibits.map((exhibit) => [exhibit.slug]))("%s states assumptions and cites references", (slug) => {
+    const exhibit = exhibits.find((item) => item.slug === slug)!;
+    expect(exhibit.assumptions.length).toBeGreaterThan(0);
+    expect(exhibit.assumptions.every((line) => line.trim().length > 0)).toBe(true);
+    expect(exhibit.references.length).toBeGreaterThan(0);
+    for (const reference of exhibit.references) {
+      expect(reference.label.trim().length).toBeGreaterThan(0);
+      if (reference.href !== undefined) {
+        expect(reference.href).toMatch(/^https:\/\//);
+      }
+    }
+  });
+});
+
 describe("related links are valid and non-self-referential", () => {
   const slugs = new Set(exhibits.map((exhibit) => exhibit.slug));
 

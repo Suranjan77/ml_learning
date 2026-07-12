@@ -12,6 +12,14 @@ export const geneticAlgorithmExhibit: ExhibitDefinition = {
   renderer: "SVG",
   tags: ["evolution", "mutation", "crossover", "selection", "population", "metaheuristic", "optimisation"],
   related: ["particle-swarm", "gradient-descent"],
+  assumptions: [
+    "Genomes, the fitness function, and mutation/crossover rates are hand-authored to make selection pressure visible.",
+    "Selection is simplified (fitness-proportional) and the population is small and deterministically seeded for reproducibility.",
+  ],
+  references: [
+    { label: "Holland, Adaptation in Natural and Artificial Systems (1975/1992)" },
+    { label: "Goldberg, Genetic Algorithms in Search, Optimization, and Machine Learning (1989)" },
+  ],
   steps: [
     { title: "Encode candidate solutions", instruction: "Compare each binary genome with its position and fitness on the landscape.", observation: "The algorithm manipulates an encoding; decoding turns those bits into a candidate solution that can be evaluated." },
     { title: "Select and recombine", instruction: "Advance one generation and inspect the parent genomes and crossover marker.", observation: "Fitter genomes win selection more often, while crossover takes a prefix from one parent and a suffix from another." },

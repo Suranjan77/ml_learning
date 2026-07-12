@@ -12,6 +12,14 @@ export const overfittingExhibit: ExhibitDefinition = {
   renderer: "SVG",
   tags: ["generalisation", "bias-variance", "regularisation", "polynomial", "noise", "model complexity"],
   related: ["gradient-descent", "kernel-trick", "backpropagation"],
+  assumptions: [
+    "The points are hand-authored samples from a smooth curve plus fixed noise; because the true function is known, the generalisation gap shown is exact.",
+    "Capacity is varied only by polynomial degree with least-squares fitting—no regularisation or cross-validation is applied.",
+  ],
+  references: [
+    { label: "Bishop, Pattern Recognition and Machine Learning (2006), §1.1 & §3.2" },
+    { label: "Hastie, Tibshirani & Friedman, The Elements of Statistical Learning (2009), ch. 7" },
+  ],
   steps: [
     {
       title: "Start with a rigid model",

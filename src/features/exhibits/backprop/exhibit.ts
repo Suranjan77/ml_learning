@@ -7,6 +7,14 @@ export const backpropExhibit: ExhibitDefinition = {
   topic: "Deep learning", difficulty: "Technical", duration: 7, renderer: "SVG",
   tags: ["neural network", "gradients", "chain rule", "deep learning", "training", "error"],
   related: ["gradient-descent", "cnn-feature-maps", "attention"],
+  assumptions: [
+    "The network is a tiny hand-authored example with fixed weights and one training case, so every gradient shown is exact and reproducible.",
+    "It illustrates the chain rule propagating one error signal; batching, optimisers, and real activation/loss choices are simplified.",
+  ],
+  references: [
+    { label: "Rumelhart, Hinton & Williams, Learning Representations by Back-Propagating Errors (1986), Nature" },
+    { label: "Goodfellow, Bengio & Courville, Deep Learning (2016), §6.5" },
+  ],
   steps: [
     { title: "Set the evidence", instruction: "Change the two inputs and inspect the weighted connections into the hidden layer.", observation: "Each hidden unit receives the same inputs but combines them with different learned weights." },
     { title: "Run the forward pass", instruction: "Read the hidden activations and final prediction from left to right.", observation: "The network composes weighted sums and nonlinear sigmoid activations to produce a probability." },

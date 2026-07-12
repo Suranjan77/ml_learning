@@ -89,6 +89,13 @@ test.describe("visualisation workspace", () => {
     await page.goto("/visualisations/token-sampling");
 
     await page.getByRole("button", { name: "Open insight and challenges" }).click();
+
+    await expect(page.getByText("What is simplified")).toBeVisible();
+    await expect(page.getByText("References")).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: /The Curious Case of Neural Text Degeneration/ }),
+    ).toHaveAttribute("href", "https://arxiv.org/abs/1904.09751");
+
     const related = page.getByRole("link", { name: /Attention/ });
     await expect(related).toBeVisible();
     await related.click();

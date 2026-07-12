@@ -14,6 +14,14 @@ export const tokenSamplingExhibit: ExhibitDefinition = {
   renderer: "SVG",
   tags: ["language model", "softmax", "temperature", "probability", "sampling", "decoding"],
   related: ["attention"],
+  assumptions: [
+    "The probability distribution over next tokens is hand-authored to illustrate sampling, not produced by a language model.",
+    "Temperature, top-k, and top-p are applied to that fixed distribution; no real tokeniser or model inference runs in the browser.",
+  ],
+  references: [
+    { label: "Holtzman et al., The Curious Case of Neural Text Degeneration (2020)", href: "https://arxiv.org/abs/1904.09751" },
+    { label: "Hinton, Vinyals & Dean, Distilling the Knowledge in a Neural Network (2015)", href: "https://arxiv.org/abs/1503.02531" },
+  ],
   steps: [
     {
       title: "Read the distribution",

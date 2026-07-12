@@ -14,6 +14,14 @@ export const attentionExhibit: ExhibitDefinition = {
   renderer: "SVG",
   tags: ["transformer", "self-attention", "language model", "context", "tokens", "weights"],
   related: ["token-sampling", "backpropagation"],
+  assumptions: [
+    "Attention weights are hand-authored exemplars chosen to show how “it” resolves to different tokens; they are not computed from a trained transformer.",
+    "A single attention head over one short sentence is shown; multi-head mixing, positional encodings, and later layers are omitted.",
+  ],
+  references: [
+    { label: "Vaswani et al., Attention Is All You Need (2017)", href: "https://arxiv.org/abs/1706.03762" },
+    { label: "Bahdanau, Cho & Bengio, Neural Machine Translation by Jointly Learning to Align and Translate (2015)", href: "https://arxiv.org/abs/1409.0473" },
+  ],
   steps: [
     {
       title: "Ask what ‘it’ refers to",

@@ -12,6 +12,14 @@ export const gradientDescentExhibit: ExhibitDefinition = {
   renderer: "WebGL",
   tags: ["optimisation", "loss surface", "learning rate", "local minima", "convergence", "training"],
   related: ["backpropagation", "particle-swarm", "genetic-algorithm"],
+  assumptions: [
+    "The loss surfaces are hand-authored two-parameter functions chosen to show valleys and multiple minima, not a real trained model's loss.",
+    "Every update is plain full-batch gradient descent with a fixed learning rate—no momentum, adaptive rates, or stochastic mini-batches.",
+  ],
+  references: [
+    { label: "Goodfellow, Bengio & Courville, Deep Learning (2016), ch. 4 & 8" },
+    { label: "Bishop, Pattern Recognition and Machine Learning (2006), §5.2" },
+  ],
   steps: [
     {
       title: "Set the starting point",
