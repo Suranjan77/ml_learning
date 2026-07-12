@@ -10,7 +10,7 @@ import SearchBar from "@/components/SearchBar";
 import { useHydrated } from "@/lib/useHydrated";
 
 const navItems = [
-  { label: "Curriculum", href: "/#curriculum" },
+  { label: "Curriculum", href: "/tracks" },
   { label: "Labs", href: "/labs" },
   { label: "Concept Map", href: "/map" },
   { label: "About", href: "/#philosophy" },

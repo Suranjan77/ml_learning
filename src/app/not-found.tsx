@@ -26,7 +26,7 @@ export default function NotFound() {
               Home
             </Link>
             <Link
-              href="/#curriculum"
+              href="/tracks"
               className="border border-outline bg-surface px-6 py-3 text-[15px] font-medium tracking-tight text-on-surface hover:border-primary hover:text-primary"
             >
               Learning Tracks

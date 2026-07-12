@@ -16,7 +16,7 @@ describe('Sidebar', () => {
     expect(screen.getByRole('heading', { name: 'Linear Regression' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'ML Practitioner' })).toHaveAttribute(
       'href',
-      '/#track-practitioner',
+      '/tracks#track-practitioner',
     );
     expect(screen.getByText(`${algorithmsList.length} modules · 1 interactive lab`)).toBeInTheDocument();
   });

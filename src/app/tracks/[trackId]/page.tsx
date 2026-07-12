@@ -16,5 +16,5 @@ export default async function TrackDetailPage({ params }: TrackPageProps) {
 
   if (!track) notFound();
 
-  redirect(`/#${getTrackAnchor(trackId as TrackId)}`);
+  redirect(`/tracks#${getTrackAnchor(trackId as TrackId)}`);
 }

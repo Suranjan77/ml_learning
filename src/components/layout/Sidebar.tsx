@@ -68,7 +68,7 @@ export default function Sidebar() {
 
       <div className="border-b border-outline bg-surface-container-low px-5 py-5">
         <Link
-          href="/#curriculum"
+          href="/tracks"
           className="mb-4 inline-flex items-center gap-2 font-mono text-[12px] uppercase tracking-[0.1em] text-on-surface-variant transition-colors hover:text-primary"
         >
           <ArrowLeft size={13} aria-hidden="true" />
@@ -107,7 +107,7 @@ export default function Sidebar() {
                   Learning track
                 </p>
                 <Link
-                  href={`/#${getTrackAnchor(primaryTrack)}`}
+                  href={`/tracks#${getTrackAnchor(primaryTrack)}`}
                   className="mt-1 block text-sm font-medium text-on-surface transition-colors hover:text-primary"
                 >
                   {trackLabels[primaryTrack] ?? primaryTrack}
@@ -182,7 +182,7 @@ export default function Sidebar() {
 
         <div className="grid grid-cols-3 gap-1">
           <SidebarUtilityLink href="/" label="Home" icon={House} />
-          <SidebarUtilityLink href="/#curriculum" label="Tracks" icon={Route} />
+          <SidebarUtilityLink href="/tracks" label="Tracks" icon={Route} />
           <SidebarUtilityLink
             href="/playground"
             label="Play"
