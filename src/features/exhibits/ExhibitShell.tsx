@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useId, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Lightbulb, Pause, Play, RotateCcw, X } from "lucide-react";
 import { getExhibit } from "./registry";
+import { ExhibitScene } from "./sceneRegistry";
 
 export default function ExhibitShell({ slug }: { slug: string }) {
   const exhibit = getExhibit(slug)!;
@@ -11,8 +12,9 @@ export default function ExhibitShell({ slug }: { slug: string }) {
   const [resetKey, setResetKey] = useState(0);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const dialogRef = useRef<HTMLElement>(null);
   const sceneId = useId();
-  const Scene = exhibit.component;
   const current = exhibit.steps[step];
 
   useEffect(() => {
@@ -28,6 +30,15 @@ export default function ExhibitShell({ slug }: { slug: string }) {
     }
   }, [exhibit.steps.length]);
 
+  useEffect(() => {
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updatePreference = () => setReducedMotion(preference.matches);
+
+    updatePreference();
+    preference.addEventListener("change", updatePreference);
+    return () => preference.removeEventListener("change", updatePreference);
+  }, []);
+
   const chooseStep = useCallback((next: number) => {
     setStep(next);
     const url = new URL(window.location.href);
@@ -42,6 +53,10 @@ export default function ExhibitShell({ slug }: { slug: string }) {
   }, []);
 
   useEffect(() => {
+    if (reducedMotion) {
+      setPlaying(false);
+      return;
+    }
     if (!playing) return;
     if (step >= exhibit.steps.length - 1) {
       setPlaying(false);
@@ -49,7 +64,64 @@ export default function ExhibitShell({ slug }: { slug: string }) {
     }
     const timer = window.setTimeout(() => chooseStep(step + 1), 3200);
     return () => window.clearTimeout(timer);
-  }, [chooseStep, exhibit.steps.length, playing, step]);
+  }, [chooseStep, exhibit.steps.length, playing, reducedMotion, step]);
+
+  const closeDetails = useCallback(() => setDetailsOpen(false), []);
+
+  useEffect(() => {
+    if (!detailsOpen) return;
+
+    const dialog = dialogRef.current;
+    const previousFocus = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    const focusableSelector = [
+      "a[href]",
+      "button:not([disabled])",
+      "input:not([disabled])",
+      "select:not([disabled])",
+      "textarea:not([disabled])",
+      '[tabindex]:not([tabindex="-1"])',
+    ].join(",");
+
+    const focusable = () => dialog
+      ? Array.from(dialog.querySelectorAll<HTMLElement>(focusableSelector))
+      : [];
+
+    focusable()[0]?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeDetails();
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+
+      const elements = focusable();
+      if (elements.length === 0) {
+        event.preventDefault();
+        return;
+      }
+
+      const first = elements[0];
+      const last = elements[elements.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      window.requestAnimationFrame(() => previousFocus?.focus());
+    };
+  }, [closeDetails, detailsOpen]);
 
   function reset() {
     setPlaying(false);
@@ -62,7 +134,7 @@ export default function ExhibitShell({ slug }: { slug: string }) {
       data-testid="visualisation-workspace"
       className="relative grid h-full min-h-0 grid-rows-[76px_minmax(0,1fr)_148px] overflow-hidden sm:grid-rows-[72px_minmax(0,1fr)_104px]"
     >
-      <header className="border-b border-outline bg-surface px-4 sm:px-6 lg:px-8">
+      <header inert={detailsOpen ? true : undefined} className="border-b border-outline bg-surface px-4 sm:px-6 lg:px-8">
         <div className="mx-auto grid h-full max-w-[1600px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
           <div className="min-w-0">
             <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-label text-on-surface-variant sm:text-[11px]">
@@ -98,14 +170,15 @@ export default function ExhibitShell({ slug }: { slug: string }) {
 
       <section
         aria-labelledby={`${sceneId}-title`}
+        inert={detailsOpen ? true : undefined}
         className="min-h-0 overflow-hidden bg-surface-container-low p-2 sm:p-3 lg:p-4"
       >
         <div className="mx-auto h-full min-h-0 max-w-[1600px] overflow-hidden [&>section]:h-full [&>section]:min-h-0">
-          <Scene step={step} resetKey={resetKey} />
+          <ExhibitScene slug={slug} step={step} resetKey={resetKey} />
         </div>
       </section>
 
-      <footer className="border-t border-outline bg-surface px-3 py-3 sm:px-6 lg:px-8">
+      <footer inert={detailsOpen ? true : undefined} className="border-t border-outline bg-surface px-3 py-3 sm:px-6 lg:px-8">
         <div className="mx-auto flex h-full max-w-[1600px] min-w-0 flex-col justify-between gap-2 sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-6">
           <div className="min-w-0" aria-live="polite">
             <p className="flex min-w-0 items-center gap-2">
@@ -150,6 +223,7 @@ export default function ExhibitShell({ slug }: { slug: string }) {
             </button>
             <button
               type="button"
+              disabled={reducedMotion}
               onClick={() => {
                 if (playing) {
                   setPlaying(false);
@@ -158,10 +232,10 @@ export default function ExhibitShell({ slug }: { slug: string }) {
                   setPlaying(true);
                 }
               }}
-              className={`inline-flex h-11 items-center justify-center border px-3 text-sm transition-colors ${playing ? "border-primary bg-primary text-on-primary" : "border-outline bg-background hover:border-primary hover:text-primary"}`}
-              aria-label={playing ? "Pause guided walkthrough" : "Play guided walkthrough"}
+              className={`inline-flex h-11 items-center justify-center border px-3 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-35 ${playing ? "border-primary bg-primary text-on-primary" : "border-outline bg-background hover:border-primary hover:text-primary"}`}
+              aria-label={reducedMotion ? "Automatic walkthrough disabled by reduced-motion preference" : playing ? "Pause guided walkthrough" : "Play guided walkthrough"}
               aria-pressed={playing}
-              title={playing ? "Pause guided walkthrough" : "Play guided walkthrough"}
+              title={reducedMotion ? "Automatic walkthrough is disabled when reduced motion is preferred" : playing ? "Pause guided walkthrough" : "Play guided walkthrough"}
             >
               {playing ? <Pause size={16} fill="currentColor" aria-hidden="true" /> : <Play size={16} fill="currentColor" aria-hidden="true" />}
               <span className="ml-1.5 hidden lg:inline">{playing ? "Pause" : "Play"}</span>
@@ -198,23 +272,23 @@ export default function ExhibitShell({ slug }: { slug: string }) {
       </footer>
 
       {detailsOpen ? (
-        <div className="absolute inset-0 z-50 flex items-end bg-on-surface/20 backdrop-blur-[2px] sm:items-stretch sm:justify-end" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setDetailsOpen(false); }}>
-          <aside role="dialog" aria-modal="true" aria-labelledby={`${sceneId}-insight-title`} className="max-h-[82%] w-full overflow-y-auto border-t border-outline-dark bg-surface p-5 sm:max-h-none sm:w-[min(30rem,42vw)] sm:border-l sm:border-t-0 sm:p-7">
+        <div className="absolute inset-0 z-50 flex items-end bg-on-surface/20 backdrop-blur-[2px] sm:items-stretch sm:justify-end" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closeDetails(); }}>
+          <aside ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={`${sceneId}-insight-title`} aria-describedby={`${sceneId}-insight-description`} className="max-h-[82%] w-full overflow-y-auto border-t border-outline-dark bg-surface p-5 sm:max-h-none sm:w-[min(30rem,42vw)] sm:border-l sm:border-t-0 sm:p-7">
             <div className="flex items-start justify-between gap-5">
               <div>
                 <p className="font-mono text-[10px] uppercase tracking-label text-primary">What to take away</p>
                 <h2 id={`${sceneId}-insight-title`} className="mt-2 font-headline text-2xl font-medium leading-tight text-on-surface">{exhibit.title}</h2>
               </div>
-              <button type="button" onClick={() => setDetailsOpen(false)} className="inline-flex h-10 w-10 shrink-0 items-center justify-center border border-outline hover:border-primary hover:text-primary" aria-label="Close insight panel"><X size={18} aria-hidden="true" /></button>
+              <button type="button" onClick={closeDetails} className="inline-flex h-10 w-10 shrink-0 items-center justify-center border border-outline hover:border-primary hover:text-primary" aria-label="Close insight panel"><X size={18} aria-hidden="true" /></button>
             </div>
-            <p className="mt-6 border-l-2 border-primary pl-4 text-base leading-7 text-on-surface">{exhibit.insight}</p>
+            <p id={`${sceneId}-insight-description`} className="mt-6 border-l-2 border-primary pl-4 text-base leading-7 text-on-surface">{exhibit.insight}</p>
             <div className="mt-8">
               <p className="font-mono text-[10px] uppercase tracking-label text-on-surface-variant">Try these challenges</p>
               <ol className="mt-3 divide-y divide-outline border-y border-outline">
                 {exhibit.challenges.map((challenge, index) => <li key={challenge} className="grid grid-cols-[28px_1fr] gap-3 py-4 text-sm leading-6 text-on-surface"><span className="font-mono text-[10px] text-primary">{String(index + 1).padStart(2, "0")}</span><span>{challenge}</span></li>)}
               </ol>
             </div>
-            <button type="button" onClick={() => setDetailsOpen(false)} className="mt-7 inline-flex min-h-11 w-full items-center justify-center border border-primary bg-primary px-4 text-sm font-medium text-on-primary">Return to visualisation</button>
+            <button type="button" onClick={closeDetails} className="mt-7 inline-flex min-h-11 w-full items-center justify-center border border-primary bg-primary px-4 text-sm font-medium text-on-primary">Return to visualisation</button>
           </aside>
         </div>
       ) : null}

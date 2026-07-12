@@ -1,5 +1,4 @@
 import type { ExhibitDefinition } from "../types";
-import TokenSamplingScene from "./TokenSamplingScene";
 
 export const tokenSamplingExhibit: ExhibitDefinition = {
   slug: "token-sampling",
@@ -43,5 +42,4 @@ export const tokenSamplingExhibit: ExhibitDefinition = {
     "Find temperature and truncation settings where the tail token ‘spaghetti’ gets sampled.",
     "Find the lowest temperature at which repeated sampling still returns more than one token.",
   ],
-  component: TokenSamplingScene,
 };

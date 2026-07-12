@@ -1,5 +1,4 @@
 import type { ExhibitDefinition } from "../types";
-import KernelTrickScene from "./KernelTrickScene";
 
 export const kernelTrickExhibit: ExhibitDefinition = {
   slug: "kernel-trick",
@@ -21,5 +20,4 @@ export const kernelTrickExhibit: ExhibitDefinition = {
     "Drag the lift halfway down. At what point does the separation become visually clear?",
     "Predict how changing the radial feature map would change the projected boundary.",
   ],
-  component: KernelTrickScene,
 };

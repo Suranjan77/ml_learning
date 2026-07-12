@@ -1,5 +1,4 @@
 import type { ExhibitDefinition } from "../types";
-import GradientDescentScene from "./GradientDescentScene";
 
 export const gradientDescentExhibit: ExhibitDefinition = {
   slug: "gradient-descent",
@@ -38,5 +37,4 @@ export const gradientDescentExhibit: ExhibitDefinition = {
     "Move the start point close to the minimum and compare the local arrow with one farther away.",
     "On the many-minima surface, find two starts that converge to different final losses with the same learning rate.",
   ],
-  component: GradientDescentScene,
 };

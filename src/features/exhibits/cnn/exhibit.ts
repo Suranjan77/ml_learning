@@ -1,5 +1,4 @@
 import type { ExhibitDefinition } from "../types";
-import CnnScene from "./CnnScene";
 
 export const cnnExhibit: ExhibitDefinition = {
   slug: "cnn-feature-maps",
@@ -18,5 +17,4 @@ export const cnnExhibit: ExhibitDefinition = {
     { title: "Pool nearby evidence", instruction: "Compare the 6×6 activation map with its 3×3 pooled representation.", observation: "Max pooling keeps the strongest response in each region, reducing spatial detail while preserving whether a feature appeared nearby." },
   ],
   challenges: ["Find an output cell that flips sign when switching from vertical to horizontal edge detection.", "Explain what information max pooling discards and what it retains."],
-  component: CnnScene,
 };

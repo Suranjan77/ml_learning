@@ -1,5 +1,3 @@
-import type { ComponentType } from "react";
-
 export type ExhibitDifficulty = "Approachable" | "Intermediate" | "Technical";
 export type ExhibitRenderer = "SVG" | "Canvas" | "WebGL";
 
@@ -26,5 +24,4 @@ export interface ExhibitDefinition {
   renderer: ExhibitRenderer;
   steps: readonly ExhibitStep[];
   challenges: readonly string[];
-  component: ComponentType<ExhibitSceneProps>;
 }

@@ -1,5 +1,4 @@
 import type { ExhibitDefinition } from "../types";
-import KMeansScene from "./KMeansScene";
 
 export const kMeansExhibit: ExhibitDefinition = {
   slug: "k-means",
@@ -37,5 +36,4 @@ export const kMeansExhibit: ExhibitDefinition = {
     "Drag two centroids on top of each other and leave the third far from every point, then run to convergence. Compare the final inertia with the default start.",
     "Switch between k = 2, 3 and 4 on the same points and watch which groups get merged or split apart.",
   ],
-  component: KMeansScene,
 };

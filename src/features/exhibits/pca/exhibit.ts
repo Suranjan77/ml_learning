@@ -1,5 +1,4 @@
 import type { ExhibitDefinition } from "../types";
-import PcaScene from "./PcaScene";
 
 export const pcaExhibit: ExhibitDefinition = {
   slug: "pca", title: "Principal component analysis", question: "How does PCA compress data without labels?",
@@ -11,5 +10,5 @@ export const pcaExhibit: ExhibitDefinition = {
     { title: "Rotate toward the data", instruction: "Move the angle slider and watch variance rise as reconstruction error falls.", observation: "The projected points spread out when the axis aligns with structure in the data." },
     { title: "Approach the principal axis", instruction: "Try to minimise reconstruction error manually.", observation: "For centred data, maximising projected variance and minimising squared reconstruction error identify the same axis." },
     { title: "Use the optimum", instruction: "Align the principal axis and compare the retained one-dimensional coordinates with the original cloud.", observation: "Thirty 2D points are now represented by thirty scalar scores plus the shared axis and mean." },
-  ], challenges: ["Find an angle that retains about half the variation.", "Explain why PCA would fail to preserve a curved manifold even if it is visually simple."], component: PcaScene,
+  ], challenges: ["Find an angle that retains about half the variation.", "Explain why PCA would fail to preserve a curved manifold even if it is visually simple."],
 };

@@ -91,4 +91,36 @@ test.describe("visualisation workspace", () => {
     await page.waitForTimeout(3_500);
     await expect(page.getByText("Step 2 of 3")).toBeVisible();
   });
+
+  test("traps focus in the insight dialog and restores it after closing", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto("/visualisations/attention");
+
+    const trigger = page.getByRole("button", { name: "Open insight and challenges" });
+    await trigger.click();
+
+    const dialog = page.getByRole("dialog", { name: "Follow the Attention" });
+    await expect(dialog).toBeVisible();
+    await expect(page.getByRole("button", { name: "Close insight panel" })).toBeFocused();
+
+    await page.keyboard.press("Shift+Tab");
+    await expect(page.getByRole("button", { name: "Return to visualisation" })).toBeFocused();
+
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(trigger).toBeFocused();
+  });
+
+  test("disables automatic playback when reduced motion is preferred", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto("/visualisations/attention");
+
+    await expect(
+      page.getByRole("button", {
+        name: "Automatic walkthrough disabled by reduced-motion preference",
+      }),
+    ).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Next", exact: true })).toBeEnabled();
+  });
 });

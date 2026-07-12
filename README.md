@@ -20,9 +20,14 @@ Open `http://localhost:3000`.
 npm run lint
 npm run test
 npm run build
+npm run budget
+npm run e2e
 ```
 
 The production build is a static export written to `out/` for GitHub Pages.
+The budget check measures the compressed JavaScript referenced by every public
+route. Browser tests run the complete viewport suite in Chromium and focused
+SVG/WebGL smoke checks in Firefox and WebKit.
 
 ## Structure
 

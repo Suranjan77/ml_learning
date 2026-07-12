@@ -1,5 +1,4 @@
 import type { ExhibitDefinition } from "../types";
-import GeneticAlgorithmScene from "./GeneticAlgorithmScene";
 
 export const geneticAlgorithmExhibit: ExhibitDefinition = {
   slug: "genetic-algorithm",
@@ -18,5 +17,4 @@ export const geneticAlgorithmExhibit: ExhibitDefinition = {
     { title: "Balance convergence", instruction: "Run toward the global peak, then restart with mutation at zero.", observation: "Elitism prevents the best fitness from falling, but low diversity can trap the population around the local peak." },
   ],
   challenges: ["Find a mutation rate that reaches the global peak without keeping all twelve genomes unique.", "Set mutation to zero and explain why crossover alone may be unable to create a missing bit pattern."],
-  component: GeneticAlgorithmScene,
 };

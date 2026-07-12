@@ -1,5 +1,4 @@
 import type { ExhibitDefinition } from "../types";
-import ParticleSwarmScene from "./ParticleSwarmScene";
 
 export const particleSwarmExhibit: ExhibitDefinition = {
   slug: "particle-swarm",
@@ -18,5 +17,4 @@ export const particleSwarmExhibit: ExhibitDefinition = {
     { title: "Converge—or collapse early", instruction: "Change social pull and inertia, restart, and compare the final spread.", observation: "Strong social pull converges quickly but can collapse the search around a merely local minimum." },
   ],
   challenges: ["Set social pull to zero. Does the swarm still agree on one solution?", "Find settings that preserve exploration for at least ten iterations while still improving the global best."],
-  component: ParticleSwarmScene,
 };

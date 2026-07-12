@@ -1,5 +1,4 @@
 import type { ExhibitDefinition } from "../types";
-import OverfittingScene from "./OverfittingScene";
 
 export const overfittingExhibit: ExhibitDefinition = {
   slug: "overfitting",
@@ -32,5 +31,4 @@ export const overfittingExhibit: ExhibitDefinition = {
     "Resample the data a few times at degree 3. Does the fitted curve stay close to the true function each time?",
     "Find the degree where validation error is lowest, then move one step past it and describe what changes in both panels.",
   ],
-  component: OverfittingScene,
 };
