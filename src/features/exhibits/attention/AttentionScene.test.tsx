@@ -1,0 +1,71 @@
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import AttentionScene from "./AttentionScene";
+
+describe("AttentionScene", () => {
+  it("renders a spatial, accessible view of every weighted connection", () => {
+    const { container } = render(<AttentionScene />);
+
+    expect(screen.getByRole("img", { name: /attention connections from it/i })).toBeInTheDocument();
+    expect(container.querySelectorAll("svg path")).toHaveLength(8);
+    expect(screen.getByRole("list", { name: /context tokens and attention weights/i })).toBeInTheDocument();
+    expect(screen.getByText(/illustrative weights · not model output/i)).toBeInTheDocument();
+
+    const widths = [...container.querySelectorAll("svg path")].map((path) =>
+      Number(path.getAttribute("stroke-width")),
+    );
+    expect(new Set(widths).size).toBeGreaterThan(2);
+    expect(container.querySelector("svg path[stroke-dasharray]")).not.toBeNull();
+  });
+
+  it("selects query tokens by hover, focus, click and arrow keys", () => {
+    render(<AttentionScene />);
+    const street = screen.getByRole("button", { name: "Use street as the query token" });
+    const because = screen.getByRole("button", { name: "Use because as the query token" });
+
+    fireEvent.mouseEnter(street);
+    expect(street).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.focus(because);
+    expect(because).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.keyDown(because, { key: "ArrowRight" });
+    const it = screen.getByRole("button", { name: "Use it as the query token" });
+    expect(it).toHaveAttribute("aria-pressed", "true");
+    expect(it).toHaveFocus();
+
+    fireEvent.click(street);
+    expect(street).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("changes sentence context and restores the initial state with resetKey", () => {
+    const { rerender } = render(<AttentionScene resetKey={0} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Use sentence ending in wide" }));
+    expect(screen.getByRole("button", { name: "Use sentence ending in wide" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getAllByText(/it pays most attention to street/i)).not.toHaveLength(0);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Show Previous token attention pattern" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Use street as the query token" }));
+
+    rerender(<AttentionScene resetKey={1} />);
+
+    expect(screen.getByRole("button", { name: "Use sentence ending in tired" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "Show Reference attention pattern" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "Use it as the query token" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
+});

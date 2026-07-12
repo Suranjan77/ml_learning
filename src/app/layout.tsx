@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Mono, Outfit, Shippori_Mincho } from "next/font/google";
 import "./globals.css";
-import "katex/dist/katex.min.css";
 import AppShell from "@/components/layout/AppShell";
 import { getAbsoluteUrl, siteConfig } from "@/lib/site";
 
@@ -34,7 +33,7 @@ export const metadata: Metadata = {
   description: siteConfig.description,
   applicationName: siteConfig.name,
   keywords: [...siteConfig.keywords],
-  authors: [{ name: "Learning AI & ML" }],
+  authors: [{ name: "Suranjan Poudel" }],
   creator: "Suranjan Poudel",
   publisher: "Suranjan Poudel",
   category: "education",
@@ -61,10 +60,9 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/logo-favicon.svg", type: "image/svg+xml" },
-      { url: "/favicon.png", sizes: "32x32", type: "image/png" },
     ],
-    shortcut: "/favicon.png",
-    apple: "/favicon.png",
+    shortcut: "/logo-favicon.svg",
+    apple: "/logo-favicon.svg",
   },
   manifest: "/manifest.webmanifest",
 };

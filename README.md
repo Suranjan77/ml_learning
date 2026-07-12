@@ -1,10 +1,11 @@
-# ML Learn
+# Interactive Machine Learning Visualisations
 
-ML Learn is an interactive machine learning curriculum that connects visual
-intuition, model behavior, and implementation-oriented explanations. It
-currently includes 29 modules across two guided tracks.
+A static web application for exploring machine-learning and deep-learning
+concepts through direct manipulation. Each visualisation is designed to fit in
+one browser viewport with its essential controls and explanation visible at the
+same time.
 
-## Run Locally
+## Development
 
 ```bash
 npm install
@@ -16,34 +17,26 @@ Open `http://localhost:3000`.
 ## Validation
 
 ```bash
-npm run test
 npm run lint
+npm run test
 npm run build
-npm run test:e2e
 ```
 
-`test:e2e` builds the static export, serves the generated `out/` artifact, and
-runs the Cypress browser suite against the production-equivalent output.
+The production build is a static export written to `out/` for GitHub Pages.
 
-## Project Structure
+## Structure
 
-- `src/data/algorithms_content/`: typed lesson content and the module registry.
-- `src/components/ui/visualizations/`: interactive module visualizations.
-- `src/components/lesson/`: reusable lesson-page sections and navigation.
-- `src/app/`: Next.js pages, route metadata, sitemap, and track pages.
-- `cypress/e2e/`: end-to-end coverage for core learner journeys.
+- `src/features/exhibits/`: visualisation models, scenes, metadata, and tests.
+- `src/app/visualisations/`: index and statically generated workspace routes.
+- `src/app/tokens.css`: preserved colour, typography, shape, and motion system.
+- `src/lib/vizTokens.ts`: renderer-safe copies of visualisation colours.
+- `docs/visualisation-rebuild-plan.md`: implementation plan and work tracker.
 
-## Add A Module
+## Adding a visualisation
 
-1. Create a typed `LearningModule` file in `src/data/algorithms_content/`.
-2. Export it from `src/data/algorithms_content/index.ts`.
-3. Add or reuse an appropriate category and learning track.
-4. Create the visualization component in
-   `src/components/ui/visualizations/`.
-5. Register the visualization in `D3Visualization.tsx`.
-6. Run the full validation commands above.
-
-## Stack
-
-Next.js 16, React 19, TypeScript, Tailwind CSS, D3, Framer Motion, KaTeX,
-Vitest, Testing Library, and Cypress.
+1. Create a deterministic model and its tests.
+2. Build a responsive scene implementing `ExhibitSceneProps`.
+3. Keep the scene within the available workspace height; do not add page-length
+   explanatory sections.
+4. Register its metadata in `src/features/exhibits/registry.ts`.
+5. Verify keyboard, pointer, touch, reduced-motion, and accessible descriptions.

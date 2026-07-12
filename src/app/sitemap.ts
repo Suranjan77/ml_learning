@@ -1,45 +1,13 @@
 import type { MetadataRoute } from "next";
-import { algorithmsList } from "@/data/algorithms_content";
+import { exhibits } from "@/features/exhibits/registry";
 import { getAbsoluteUrl } from "@/lib/site";
 
 export const dynamic = "force-static";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
-
-  const staticRoutes: MetadataRoute.Sitemap = [
-    {
-      url: getAbsoluteUrl("/"),
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 1,
-    },
-    ...[
-      "/labs",
-      "/labs/sampling",
-      "/labs/gradient-descent",
-      "/labs/overfitting",
-      "/labs/attention",
-      "/labs/tokenizer",
-      "/playground",
-      "/map",
-      "/tracks",
-    ].map((path) => ({
-      url: getAbsoluteUrl(path),
-      lastModified: now,
-      changeFrequency: "monthly" as const,
-      priority: 0.9,
-    })),
+  return [
+    { url: getAbsoluteUrl("/"), priority: 1, changeFrequency: "monthly" },
+    { url: getAbsoluteUrl("/visualisations"), priority: 0.9, changeFrequency: "weekly" },
+    ...exhibits.map(({ slug }) => ({ url: getAbsoluteUrl(`/visualisations/${slug}`), priority: 0.8, changeFrequency: "monthly" as const })),
   ];
-
-  const algorithmRoutes: MetadataRoute.Sitemap = algorithmsList.map(
-    (algorithm) => ({
-      url: getAbsoluteUrl(`/algorithms/${algorithm.id}`),
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    }),
-  );
-
-  return [...staticRoutes, ...algorithmRoutes];
 }
