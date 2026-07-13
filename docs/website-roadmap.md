@@ -16,7 +16,8 @@ Updated: 2026-07-13
 | G2: Feedback incorporation | Complete | The first observation and subsequent maintainer review produced concrete revisions. Formal participant observation no longer blocks progress; reported issues will continue to be corrected directly. |
 | G3: Reusable grammar | Complete for current wave | The second-use rule produced one shared kept-comparison command. Trajectories, fitted curves, annotations, and causal summaries remain exhibit-owned. |
 | G4: Later flagships | In progress | Overfitting and Decision Tree Partitions are the second and third flagships. They test whether causal comparison generalises across error curves and spatial routing without forcing identical choreography. |
-| G5-G6 | Pending | Homepage re-authoring and naming wait until the second flagship establishes what genuinely generalises. |
+| G5: Homepage re-authoring | Implementation complete | The first screen now contains a real Gradient Descent micro-experiment using the flagship model, followed by the three flagships, question-led doorways, project principles, and the complete collection. Final responsive review is deferred. |
+| G6: Identity decision | Pending | The clear descriptive title remains in place; naming stays deferred until the implemented identity has been reviewed as a whole. |
 
 Update this tracker in the same change that completes or materially advances a
 roadmap item. A release is complete only after its completion criteria have been
@@ -78,6 +79,15 @@ Updated: 2026-07-13
   accuracy.
 - [x] Define deterministic review states and deferred capture tooling for the
   Overfitting and Decision Tree flagships.
+- [x] Replace the split preview-card hero and universal prediction doctrine
+  with a full-bleed Gradient Descent micro-experiment powered by the same model
+  as the flagship exhibit.
+- [x] Re-author homepage discovery around three proven visual arguments and
+  five overlapping visitor questions while preserving the complete collection
+  lower on the page.
+- [x] Surface direct manipulation, honest simplification, inspectable
+  comparison, and no-surveillance principles without making privacy the main
+  product claim.
 
 ### Release 1 implementation log
 
