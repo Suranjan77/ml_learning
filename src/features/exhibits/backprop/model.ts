@@ -58,3 +58,16 @@ export function applyGradients(weights: NetworkWeights, gradient: Gradients, lea
     outputBias: weights.outputBias - learningRate * gradient.outputBias,
   };
 }
+
+export function weightsAfterUpdates(
+  input: [number, number],
+  target: number,
+  learningRate: number,
+  updateCount: number,
+) {
+  let weights = INITIAL_WEIGHTS;
+  for (let index = 0; index < updateCount; index += 1) {
+    weights = applyGradients(weights, gradients(input, target, weights), learningRate);
+  }
+  return weights;
+}

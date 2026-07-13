@@ -26,6 +26,7 @@ Updated: 2026-07-13
 | S1: Social visual arguments | Complete | All 16 public Open Graph images now use route-specific mechanism diagrams instead of one generic decorative motif. Registry alignment, raster dimensions, distinct output, metadata, and the static build are verified. |
 | P1: PCA direct projection | Complete | Equivalent undirected axes are normalised into the native slider range, the projection axis can be rotated directly on the plot, and integer angle state is URL-restorable. Pointer, responsive, model, and browser behavior are verified. |
 | C1: CNN receptive-field state | Complete | Filter and output-cell coordinates are URL-restorable, the focusable diagram moves the receptive field with arrow keys, and its live description reports the exact patch response. Automatic scanning remains transient. |
+| B1: Backpropagation replay state | Complete | Inputs, target, learning rate, and update count reconstruct weights deterministically from the authored starting network. Changing evidence resets incompatible update history, and the complete state is URL-restorable. |
 
 Update this tracker in the same change that completes or materially advances a
 roadmap item. A release is complete only after its completion criteria have been
@@ -168,6 +169,16 @@ Updated: 2026-07-13
 - [x] Verify CNN with 181 unit/component tests, lint, the static export, every
   route budget, 78 Chromium checks, and all four Firefox and WebKit smoke
   checks; inspect the restored sharpen/filter state at 390×844 directly.
+- [x] Replace Backpropagation's history-dependent mutable weights with a
+  deterministic replay from authored starting weights for the current inputs,
+  target, learning rate, and update count.
+- [x] Reset applied updates when evidence or rate changes, and encode the full
+  reproducible training state in the URL.
+- [x] Replace the inaccurate "learned weights" step wording with "authored
+  starting weights" and verify replay/reset behavior in the browser.
+- [x] Verify Backpropagation with 185 unit/component tests, lint, the static
+  export, every route budget, 79 Chromium checks, and all four Firefox and
+  WebKit smoke checks.
 
 ### Release 1 implementation log
 

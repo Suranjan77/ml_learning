@@ -4,12 +4,16 @@ import { useEffect, useId, useMemo, useState } from "react";
 import { useReducedMotion } from "motion/react";
 import type { ExhibitSceneProps } from "../types";
 import { vizTokens } from "@/lib/vizTokens";
-import { INITIAL_WEIGHTS, applyGradients, forward, gradients, type NetworkWeights } from "./model";
+import { numberParam, replaceSceneUrlState, useSceneUrlState } from "../sceneUrlState";
+import { applyGradients, forward, gradients, weightsAfterUpdates } from "./model";
 
 const WIDTH = 1_180; const HEIGHT = 520;
 const INPUT_POS = [[130, 170], [130, 350]] as const;
 const HIDDEN_POS = [[470, 145], [470, 375]] as const;
 const OUTPUT_POS = [785, 260] as const;
+const DEFAULT_INPUT: [number, number] = [0.8, 0.2];
+const DEFAULT_TARGET = 1;
+const DEFAULT_RATE = 0.5;
 
 function tone(value: number) { return value >= 0 ? vizTokens.classA : vizTokens.classB; }
 
@@ -17,12 +21,41 @@ export default function BackpropScene({ step, resetKey, playing = false }: Exhib
   const activeStep = Math.max(0, Math.min(3, step));
   const titleId = useId();
   const prefersReduced = Boolean(useReducedMotion());
-  const [input, setInput] = useState<[number, number]>([0.8, 0.2]);
-  const [target, setTarget] = useState(1);
-  const [learningRate, setLearningRate] = useState(0.5);
-  const [weights, setWeights] = useState<NetworkWeights>(INITIAL_WEIGHTS);
+  const [input, setInput] = useState<[number, number]>(DEFAULT_INPUT);
+  const [target, setTarget] = useState(DEFAULT_TARGET);
+  const [learningRate, setLearningRate] = useState(DEFAULT_RATE);
   const [updates, setUpdates] = useState(0);
-  useEffect(() => { setInput([0.8, 0.2]); setTarget(1); setLearningRate(0.5); setWeights(INITIAL_WEIGHTS); setUpdates(0); }, [resetKey]);
+  useEffect(() => { setInput([...DEFAULT_INPUT]); setTarget(DEFAULT_TARGET); setLearningRate(DEFAULT_RATE); setUpdates(0); }, [resetKey]);
+
+  const syncControls = (next: { input?: [number, number]; target?: number; learningRate?: number; updates?: number }) => {
+    const values = { input, target, learningRate, updates, ...next };
+    replaceSceneUrlState([
+      { key: "x1", value: String(values.input[0]), defaultValue: String(DEFAULT_INPUT[0]) },
+      { key: "x2", value: String(values.input[1]), defaultValue: String(DEFAULT_INPUT[1]) },
+      { key: "target", value: String(values.target), defaultValue: String(DEFAULT_TARGET) },
+      { key: "lr", value: String(values.learningRate), defaultValue: String(DEFAULT_RATE) },
+      { key: "updates", value: String(values.updates), defaultValue: "0" },
+    ]);
+  };
+
+  useSceneUrlState((params) => {
+    const nextInput: [number, number] = [
+      numberParam(params, "x1", { min: 0, max: 1, step: 0.05 }) ?? DEFAULT_INPUT[0],
+      numberParam(params, "x2", { min: 0, max: 1, step: 0.05 }) ?? DEFAULT_INPUT[1],
+    ];
+    const nextTarget = numberParam(params, "target", { min: 0, max: 1, step: 1 }) ?? DEFAULT_TARGET;
+    const nextRate = numberParam(params, "lr", { min: 0.05, max: 1, step: 0.05 }) ?? DEFAULT_RATE;
+    const nextUpdates = numberParam(params, "updates", { min: 0, max: 50, step: 1 }) ?? 0;
+    setInput(nextInput);
+    setTarget(nextTarget);
+    setLearningRate(nextRate);
+    setUpdates(nextUpdates);
+  }, resetKey);
+
+  const weights = useMemo(
+    () => weightsAfterUpdates(input, target, learningRate, updates),
+    [input, learningRate, target, updates],
+  );
   const pass = useMemo(() => forward(input, target, weights), [input, target, weights]);
   const gradient = useMemo(() => gradients(input, target, weights), [input, target, weights]);
   const preview = useMemo(() => forward(input, target, applyGradients(weights, gradient, learningRate)), [gradient, input, learningRate, target, weights]);
@@ -31,10 +64,13 @@ export default function BackpropScene({ step, resetKey, playing = false }: Exhib
   const showGradients = activeStep >= 3;
 
   useEffect(() => {
-    if (!playing || prefersReduced || !showGradients) return;
+    if (!playing || prefersReduced || !showGradients || updates >= 50) return;
     const timer = window.setTimeout(() => {
-      setWeights((current) => applyGradients(current, gradients(input, target, current), learningRate));
-      setUpdates((value) => value + 1);
+      setUpdates((value) => {
+        const next = Math.min(50, value + 1);
+        syncControls({ updates: next });
+        return next;
+      });
     }, 650);
     return () => window.clearTimeout(timer);
   }, [input, learningRate, playing, prefersReduced, showGradients, target, updates]);
@@ -67,9 +103,9 @@ export default function BackpropScene({ step, resetKey, playing = false }: Exhib
       <p className="sr-only" aria-live="polite">Prediction {pass.output.toFixed(3)}, target {target}, loss {pass.loss.toFixed(3)}. {updates} updates applied.</p>
     </div>
     <div className="grid gap-2 border-t border-outline bg-surface-container-low p-2 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end sm:px-3">
-      {input.map((value,index) => <label key={index}><span className="flex justify-between font-mono text-[9px] uppercase tracking-label text-on-surface-variant"><span>Input x{index+1}</span><span>{value.toFixed(2)}</span></span><input aria-label={`Input x${index+1}`} type="range" min="0" max="1" step="0.05" value={value} onChange={(event) => setInput((current) => current.map((item,i) => i === index ? Number(event.target.value) : item) as [number,number])} /></label>)}
-      <label><span className="flex justify-between font-mono text-[9px] uppercase tracking-label text-on-surface-variant"><span>Learning rate</span><span>{learningRate.toFixed(2)}</span></span><input aria-label="Learning rate" type="range" min="0.05" max="1" step="0.05" value={learningRate} onChange={(event) => setLearningRate(Number(event.target.value))} /></label>
-      <div className="flex gap-2"><button type="button" onClick={() => setTarget((value) => 1-value)} className="min-h-9 border border-outline bg-surface px-3 text-xs">Target {target}</button><button type="button" onClick={() => { setWeights((current) => applyGradients(current, gradients(input,target,current),learningRate)); setUpdates((value) => value+1); }} className="min-h-9 border border-primary bg-primary px-3 text-xs text-on-primary">Apply update</button></div>
+      {input.map((value,index) => <label key={index}><span className="flex justify-between font-mono text-[9px] uppercase tracking-label text-on-surface-variant"><span>Input x{index+1}</span><span>{value.toFixed(2)}</span></span><input aria-label={`Input x${index+1}`} type="range" min="0" max="1" step="0.05" value={value} onChange={(event) => { const nextInput = input.map((item,i) => i === index ? Number(event.target.value) : item) as [number,number]; setInput(nextInput); setUpdates(0); syncControls({ input: nextInput, updates: 0 }); }} /></label>)}
+      <label><span className="flex justify-between font-mono text-[9px] uppercase tracking-label text-on-surface-variant"><span>Learning rate</span><span>{learningRate.toFixed(2)}</span></span><input aria-label="Learning rate" type="range" min="0.05" max="1" step="0.05" value={learningRate} onChange={(event) => { const nextRate = Number(event.target.value); setLearningRate(nextRate); setUpdates(0); syncControls({ learningRate: nextRate, updates: 0 }); }} /></label>
+      <div className="flex gap-2"><button type="button" onClick={() => { const nextTarget = 1-target; setTarget(nextTarget); setUpdates(0); syncControls({ target: nextTarget, updates: 0 }); }} className="min-h-9 border border-outline bg-surface px-3 text-xs">Target {target}</button><button type="button" disabled={updates >= 50} onClick={() => { const nextUpdates = Math.min(50, updates + 1); setUpdates(nextUpdates); syncControls({ updates: nextUpdates }); }} className="min-h-9 border border-primary bg-primary px-3 text-xs text-on-primary disabled:cursor-not-allowed disabled:opacity-50">Apply update</button></div>
     </div>
   </section>;
 }

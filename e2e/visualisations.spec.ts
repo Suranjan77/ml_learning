@@ -193,6 +193,18 @@ test.describe("visualisation workspace", () => {
     await expect(page.getByText(/selected output cell row 4, column 4/i)).toBeAttached();
   });
 
+  test("replays and resets shared Backpropagation updates", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto("/visualisations/backpropagation?step=3&x1=0.4&x2=0.6&target=0&lr=0.2&updates=3");
+
+    await expect(page.getByText(/3 updates applied/i)).toBeAttached();
+    await page.getByRole("button", { name: "Apply update" }).click();
+    await expect.poll(() => new URL(page.url()).searchParams.get("updates")).toBe("4");
+    await page.getByRole("button", { name: "Target 0" }).click();
+    await expect.poll(() => new URL(page.url()).searchParams.has("updates")).toBe(false);
+    await expect(page.getByText(/0 updates applied/i)).toBeAttached();
+  });
+
   test("shares and restores a Gradient Descent start comparison", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto("/visualisations/gradient-descent?step=3");
