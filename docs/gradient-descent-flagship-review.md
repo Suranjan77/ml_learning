@@ -66,7 +66,8 @@ The guided revision also opens the valley with a stable kept path and the
 many-minima surface with two starts at the same rate. This makes both causal
 contrasts inspectable immediately while keeping clearing, replacing, and
 sharing the comparison available. The outcome panel names both valley regimes
-instead of asking visitors to infer the grey path's behaviour from shape alone.
+and the grey trajectory carries an attached kept-path label instead of asking
+visitors to infer its identity or behaviour from shape alone.
 
 It does not establish novice, touch, mobile, or keyboard-only comprehension,
 and it does not justify changing the many-minima model from a sample of one.

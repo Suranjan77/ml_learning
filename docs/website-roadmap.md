@@ -12,7 +12,7 @@ Updated: 2026-07-13
 | Release 3: Easier to share and trust | Complete | Meaningful scene state and guided steps are shareable; copy-link, clean embeds, visible WebGL fallback text, references, assumptions, methodology, unique canonical/social metadata, static preview images, and structured data are implemented and verified. |
 | Release 4: Expand carefully | Complete | Regression parameters and decision-tree partitions shipped as a two-exhibit wave with deterministic models, shareable controls, static metadata, budgets, four-viewport coverage, and Chromium/Firefox/WebKit verification. |
 | G0: Baseline and freeze | Complete | The 13-exhibit catalogue is frozen. The creative doctrine, flagship scorecard, signature states, and human-observation gate are defined in `docs/greatness-plan.md`. |
-| G1: Gradient Descent flagship | In progress | Gradient Descent is the sole committed flagship. Work is focused on causal path comparison, the learning-rate stability boundary, deterministic signature states, and comprehension. |
+| G1: Gradient Descent flagship | In progress | The code-side flagship revision is implemented: causal comparison defaults, stability regimes, direct annotations, deterministic signature states, camera inspection, and shareable state. Comprehension validation remains open. |
 | G2: Human observation | In progress | One ML-familiar laptop session is recorded. It exposed failures in first-action clarity, arrow meaning, regime distinction, comparison discovery, and intended recall; the first evidence-led revision is implemented and awaiting uncoached retest. |
 | G3-G6 | Blocked by gates | Reusable grammar, later flagships, homepage re-authoring, and naming wait for evidence from G1 and G2. |
 
@@ -56,6 +56,9 @@ Updated: 2026-07-13
 - [x] Seed the guided valley and many-minima states with honest one-variable
   comparisons, make their cleared state URL-restorable, and reset the 3D camera
   with the exhibit lifecycle.
+- [x] Attach identity labels to the local downhill arrow, kept trajectory, and
+  global minimum so their meaning survives camera rotation and does not depend
+  on a distant legend or colour alone.
 - [ ] Complete the first uncoached human-observation round and revise the scene.
 - [ ] Pass the flagship scorecard and close G1/G2 before extracting shared UI.
 

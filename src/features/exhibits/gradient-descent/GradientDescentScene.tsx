@@ -236,6 +236,7 @@ function DescentScene3D({
   path,
   referencePath,
   referenceStart,
+  referenceLearningRate,
   shown,
   current,
   start,
@@ -246,6 +247,7 @@ function DescentScene3D({
   path: DescentState[];
   referencePath: DescentState[] | null;
   referenceStart: Point | null;
+  referenceLearningRate: number | null;
   shown: DescentState[];
   current: DescentState;
   start: Point;
@@ -256,6 +258,9 @@ function DescentScene3D({
   const trajectory = shown.map(scenePoint);
   const forecast = drawablePath(path).slice(Math.max(0, shown.length - 1)).map(scenePoint);
   const reference = referencePath ? drawablePath(referencePath).map(scenePoint) : [];
+  const referenceLabelPosition = reference.length > 1
+    ? reference[surface === "multimodal" ? 0 : Math.min(2, reference.length - 1)]
+    : null;
   const showReferenceStart = referenceStart && Math.hypot(referenceStart.x - start.x, referenceStart.y - start.y) > 0.05;
   const currentPosition = scenePoint(current);
   const gradient = gradientAt(current, surface);
@@ -266,6 +271,15 @@ function DescentScene3D({
   };
   const downhillPosition = downhill
     ? [downhill.x, surfaceHeight(downhill, surface) + 0.16, downhill.y] as [number, number, number]
+    : null;
+  const downhillDirection = downhillPosition
+    ? new THREE.Vector3(...downhillPosition).sub(new THREE.Vector3(...currentPosition)).normalize()
+    : null;
+  const downhillArrowPosition = downhillDirection && downhillPosition
+    ? new THREE.Vector3(...downhillPosition).addScaledVector(downhillDirection, -0.12)
+    : null;
+  const downhillArrowRotation = downhillDirection
+    ? new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), downhillDirection)
     : null;
 
   return (
@@ -283,6 +297,13 @@ function DescentScene3D({
       <SurfaceContours surface={surface} />
 
       {reference.length > 1 ? <Line points={reference} color={vizTokens.mutedInk} lineWidth={2.4} transparent opacity={0.34} /> : null}
+      {referenceLabelPosition && referenceLearningRate !== null ? (
+        <Html position={[referenceLabelPosition[0], referenceLabelPosition[1] + 0.24, referenceLabelPosition[2]]} center zIndexRange={[4, 0]}>
+          <span aria-hidden="true" className="pointer-events-none whitespace-nowrap border border-outline-dark bg-surface/95 px-1.5 py-0.5 font-mono text-[8px] uppercase text-on-surface-variant">
+            Kept path · {referenceLearningRate.toFixed(2)}
+          </span>
+        </Html>
+      ) : null}
       {forecast.length > 1 ? <Line points={forecast} color={vizTokens.path} lineWidth={2} dashed dashSize={0.12} gapSize={0.1} transparent opacity={0.34} /> : null}
       {trajectory.length > 1 ? <Line points={trajectory} color={vizTokens.path} lineWidth={4} /> : null}
       {shown.slice(0, -1).map((point) => (
@@ -306,6 +327,13 @@ function DescentScene3D({
         <sphereGeometry args={[0.14, 20, 20]} />
         <meshBasicMaterial color={vizTokens.classA} />
       </mesh>
+      {surface === "multimodal" ? (
+        <Html position={[0, 0.42, 0]} center zIndexRange={[3, 0]}>
+          <span aria-hidden="true" className="pointer-events-none whitespace-nowrap border border-primary bg-surface/95 px-1.5 py-0.5 font-mono text-[8px] uppercase text-primary">
+            Global minimum
+          </span>
+        </Html>
+      ) : null}
       {surface === "multimodal" ? MULTIMODAL_MINIMA.map((minimum, index) => {
         const position = scenePoint(minimum);
         const global = index === 0;
@@ -323,6 +351,12 @@ function DescentScene3D({
       </mesh>
       {downhillPosition ? <>
         <Line points={[currentPosition, downhillPosition]} color={vizTokens.classA} lineWidth={3} dashed dashSize={0.12} gapSize={0.08} />
+        {downhillArrowPosition && downhillArrowRotation ? (
+          <mesh position={downhillArrowPosition} quaternion={downhillArrowRotation}>
+            <coneGeometry args={[0.1, 0.24, 18]} />
+            <meshBasicMaterial color={vizTokens.classA} />
+          </mesh>
+        ) : null}
         <Html position={[downhillPosition[0], downhillPosition[1] + 0.22, downhillPosition[2]]} center zIndexRange={[5, 0]}>
           <span aria-hidden="true" className="pointer-events-none whitespace-nowrap border border-primary bg-surface/95 px-1.5 py-0.5 font-mono text-[8px] uppercase text-primary">
             Local downhill
@@ -557,7 +591,7 @@ export default function GradientDescentScene({ step, resetKey, playing = false }
         onKeyDown={nudgeStart}
         className="relative min-h-0 overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-primary"
       >
-        <DescentScene3D key={`${step}-${resetKey}`} surface={surface} path={path} referencePath={reference?.path ?? null} referenceStart={reference?.start ?? null} shown={shown} current={current} start={start} onChooseStart={chooseStart} reducedMotion={prefersReduced} />
+        <DescentScene3D key={`${step}-${resetKey}`} surface={surface} path={path} referencePath={reference?.path ?? null} referenceStart={reference?.start ?? null} referenceLearningRate={reference?.learningRate ?? null} shown={shown} current={current} start={start} onChooseStart={chooseStart} reducedMotion={prefersReduced} />
 
         <div className="pointer-events-none absolute left-3 top-3 hidden border border-outline bg-surface/90 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.08em] text-on-surface-variant backdrop-blur-sm sm:left-4 sm:top-4 sm:block">
           <span>parameters x₁, x₂</span><span className="px-2 text-outline-dark">→</span><span className="text-primary">height = loss</span>
@@ -596,7 +630,7 @@ export default function GradientDescentScene({ step, resetKey, playing = false }
         </fieldset>
 
         <label className="min-w-0 flex-1 sm:max-w-sm">
-          <span className="mb-1 flex items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant"><span>{surface === "valley" ? "Stability limit" : "Learning rate"}</span><span className={regimeClass}>{learningRate.toFixed(2)} · {regimeLabel}</span></span>
+          <span className="mb-1 flex items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant"><span>Learning rate</span><span className={regimeClass}>{learningRate.toFixed(2)} · {regimeLabel}</span></span>
           <input aria-label="Learning rate" type="range" min={LEARNING_RATE_RANGE.min} max={LEARNING_RATE_RANGE.max} step={LEARNING_RATE_RANGE.step} value={learningRate} onChange={(event) => { const next = Number(event.target.value); setLearningRate(next); syncControls(surface, next, start); restartPath(); }} className="block min-h-9" />
           <button type="button" aria-pressed={reference !== null} onClick={() => { const nextReference = reference ? null : { learningRate, start, path }; setReference(nextReference); syncControls(surface, learningRate, start, nextReference); }} className={`mt-1 min-h-8 w-full border px-2 font-mono text-[9px] uppercase tracking-[0.08em] transition-colors ${reference ? "border-primary bg-primary text-on-primary" : "border-outline bg-surface text-on-surface-variant hover:border-primary hover:text-primary"}`}>{reference ? `Clear kept path at ${reference.learningRate.toFixed(2)}` : "Keep this path to compare"}</button>
         </label>
