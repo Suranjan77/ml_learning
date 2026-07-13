@@ -17,8 +17,8 @@ Expected one-sentence recall:
 
 ## Reproducible signature states
 
-These URLs use only deterministic model state and are the candidates for visual
-regression once a WebGL-capable baseline environment is selected.
+These URLs use only deterministic model state and define the visual-regression
+states.
 
 | State | URL | Expected evidence |
 | --- | --- | --- |
@@ -26,7 +26,7 @@ regression once a WebGL-capable baseline environment is selected.
 | Stable valley convergence | `/visualisations/gradient-descent?step=2&lr=0.4` | The 14-step loss is lower without crossing the stability boundary. |
 | Ravine oscillation | `/visualisations/gradient-descent?step=2` | The path repeatedly crosses the valley at learning rate 0.90. |
 | Divergence | `/visualisations/gradient-descent?step=2&lr=1.06` | The 14-step loss is higher immediately beyond the tested stable boundary. |
-| Different basins | `/visualisations/gradient-descent?step=3&x=0.4&y=0.4&refX=-3.4&refY=1.9&refLr=0.24` | The kept start ends near loss 1.53 while the current start reaches loss 0.00. |
+| Different basins | `/visualisations/gradient-descent?step=3` | The guided default holds learning rate constant; the kept start ends near loss 1.53 while the current start reaches loss 0.00. |
 
 All five states are covered by model, component, or browser assertions. The
 Firefox baseline environment renders a real 1406×535 WebGL canvas and rejects
@@ -62,6 +62,12 @@ This session supports four immediate revisions:
 4. Promote path keeping from an underlined text link to a full comparison
    command.
 
+The guided revision also opens the valley with a stable kept path and the
+many-minima surface with two starts at the same rate. This makes both causal
+contrasts inspectable immediately while keeping clearing, replacing, and
+sharing the comparison available. The outcome panel names both valley regimes
+instead of asking visitors to infer the grey path's behaviour from shape alone.
+
 It does not establish novice, touch, mobile, or keyboard-only comprehension,
 and it does not justify changing the many-minima model from a sample of one.
 The "higher is better" inference is a priority question for the next sessions.
@@ -93,7 +99,8 @@ confirms the changes.
    not a planned route?
 2. Can the visitor distinguish oscillation that still lowers loss from true
    divergence?
-3. Is `Keep this path to compare` discovered before coaching?
+3. Is the seeded grey comparison path understood without coaching, including
+   which variable differs?
 4. Does the visitor understand the warning when both start and rate change, and
    then return to a one-variable comparison?
 5. After leaving the page, do they recall the ravine crossing rather than the

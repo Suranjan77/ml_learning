@@ -16,6 +16,7 @@ export const SCENE_URL_KEYS = [
   "refX",
   "refY",
   "refLr",
+  "compare",
   "degree",
   "temperature",
   "truncate",

@@ -9,7 +9,7 @@ const states = [
   ["02-stable-convergence.png", "?step=2&lr=0.4"],
   ["03-ravine-oscillation.png", "?step=2"],
   ["04-divergence.png", "?step=2&lr=1.06"],
-  ["05-different-basins.png", "?step=3&x=0.4&y=0.4&refX=-3.4&refY=1.9&refLr=0.24"],
+  ["05-different-basins.png", "?step=3"],
 ];
 
 await mkdir(outputDirectory, { recursive: true });
@@ -34,10 +34,13 @@ try {
       const pixels = new Uint8Array(gl.drawingBufferWidth * gl.drawingBufferHeight * 4);
       gl.readPixels(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
       const colours = new Set();
-      const stride = Math.max(1, Math.floor(pixels.length / 4 / 500));
-      for (let pixel = 0; pixel < pixels.length / 4; pixel += stride) {
-        const index = pixel * 4;
-        colours.add(`${pixels[index]},${pixels[index + 1]},${pixels[index + 2]},${pixels[index + 3]}`);
+      const xStep = Math.max(1, Math.floor(gl.drawingBufferWidth / 64));
+      const yStep = Math.max(1, Math.floor(gl.drawingBufferHeight / 36));
+      for (let y = 0; y < gl.drawingBufferHeight; y += yStep) {
+        for (let x = 0; x < gl.drawingBufferWidth; x += xStep) {
+          const index = (y * gl.drawingBufferWidth + x) * 4;
+          colours.add(`${pixels[index]},${pixels[index + 1]},${pixels[index + 2]},${pixels[index + 3]}`);
+        }
       }
       return colours.size;
     });

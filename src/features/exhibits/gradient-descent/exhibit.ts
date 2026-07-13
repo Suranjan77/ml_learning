@@ -33,13 +33,13 @@ export const gradientDescentExhibit: ExhibitDefinition = {
     },
     {
       title: "Increase the step size",
-      instruction: "Keep the current path, then change the learning rate and find the highest value that still lowers loss after 14 steps.",
-      observation: "On a narrow valley, a high learning rate repeatedly crosses the valley floor. Above the stable range, the loss grows.",
+      instruction: "The grey path uses a stable rate of 0.40. Change the current rate and find the highest value that still lowers loss after 14 steps.",
+      observation: "The two paths share a start and differ only in learning rate. A high rate repeatedly crosses the valley floor; above the stable range, loss grows.",
     },
     {
       title: "Get trapped in a local minimum",
-      instruction: "Keep one path, then move the start on the many-minima surface and compare the forecast destinations.",
-      observation: "The update rule always follows the local slope. It can settle in a nearby basin even when a lower minimum exists beyond a ridge.",
+      instruction: "The grey and red paths use the same learning rate. Move the red start and compare their forecast destinations.",
+      observation: "With learning rate held constant, changing only the start can lead to a different basin and final loss.",
     },
   ],
   challenges: [

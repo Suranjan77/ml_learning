@@ -30,12 +30,30 @@ import {
   type SurfaceKind,
 } from "./model";
 
+interface ReferenceSeed {
+  learningRate: number;
+  start: Point;
+}
+
+interface StepPreset {
+  surface: SurfaceKind;
+  learningRate: number;
+  visibleSteps: number;
+  start: Point;
+  reference: ReferenceSeed | null;
+}
+
+interface PathReference extends ReferenceSeed {
+  path: DescentState[];
+}
+
+const BASIN_START = { x: 0.4, y: 0.4 };
 const STEP_PRESETS = [
-  { surface: "bowl", learningRate: DEFAULT_LEARNING_RATE, visibleSteps: 0 },
-  { surface: "bowl", learningRate: DEFAULT_LEARNING_RATE, visibleSteps: 1 },
-  { surface: "valley", learningRate: 0.9, visibleSteps: 3 },
-  { surface: "multimodal", learningRate: 0.24, visibleSteps: 8 },
-] as const satisfies readonly { surface: SurfaceKind; learningRate: number; visibleSteps: number }[];
+  { surface: "bowl", learningRate: DEFAULT_LEARNING_RATE, visibleSteps: 0, start: DEFAULT_START, reference: null },
+  { surface: "bowl", learningRate: DEFAULT_LEARNING_RATE, visibleSteps: 1, start: DEFAULT_START, reference: null },
+  { surface: "valley", learningRate: 0.9, visibleSteps: 3, start: DEFAULT_START, reference: { learningRate: 0.4, start: DEFAULT_START } },
+  { surface: "multimodal", learningRate: 0.24, visibleSteps: 8, start: BASIN_START, reference: { learningRate: 0.24, start: DEFAULT_START } },
+] as const satisfies readonly StepPreset[];
 
 const HEIGHT_SCALE = 0.22;
 const MAX_HEIGHT = 4.8;
@@ -44,12 +62,6 @@ const CONTOUR_LEVELS = {
   valley: [0.35, 0.9, 1.8, 3.2, 5],
 } as const;
 const MULTIMODAL_MINIMA = multimodalMinima();
-
-interface PathReference {
-  learningRate: number;
-  start: Point;
-  path: DescentState[];
-}
 
 function coordinateValue(value: number) {
   return String(Number(value.toFixed(2)));
@@ -68,6 +80,16 @@ function scenePoint(point: Point & { loss?: number }): [number, number, number] 
 
 function presetFor(step: number) {
   return STEP_PRESETS[Math.max(0, Math.min(STEP_PRESETS.length - 1, step))];
+}
+
+function referenceForPreset(preset: StepPreset): PathReference | null {
+  return preset.reference
+    ? {
+        learningRate: preset.reference.learningRate,
+        start: { ...preset.reference.start },
+        path: descentPath(preset.reference.start, preset.reference.learningRate, preset.surface),
+      }
+    : null;
 }
 
 function outcomeLabel(state: ReturnType<typeof assessStep>): string {
@@ -324,19 +346,21 @@ function DescentScene3D({
 
 export default function GradientDescentScene({ step, resetKey, playing = false }: ExhibitSceneProps) {
   const initialPreset = presetFor(step);
+  const initialReference = referenceForPreset(initialPreset);
   const prefersReduced = Boolean(useReducedMotion());
   const [surface, setSurface] = useState<SurfaceKind>(initialPreset.surface);
   const [learningRate, setLearningRate] = useState<number>(initialPreset.learningRate);
-  const [start, setStart] = useState<Point>(DEFAULT_START);
+  const [start, setStart] = useState<Point>(initialPreset.start);
   const [visibleSteps, setVisibleSteps] = useState<number>(initialPreset.visibleSteps);
   const [running, setRunning] = useState(false);
-  const [reference, setReference] = useState<PathReference | null>(null);
+  const [reference, setReference] = useState<PathReference | null>(initialReference);
 
   const syncControls = (nextSurface: SurfaceKind, nextRate: number, nextStart: Point, nextReference: PathReference | null = reference) => replaceSceneUrlState([
     { key: "surface", value: nextSurface, defaultValue: initialPreset.surface },
     { key: "lr", value: String(nextRate), defaultValue: String(initialPreset.learningRate) },
-    { key: "x", value: coordinateValue(nextStart.x), defaultValue: coordinateValue(DEFAULT_START.x) },
-    { key: "y", value: coordinateValue(nextStart.y), defaultValue: coordinateValue(DEFAULT_START.y) },
+    { key: "x", value: coordinateValue(nextStart.x), defaultValue: coordinateValue(initialPreset.start.x) },
+    { key: "y", value: coordinateValue(nextStart.y), defaultValue: coordinateValue(initialPreset.start.y) },
+    { key: "compare", value: nextReference ? "on" : "off", defaultValue: initialReference ? "on" : "off" },
     { key: "refX", value: nextReference ? coordinateValue(nextReference.start.x) : "", defaultValue: "" },
     { key: "refY", value: nextReference ? coordinateValue(nextReference.start.y) : "", defaultValue: "" },
     { key: "refLr", value: nextReference ? String(nextReference.learningRate) : "", defaultValue: "" },
@@ -359,10 +383,10 @@ export default function GradientDescentScene({ step, resetKey, playing = false }
     const preset = presetFor(step);
     setSurface(preset.surface);
     setLearningRate(preset.learningRate);
-    setStart(DEFAULT_START);
+    setStart({ ...preset.start });
     setVisibleSteps(preset.visibleSteps);
     setRunning(false);
-    setReference(null);
+    setReference(referenceForPreset(preset));
   }, [resetKey, step]);
 
   useEffect(() => {
@@ -378,7 +402,7 @@ export default function GradientDescentScene({ step, resetKey, playing = false }
     const restoredY = numberParam(params, "y", { min: DOMAIN.yMin, max: DOMAIN.yMax, step: 0.01 });
     const nextSurface = restoredSurface ?? initialPreset.surface;
     const nextRate = restoredRate ?? initialPreset.learningRate;
-    const nextStart = { x: restoredX ?? DEFAULT_START.x, y: restoredY ?? DEFAULT_START.y };
+    const nextStart = { x: restoredX ?? initialPreset.start.x, y: restoredY ?? initialPreset.start.y };
     setSurface(nextSurface);
     setLearningRate(nextRate);
     setStart(nextStart);
@@ -389,6 +413,10 @@ export default function GradientDescentScene({ step, resetKey, playing = false }
     if (referenceX !== undefined && referenceY !== undefined && referenceRate !== undefined) {
       const referenceStart = { x: referenceX, y: referenceY };
       setReference({ learningRate: referenceRate, start: referenceStart, path: descentPath(referenceStart, referenceRate, nextSurface) });
+    } else if (enumParam(params, "compare", ["off"] as const) === "off") {
+      setReference(null);
+    } else {
+      setReference(referenceForPreset(initialPreset));
     }
   }, step);
 
@@ -497,8 +525,23 @@ export default function GradientDescentScene({ step, resetKey, playing = false }
     ? `${startChanged && !rateChanged ? "Starts" : "Paths"} reach ${reachesDifferentBasin ? "different basins" : "the same basin"} · kept loss ${referenceEnd.loss.toFixed(2)} · current ${forecastEnd.loss.toFixed(2)}`
     : null;
   const pathChange = Math.abs(pathAssessment.relativeLossDelta * 100);
-  const stabilityOutcome = `${pathRegimeLabel}: after ${DEFAULT_STEPS} steps, loss is ${pathChange.toFixed(0)}% ${pathAssessment.behaviour === "diverging" ? "higher" : "lower"}`;
-  const statusDescription = `${statusText} ${outcomeLabel(assessment)} on the ${surface} surface. Learning rate ${learningRate.toFixed(2)}.${comparisonDescription ? ` ${comparisonDescription}` : ""}${basinComparison ? ` ${basinComparison}.` : ""}`;
+  const stabilityOutcome = `Current ${learningRate.toFixed(2)} ${pathRegimeLabel}: after ${DEFAULT_STEPS} steps, loss is ${pathChange.toFixed(0)}% ${pathAssessment.behaviour === "diverging" ? "higher" : "lower"}`;
+  const referencePathAssessment = reference && surface === "valley" ? assessPath(reference.path, surface) : null;
+  const referenceRegimeLabel = referencePathAssessment?.behaviour === "diverging"
+    ? "diverging"
+    : referencePathAssessment?.behaviour === "oscillating"
+      ? "oscillating"
+      : "converging";
+  const referencePathChange = referencePathAssessment ? Math.abs(referencePathAssessment.relativeLossDelta * 100) : 0;
+  const valleyReferenceOutcome = reference && referencePathAssessment && rateChanged && !startChanged
+    ? `Kept ${reference.learningRate.toFixed(2)} ${referenceRegimeLabel}: loss is ${referencePathChange.toFixed(0)}% ${referencePathAssessment.behaviour === "diverging" ? "higher" : "lower"}`
+    : null;
+  const referenceRegimeClass = referencePathAssessment?.behaviour === "diverging"
+    ? "text-error"
+    : referencePathAssessment?.behaviour === "oscillating"
+      ? "text-warning"
+      : "text-primary";
+  const statusDescription = `${statusText} ${outcomeLabel(assessment)} on the ${surface} surface. Learning rate ${learningRate.toFixed(2)}.${comparisonDescription ? ` ${comparisonDescription}` : ""}${valleyReferenceOutcome ? ` ${valleyReferenceOutcome}.` : ""}${basinComparison ? ` ${basinComparison}.` : ""}`;
   const referenceDescription = reference
     ? ` Kept path starts at x ${reference.start.x.toFixed(2)}, y ${reference.start.y.toFixed(2)}, with learning rate ${reference.learningRate.toFixed(2)}.`
     : "";
@@ -514,7 +557,7 @@ export default function GradientDescentScene({ step, resetKey, playing = false }
         onKeyDown={nudgeStart}
         className="relative min-h-0 overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-primary"
       >
-        <DescentScene3D surface={surface} path={path} referencePath={reference?.path ?? null} referenceStart={reference?.start ?? null} shown={shown} current={current} start={start} onChooseStart={chooseStart} reducedMotion={prefersReduced} />
+        <DescentScene3D key={`${step}-${resetKey}`} surface={surface} path={path} referencePath={reference?.path ?? null} referenceStart={reference?.start ?? null} shown={shown} current={current} start={start} onChooseStart={chooseStart} reducedMotion={prefersReduced} />
 
         <div className="pointer-events-none absolute left-3 top-3 hidden border border-outline bg-surface/90 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.08em] text-on-surface-variant backdrop-blur-sm sm:left-4 sm:top-4 sm:block">
           <span>parameters x₁, x₂</span><span className="px-2 text-outline-dark">→</span><span className="text-primary">height = loss</span>
@@ -533,6 +576,7 @@ export default function GradientDescentScene({ step, resetKey, playing = false }
           <p className={`mt-1 font-mono text-[9px] uppercase ${assessment.behaviour === "diverging" ? "text-error" : assessment.behaviour === "overshoot" ? "text-warning" : "text-primary"}`}>{outcomeLabel(assessment)}</p>
           <p className="mt-1 text-[10px] leading-snug text-on-surface-variant">{surfaceExplanation}</p>
           {surface === "valley" ? <p className={`mt-1 border-t border-outline pt-1 font-mono text-[9px] uppercase ${regimeClass}`}>{stabilityOutcome}</p> : null}
+          {valleyReferenceOutcome ? <p className={`mt-1 font-mono text-[9px] uppercase ${referenceRegimeClass}`}>{valleyReferenceOutcome}</p> : null}
           {basinComparison ? <p className={`mt-1 border-t border-outline pt-1 font-mono text-[9px] uppercase ${reachesDifferentBasin ? "text-warning" : "text-primary"}`}>{basinComparison}</p> : basinOutcome ? <p className={`mt-1 border-t border-outline pt-1 font-mono text-[9px] uppercase ${forecastEnd.loss < 0.02 ? "text-primary" : "text-warning"}`}>{basinOutcome}</p> : null}
         </div>
         <div className="pointer-events-none absolute bottom-3 left-3 border border-outline bg-surface/90 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.08em] text-on-surface-variant sm:left-4">
