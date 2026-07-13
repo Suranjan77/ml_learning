@@ -25,6 +25,7 @@ Updated: 2026-07-13
 | K1: Kernel fidelity | Complete | The exhibit now frames one explicit radial feature map, connects a computed horizontal threshold to its exact circular input-space boundary, distinguishes view interpolation from model parameters, preserves orbit inspection, and restores the view from the URL. Four signature states and the full repository gate are verified. |
 | S1: Social visual arguments | Complete | All 16 public Open Graph images now use route-specific mechanism diagrams instead of one generic decorative motif. Registry alignment, raster dimensions, distinct output, metadata, and the static build are verified. |
 | P1: PCA direct projection | Complete | Equivalent undirected axes are normalised into the native slider range, the projection axis can be rotated directly on the plot, and integer angle state is URL-restorable. Pointer, responsive, model, and browser behavior are verified. |
+| C1: CNN receptive-field state | Complete | Filter and output-cell coordinates are URL-restorable, the focusable diagram moves the receptive field with arrow keys, and its live description reports the exact patch response. Automatic scanning remains transient. |
 
 Update this tracker in the same change that completes or materially advances a
 roadmap item. A release is complete only after its completion criteria have been
@@ -158,6 +159,15 @@ Updated: 2026-07-13
 - [x] Verify PCA with 178 unit/component tests, lint, the static export, every
   route budget, 77 Chromium checks, and all four Firefox and WebKit smoke
   checks; inspect the desktop drag state and restored 390×844 layout directly.
+- [x] Make CNN filter and receptive-field coordinates shareable while keeping
+  the automatic scan out of persistent URL state.
+- [x] Add arrow-key cell movement and a live nonvisual patch/filter response to
+  match the existing pointer cell selection.
+- [x] Correct the CNN assumptions to state that fixed 2×2 max pooling is shown,
+  rather than incorrectly listing pooling as omitted.
+- [x] Verify CNN with 181 unit/component tests, lint, the static export, every
+  route budget, 78 Chromium checks, and all four Firefox and WebKit smoke
+  checks; inspect the restored sharpen/filter state at 390×844 directly.
 
 ### Release 1 implementation log
 

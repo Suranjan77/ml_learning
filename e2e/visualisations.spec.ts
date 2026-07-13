@@ -178,6 +178,21 @@ test.describe("visualisation workspace", () => {
     await expect(slider).toHaveValue(sharedAngle);
   });
 
+  test("moves and restores the CNN receptive field by keyboard", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto("/visualisations/cnn-feature-maps?step=2&filter=sharpen&row=4&column=5");
+
+    await expect(page.getByRole("button", { name: "sharpen" })).toHaveAttribute("aria-pressed", "true");
+    const diagram = page.getByRole("img", { name: /feature-map calculation/i });
+    await diagram.focus();
+    await page.keyboard.press("ArrowLeft");
+
+    await expect.poll(() => new URL(page.url()).searchParams.get("column")).toBe("4");
+    await expect(page.getByText(/selected output cell row 4, column 4/i)).toBeAttached();
+    await page.reload();
+    await expect(page.getByText(/selected output cell row 4, column 4/i)).toBeAttached();
+  });
+
   test("shares and restores a Gradient Descent start comparison", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto("/visualisations/gradient-descent?step=3");

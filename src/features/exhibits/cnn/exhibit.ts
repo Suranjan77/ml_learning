@@ -14,7 +14,7 @@ export const cnnExhibit: ExhibitDefinition = {
   related: ["backpropagation", "kernel-trick"],
   assumptions: [
     "The input image and convolution kernels are small hand-authored grids chosen to make edges and textures visible.",
-    "A single convolution and activation step is shown; stride, padding, pooling, and multi-channel stacks are simplified away.",
+    "One single-channel valid convolution, ReLU, and fixed 2×2 max-pooling step are shown; padding, learned filters, and multi-channel stacks are omitted.",
   ],
   references: [
     { label: "LeCun et al., Gradient-Based Learning Applied to Document Recognition (1998), Proc. IEEE" },
