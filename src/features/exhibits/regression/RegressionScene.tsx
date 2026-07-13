@@ -52,7 +52,7 @@ export default function RegressionScene({ step, resetKey, playing = false }: Exh
     if (nextMode !== undefined) setMode(nextMode);
     if (nextSlope !== undefined) setSlope(nextSlope);
     if (nextIntercept !== undefined) setIntercept(nextIntercept);
-  });
+  }, step);
 
   const sync = (next: { mode?: RegressionMode; slope?: number; intercept?: number }) => {
     const values = { mode, slope, intercept, ...next };

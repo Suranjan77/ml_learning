@@ -28,7 +28,7 @@ export default function DecisionTreeScene({ step, resetKey, playing = false }: E
     const nextThreshold = numberParam(params, "threshold", THRESHOLD);
     if (nextDepth !== undefined) setDepth(nextDepth as TreeConfig["depth"]);
     if (nextThreshold !== undefined) setThreshold(nextThreshold);
-  });
+  }, step);
   const sync = (next: { depth?: TreeConfig["depth"]; threshold?: number }) => {
     const values = { depth, threshold, ...next };
     replaceSceneUrlState([

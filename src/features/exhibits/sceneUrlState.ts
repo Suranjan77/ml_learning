@@ -11,6 +11,11 @@ export interface SceneUrlEntry {
 export const SCENE_URL_KEYS = [
   "surface",
   "lr",
+  "x",
+  "y",
+  "refX",
+  "refY",
+  "refLr",
   "degree",
   "temperature",
   "truncate",
@@ -67,7 +72,7 @@ export function replaceSceneUrlState(entries: readonly SceneUrlEntry[]) {
   window.history.replaceState({}, "", url);
 }
 
-export function useSceneUrlState(restore: (params: URLSearchParams) => void) {
+export function useSceneUrlState(restore: (params: URLSearchParams) => void, restoreKey?: unknown) {
   const restoreRef = useRef(restore);
 
   useEffect(() => {
@@ -77,5 +82,5 @@ export function useSceneUrlState(restore: (params: URLSearchParams) => void) {
   useEffect(() => {
     if (!window.location.pathname.startsWith("/visualisations/")) return;
     restoreRef.current(new URLSearchParams(window.location.search));
-  }, []);
+  }, [restoreKey]);
 }

@@ -1,7 +1,7 @@
 # Website Roadmap
 
-Status: proposed  
-Updated: 2026-07-12
+Status: active
+Updated: 2026-07-13
 
 ## Implementation tracker
 
@@ -11,10 +11,50 @@ Updated: 2026-07-12
 | Release 2: Easier to explore | Complete | Search, filters with URL state, discovery tags, question-led groupings, and related ideas are complete. The library browser passes Chromium, Firefox, and containerised WebKit coverage. |
 | Release 3: Easier to share and trust | Complete | Meaningful scene state and guided steps are shareable; copy-link, clean embeds, visible WebGL fallback text, references, assumptions, methodology, unique canonical/social metadata, static preview images, and structured data are implemented and verified. |
 | Release 4: Expand carefully | Complete | Regression parameters and decision-tree partitions shipped as a two-exhibit wave with deterministic models, shareable controls, static metadata, budgets, four-viewport coverage, and Chromium/Firefox/WebKit verification. |
+| G0: Baseline and freeze | In progress | The 13-exhibit catalogue is frozen. The creative doctrine, flagship scorecard, signature states, and human-observation gate are defined in `docs/greatness-plan.md`. |
+| G1: Gradient Descent flagship | In progress | Gradient Descent is the sole committed flagship. Work is focused on causal path comparison, the learning-rate stability boundary, deterministic signature states, and comprehension. |
+| G2: Human observation | In progress | One ML-familiar laptop session is recorded. It exposed failures in first-action clarity, arrow meaning, regime distinction, comparison discovery, and intended recall; the first evidence-led revision is implemented and awaiting uncoached retest. |
+| G3-G6 | Blocked by gates | Reusable grammar, later flagships, homepage re-authoring, and naming wait for evidence from G1 and G2. |
 
 Update this tracker in the same change that completes or materially advances a
 roadmap item. A release is complete only after its completion criteria have been
 verified.
+
+### Greatness phase implementation log
+
+Updated: 2026-07-13
+
+- [x] Freeze catalogue expansion at 13 exhibits until the first flagship passes
+  its creative and observation gates.
+- [x] Adopt the flagship scorecard and the second-use rule for shared
+  interaction abstractions.
+- [x] Commit to Gradient Descent as the only first flagship; leave later
+  candidates unselected.
+- [x] Define five deterministic Gradient Descent signature states.
+- [x] Add computed full-path assessment for the valley stability experiment.
+- [x] Add an explicit kept-path comparison so learning rate can be isolated as
+  the changing variable.
+- [x] Make current and kept starting positions URL-restorable, expose the
+  different-basin contrast nonvisually, and verify all five signature states.
+- [x] Label whether a kept-path comparison isolates rate, isolates start, or
+  changes both; avoid attributing confounded basin outcomes to the start alone.
+- [x] Record the provisional flagship scorecard and observation priorities in
+  `docs/gradient-descent-flagship-review.md`.
+- [x] Replace global-only WebGL detection with a real context probe and verify
+  that unsupported environments show an explanatory fallback instead of a
+  blank canvas.
+- [x] Verify lint, 157 unit/component tests, the 21-page static build, every
+  JavaScript budget, and all 69 Chromium checks across the four representative
+  viewports; verify all four smoke checks in Chromium, Firefox, and the official
+  Playwright WebKit container.
+- [x] Capture five reviewed WebGL signature baselines with a deterministic,
+  nonblank-frame-checked Firefox script.
+- [x] Record the first uncoached observation without altering the raw account;
+  clarify move-versus-orbit gestures, label local downhill, name the three
+  computed path regimes, and promote the kept-path comparison command in
+  response.
+- [ ] Complete the first uncoached human-observation round and revise the scene.
+- [ ] Pass the flagship scorecard and close G1/G2 before extracting shared UI.
 
 ### Release 1 implementation log
 

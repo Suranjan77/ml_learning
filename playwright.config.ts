@@ -1,6 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const baseURL = "http://localhost:3000";
+const localChrome = process.env.PLAYWRIGHT_USE_SYSTEM_CHROME === "1"
+  ? { channel: "chrome" as const }
+  : {};
 
 export default defineConfig({
   testDir: "./e2e",
@@ -15,7 +18,7 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: { ...devices["Desktop Chrome"], ...localChrome },
     },
     {
       name: "firefox-smoke",

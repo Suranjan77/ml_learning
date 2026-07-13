@@ -3,8 +3,8 @@ import type { ExhibitDefinition } from "../types";
 export const gradientDescentExhibit: ExhibitDefinition = {
   slug: "gradient-descent",
   title: "Gradient descent",
-  question: "How does gradient descent choose its next step?",
-  summary: "Compare direct descent, ravine zig-zags, and local-minimum traps while changing the start and learning rate on real 3D loss surfaces.",
+  question: "How can the same local next step converge, oscillate, diverge, or find a different basin?",
+  summary: "Change the start and step size on computed 3D loss surfaces, then compare direct descent, ravine oscillation, divergence, and local-minimum traps.",
   insight: "Each update uses only the slope at the current point. It can cross a narrow valley, diverge with a large step, or settle in a local basin without ever discovering a better minimum beyond a ridge.",
   topic: "Learning and optimisation",
   difficulty: "Approachable",
@@ -23,8 +23,8 @@ export const gradientDescentExhibit: ExhibitDefinition = {
   steps: [
     {
       title: "Set the starting point",
-      instruction: "Orbit the loss surface, then drag across it or focus it and use the arrow keys to move the start.",
-      observation: "Surface height is the loss for two model parameters. The dashed segment shows the local downhill direction.",
+      instruction: "Rotate the view to inspect the surface, drag the surface to move the red start, then take one local step.",
+      observation: "Surface height is loss. The green dashed arrow shows only the downhill direction at the current point, not a planned route.",
     },
     {
       title: "Apply one update",
@@ -33,12 +33,12 @@ export const gradientDescentExhibit: ExhibitDefinition = {
     },
     {
       title: "Increase the step size",
-      instruction: "Lower the learning rate, restart, and compare the new path.",
+      instruction: "Keep the current path, then change the learning rate and find the highest value that still lowers loss after 14 steps.",
       observation: "On a narrow valley, a high learning rate repeatedly crosses the valley floor. Above the stable range, the loss grows.",
     },
     {
       title: "Get trapped in a local minimum",
-      instruction: "Switch starting positions on the many-minima surface and compare the forecast destination.",
+      instruction: "Keep one path, then move the start on the many-minima surface and compare the forecast destinations.",
       observation: "The update rule always follows the local slope. It can settle in a nearby basin even when a lower minimum exists beyond a ridge.",
     },
   ],

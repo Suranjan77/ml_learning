@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_LEARNING_RATE,
   DEFAULT_START,
+  assessPath,
   assessStep,
   contourPoints,
   descentPath,
@@ -51,6 +52,17 @@ describe("gradient descent model", () => {
     expect(learningRegime(1.2, "valley")).toBe("diverging");
   });
 
+  it("finds the deterministic stability boundary from the computed valley path", () => {
+    const stable = assessPath(descentPath(DEFAULT_START, 1.04, "valley"), "valley");
+    const unstable = assessPath(descentPath(DEFAULT_START, 1.06, "valley"), "valley");
+
+    expect(stable.behaviour).toBe("oscillating");
+    expect(stable.lossDelta).toBeLessThan(0);
+    expect(stable.crossings).toBeGreaterThan(0);
+    expect(unstable.behaviour).toBe("diverging");
+    expect(unstable.lossDelta).toBeGreaterThan(0);
+  });
+
   it("draws contours whose points have the requested loss", () => {
     for (const surface of ["bowl", "valley"] as const) {
       contourPoints(surface, 2.4, 24).forEach((point) => {
@@ -64,5 +76,14 @@ describe("gradient descent model", () => {
     expect(minima.length).toBeGreaterThan(4);
     expect(minima[0].loss).toBeCloseTo(0, 3);
     expect(minima.some((minimum) => minimum.loss > 0.5)).toBe(true);
+  });
+
+  it("takes two deterministic starts to different multimodal basins", () => {
+    const local = descentPath(DEFAULT_START, DEFAULT_LEARNING_RATE, "multimodal", 80).at(-1)!;
+    const global = descentPath({ x: 0.4, y: 0.4 }, DEFAULT_LEARNING_RATE, "multimodal", 80).at(-1)!;
+
+    expect(Math.hypot(local.x - global.x, local.y - global.y)).toBeGreaterThan(1);
+    expect(local.loss).toBeGreaterThan(1);
+    expect(global.loss).toBeCloseTo(0, 6);
   });
 });

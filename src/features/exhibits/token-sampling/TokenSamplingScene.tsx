@@ -107,7 +107,7 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
     if (restoredTruncation !== undefined) setTruncation(restoredTruncation);
     if (restoredTopK !== undefined) setTopK(restoredTopK);
     if (restoredTopP !== undefined) setTopP(restoredTopP);
-  });
+  }, step);
 
   const fullProbabilities = useMemo(
     () => softmaxWithTemperature(CANDIDATES.map((candidate) => candidate.logit), temperature),

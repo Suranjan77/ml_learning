@@ -105,6 +105,49 @@ test.describe("visualisation workspace", () => {
     await expect(page.getByRole("button", { name: "Current view copied" })).toBeVisible();
   });
 
+  test("shares and restores a Gradient Descent start comparison", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto("/visualisations/gradient-descent?step=3");
+    await expect(page.getByText("Step 4 of 4")).toBeVisible();
+
+    await page.getByRole("button", { name: "Keep this path to compare" }).click();
+    const landscape = page.getByTestId("loss-landscape");
+    await landscape.focus();
+    await landscape.press("ArrowRight");
+
+    await expect.poll(() => new URL(page.url()).searchParams.get("x")).toBe("-3.24");
+    expect(new URL(page.url()).searchParams.get("refX")).toBe("-3.4");
+    expect(new URL(page.url()).searchParams.get("refY")).toBe("1.9");
+    expect(new URL(page.url()).searchParams.get("refLr")).toBe("0.24");
+
+    await page.reload();
+    await expect(landscape).toHaveAttribute("aria-label", /x -3\.24, y 1\.90/);
+    await expect(page.getByRole("button", { name: "Clear kept path at 0.24" })).toBeVisible();
+  });
+
+  test("restores the five Gradient Descent signature states", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+
+    await page.goto("/visualisations/gradient-descent?step=1");
+    await expect(page.getByText("Step 2 of 4")).toBeVisible();
+    await expect(page.getByText("Update 1", { exact: true })).toBeVisible();
+
+    await page.goto("/visualisations/gradient-descent?step=2&lr=0.4");
+    await expect(page.getByRole("slider", { name: "Learning rate" })).toHaveValue("0.4");
+    await expect(page.getByText(/Converging: after 14 steps, loss is .* lower/i)).toBeVisible();
+
+    await page.goto("/visualisations/gradient-descent?step=2");
+    await expect(page.getByText(/Overshoot: crossed the valley/)).toBeVisible();
+    await expect(page.getByText(/0\.90 · oscillating/i)).toBeVisible();
+
+    await page.goto("/visualisations/gradient-descent?step=2&lr=1.06");
+    await expect(page.getByText(/Diverging: after 14 steps, loss is .* higher/i)).toBeVisible();
+    await expect(page.getByText(/1\.06 · diverging/i)).toBeVisible();
+
+    await page.goto("/visualisations/gradient-descent?step=3&x=0.4&y=0.4&refX=-3.4&refY=1.9&refLr=0.24");
+    await expect(page.getByText(/Starts reach different basins/)).toBeVisible();
+  });
+
   test("offers a clean, keyboard-accessible embed view", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto("/visualisations/attention?embed=1&step=1");

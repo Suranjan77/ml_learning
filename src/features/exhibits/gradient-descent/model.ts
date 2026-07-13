@@ -19,6 +19,15 @@ export interface StepAssessment {
   crossedMinimum: boolean;
 }
 
+export type PathBehaviour = "converging" | "oscillating" | "diverging";
+
+export interface PathAssessment {
+  behaviour: PathBehaviour;
+  lossDelta: number;
+  relativeLossDelta: number;
+  crossings: number;
+}
+
 export type LearningRegime = "steady" | "crossing" | "diverging";
 
 export const DOMAIN = {
@@ -136,6 +145,31 @@ export function assessStep(before: DescentState, after: DescentState, surface: S
   else if (crossedMinimum) behaviour = "overshoot";
 
   return { behaviour, lossDelta, relativeLossDelta, crossedMinimum };
+}
+
+/** Summarise the actual computed path rather than inferring its outcome from the rate alone. */
+export function assessPath(path: DescentState[], surface: SurfaceKind): PathAssessment {
+  const first = path[0];
+  const last = path.at(-1);
+  if (!first || !last) return { behaviour: "converging", lossDelta: 0, relativeLossDelta: 0, crossings: 0 };
+
+  let crossings = 0;
+  let lossIncreased = false;
+  for (let index = 1; index < path.length; index += 1) {
+    const step = assessStep(path[index - 1], path[index], surface);
+    if (step.crossedMinimum) crossings += 1;
+    if (step.lossDelta > EPSILON || !Number.isFinite(path[index].loss)) lossIncreased = true;
+  }
+
+  const lossDelta = last.loss - first.loss;
+  const relativeLossDelta = first.loss <= EPSILON ? 0 : lossDelta / first.loss;
+  const behaviour = lossIncreased || lossDelta > EPSILON
+    ? "diverging"
+    : crossings > 0
+      ? "oscillating"
+      : "converging";
+
+  return { behaviour, lossDelta, relativeLossDelta, crossings };
 }
 
 /** Points on an equal-loss line, used to draw contours that match the model. */

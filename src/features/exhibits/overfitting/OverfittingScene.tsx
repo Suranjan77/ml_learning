@@ -114,7 +114,7 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
   useSceneUrlState((params) => {
     const restored = numberParam(params, "degree", DEGREE_RANGE);
     if (restored !== undefined) setDegree(restored);
-  });
+  }, step);
 
   const dataset = useMemo(() => samplePoints(seed), [seed]);
   const curve = useMemo(

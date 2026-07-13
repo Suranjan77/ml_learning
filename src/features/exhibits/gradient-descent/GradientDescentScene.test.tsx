@@ -1,6 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import GradientDescentScene from "./GradientDescentScene";
+
+afterEach(() => window.history.replaceState({}, "", "/"));
 
 describe("GradientDescentScene", () => {
   it("takes manual steps and restarts the path without changing the controls", () => {
@@ -46,6 +48,39 @@ describe("GradientDescentScene", () => {
     expect(screen.getByText(/Loss increased/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Take step" }));
     expect(screen.getByText(/Loss increased/)).toBeInTheDocument();
+  });
+
+  it("keeps one path while the learning rate changes for causal comparison", () => {
+    render(<GradientDescentScene step={2} resetKey={0} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Keep this path to compare" }));
+    fireEvent.change(screen.getByRole("slider", { name: "Learning rate" }), { target: { value: "1.2" } });
+
+    expect(screen.getByRole("button", { name: "Clear kept path at 0.90" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText("Grey: kept path")).toBeInTheDocument();
+    expect(screen.getByText("Compare: rate only")).toBeInTheDocument();
+    expect(screen.getByText(/Diverging: after 14 steps, loss is .* higher/i)).toBeInTheDocument();
+  });
+
+  it("restores a shareable comparison between starts that reach different basins", () => {
+    window.history.replaceState({}, "", "/visualisations/gradient-descent?step=3&surface=multimodal&x=0.4&y=0.4&refX=-3.4&refY=1.9&refLr=0.24");
+    render(<GradientDescentScene step={3} resetKey={0} />);
+
+    expect(screen.getByTestId("loss-landscape")).toHaveAttribute("aria-label", expect.stringMatching(/Current start point x 0\.40, y 0\.40.*Kept path starts at x -3\.40, y 1\.90/));
+    expect(screen.getByRole("button", { name: "Clear kept path at 0.24" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText("Compare: start only")).toBeInTheDocument();
+    expect(screen.getByText(/Starts reach different basins/)).toBeInTheDocument();
+    expect(screen.getByText(/Step 8\. Current loss/)).toHaveAttribute("aria-label", expect.stringContaining("Starts reach different basins"));
+  });
+
+  it("does not attribute a confounded comparison to the start alone", () => {
+    window.history.replaceState({}, "", "/visualisations/gradient-descent?step=3&x=0.4&y=0.4&lr=0.4&refX=-3.4&refY=1.9&refLr=0.24");
+    render(<GradientDescentScene step={3} resetKey={0} />);
+
+    expect(screen.getByText("Compare: rate + start")).toHaveClass("text-warning");
+    expect(screen.getByText(/Paths reach different basins/)).toBeInTheDocument();
+    expect(screen.queryByText(/Starts reach different basins/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Step 8\. Current loss/)).toHaveAttribute("aria-label", expect.stringContaining("does not isolate one cause"));
   });
 
   it("shows a distinct multimodal failure case", () => {
