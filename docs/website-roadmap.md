@@ -23,6 +23,7 @@ Updated: 2026-07-13
 | A1: Attention fidelity | Complete | Attention scores and softmax weights are computed from disclosed tiny query/key vectors. Shareable controls, four reviewed signature states, responsive layouts, and browser restoration are verified. |
 | A2: Attention comparison | Complete | Changing the sentence ending retains the previous computed distribution as per-token markers and names the largest weight shifts while holding head and query constant. The comparison, URL restoration, responsive layout, and browser behavior are verified. |
 | K1: Kernel fidelity | Complete | The exhibit now frames one explicit radial feature map, connects a computed horizontal threshold to its exact circular input-space boundary, distinguishes view interpolation from model parameters, preserves orbit inspection, and restores the view from the URL. Four signature states and the full repository gate are verified. |
+| S1: Social visual arguments | Complete | All 16 public Open Graph images now use route-specific mechanism diagrams instead of one generic decorative motif. Registry alignment, raster dimensions, distinct output, metadata, and the static build are verified. |
 
 Update this tracker in the same change that completes or materially advances a
 roadmap item. A release is complete only after its completion criteria have been
@@ -138,6 +139,15 @@ Updated: 2026-07-13
   export, every route budget, 76 Chromium checks, and all four Firefox and
   WebKit smoke checks; review four desktop signatures and the 390×844 flat
   separator directly.
+- [x] Replace the shared decorative Open Graph motif with deterministic
+  route-specific diagrams derived from each exhibit's visual argument.
+- [x] Keep social questions and topics aligned with the exhibit registry; fail
+  tests when a route lacks an authored motif or committed 1200×630 raster.
+- [x] Review the complete 16-image contact sheet plus the longest headline and
+  flagship previews at full resolution.
+- [x] Verify social presentation with 174 unit/component tests, lint, the
+  static export, every route budget, and the Chromium canonical/social metadata
+  assertion.
 
 ### Release 1 implementation log
 
