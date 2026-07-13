@@ -25,6 +25,7 @@ const VALIDATION_COUNT = 12;
 const NOISE_SIGMA = 0.12;
 const RIDGE = 1e-8;
 const SEED_CYCLE_LENGTH = 24;
+export const SEED_RANGE = { min: DEFAULT_SEED, max: DEFAULT_SEED + SEED_CYCLE_LENGTH - 1, step: 1 } as const;
 /** A degree whose validation error is within this fraction of the curve's
  * minimum still reads as a "good fit" rather than under- or overfitting. */
 const GOOD_FIT_TOLERANCE = 0.25;
@@ -55,7 +56,7 @@ export function trueFunction(x: number): number {
 
 /** Advances the seed used for resampling, cycling back once it grows too large. */
 export function nextSeed(seed: number): number {
-  return seed >= DEFAULT_SEED + SEED_CYCLE_LENGTH - 1 ? DEFAULT_SEED : seed + 1;
+  return seed >= SEED_RANGE.max ? SEED_RANGE.min : seed + 1;
 }
 
 /** Deterministic noisy train/validation samples drawn from the same distribution. */

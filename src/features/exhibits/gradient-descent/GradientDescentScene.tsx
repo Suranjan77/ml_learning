@@ -7,6 +7,7 @@ import { useReducedMotion } from "motion/react";
 import * as THREE from "three";
 import { VizCanvas } from "@/lib/three/VizCanvas";
 import { vizTokens } from "@/lib/vizTokens";
+import { KeptComparisonButton } from "../KeptComparisonButton";
 import type { ExhibitSceneProps } from "../types";
 import { enumParam, numberParam, replaceSceneUrlState, useSceneUrlState } from "../sceneUrlState";
 import {
@@ -357,11 +358,6 @@ function DescentScene3D({
             <meshBasicMaterial color={vizTokens.classA} />
           </mesh>
         ) : null}
-        <Html position={[downhillPosition[0], downhillPosition[1] + 0.22, downhillPosition[2]]} center zIndexRange={[5, 0]}>
-          <span aria-hidden="true" className="pointer-events-none whitespace-nowrap border border-primary bg-surface/95 px-1.5 py-0.5 font-mono text-[8px] uppercase text-primary">
-            Local downhill
-          </span>
-        </Html>
       </> : null}
 
       <OrbitControls
@@ -632,7 +628,16 @@ export default function GradientDescentScene({ step, resetKey, playing = false }
         <label className="min-w-0 flex-1 sm:max-w-sm">
           <span className="mb-1 flex items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant"><span>Learning rate</span><span className={regimeClass}>{learningRate.toFixed(2)} · {regimeLabel}</span></span>
           <input aria-label="Learning rate" type="range" min={LEARNING_RATE_RANGE.min} max={LEARNING_RATE_RANGE.max} step={LEARNING_RATE_RANGE.step} value={learningRate} onChange={(event) => { const next = Number(event.target.value); setLearningRate(next); syncControls(surface, next, start); restartPath(); }} className="block min-h-9" />
-          <button type="button" aria-pressed={reference !== null} onClick={() => { const nextReference = reference ? null : { learningRate, start, path }; setReference(nextReference); syncControls(surface, learningRate, start, nextReference); }} className={`mt-1 min-h-8 w-full border px-2 font-mono text-[9px] uppercase tracking-[0.08em] transition-colors ${reference ? "border-primary bg-primary text-on-primary" : "border-outline bg-surface text-on-surface-variant hover:border-primary hover:text-primary"}`}>{reference ? `Clear kept path at ${reference.learningRate.toFixed(2)}` : "Keep this path to compare"}</button>
+          <KeptComparisonButton
+            active={reference !== null}
+            activeLabel={`Clear kept path at ${reference?.learningRate.toFixed(2) ?? learningRate.toFixed(2)}`}
+            inactiveLabel="Keep this path to compare"
+            onClick={() => {
+              const nextReference = reference ? null : { learningRate, start, path };
+              setReference(nextReference);
+              syncControls(surface, learningRate, start, nextReference);
+            }}
+          />
         </label>
 
         <div className="col-span-2 flex min-w-0 gap-2 sm:ml-auto sm:pb-px">

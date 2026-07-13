@@ -1,6 +1,6 @@
 # Gradient Descent Flagship Review
 
-Status: revision after observation 1; retest pending
+Status: implementation accepted for progression; direct review remains active
 Updated: 2026-07-13
 
 ## Visual argument
@@ -55,8 +55,8 @@ This session supports four immediate revisions:
 
 1. Preserve useful camera orbit while clarifying the two gesture zones: surface
    drag moves the start; background drag rotates the view.
-2. Attach `Local downhill` to the green direction mark and call its values the
-   local slope.
+2. Draw local downhill as an actual arrow and call its values the local slope;
+   a text label was tried and removed because it distracted from the geometry.
 3. Name the computed full-path states `converging`, `oscillating`, and
    `diverging` beside the learning-rate control and in the outcome.
 4. Promote path keeping from an underlined text link to a full comparison
@@ -89,10 +89,9 @@ The raw record remains in `docs/flagship-observation-log.md`.
 | Accessibility equivalence | 2 | Keyboard input, live causal descriptions, reduced motion, and an explicit WebGL fallback exist. |
 | Shareability | 3 | Current and kept starts, rates, surface, and guided step restore from the URL. |
 
-The exhibit is below the flagship threshold because causal clarity is below 2
-and the intended memory image has not survived unaided use. Implementation of
-the first revision does not raise these scores until another uncoached session
-confirms the changes.
+These scores preserve what the first session established; they are not treated
+as a progression gate. The maintainer will report concrete issues directly as
+the implementation continues.
 
 ## Observation priorities
 
@@ -109,5 +108,5 @@ confirms the changes.
 6. Do they incorrectly conclude that a higher learning rate is generally more
    likely to reach the global minimum after exploring the many-minima surface?
 
-Record sessions in `docs/flagship-observation-log.md` and revise this scorecard
-from evidence rather than preference.
+Record further sessions in `docs/flagship-observation-log.md` when they are
+available, and keep direct maintainer corrections in this review.

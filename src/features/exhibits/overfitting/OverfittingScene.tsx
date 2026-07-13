@@ -9,12 +9,14 @@ import { curveMonotoneX } from "@visx/curve";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { vizStroke, vizTokens } from "@/lib/vizTokens";
 import { reduced, vizMotion } from "@/lib/vizMotion";
+import { KeptComparisonButton } from "../KeptComparisonButton";
 import type { ExhibitSceneProps } from "../types";
-import { numberParam, replaceSceneUrlState, useSceneUrlState } from "../sceneUrlState";
+import { enumParam, numberParam, replaceSceneUrlState, useSceneUrlState } from "../sceneUrlState";
 import {
   DEFAULT_DEGREE,
   DEFAULT_SEED,
   DEGREE_RANGE,
+  SEED_RANGE,
   errorByDegree,
   fitPolynomial,
   meanSquaredError,
@@ -50,10 +52,10 @@ const LEFT_X_TICKS = [0, 0.25, 0.5, 0.75, 1];
 const RIGHT_Y_TICKS = [0, 0.25, 0.5, 0.75, 1];
 
 const STEP_PRESETS = [
-  { degree: DEGREE_RANGE.min },
-  { degree: DEFAULT_DEGREE },
-  { degree: DEGREE_RANGE.max },
-] as const satisfies readonly { degree: number }[];
+  { degree: DEGREE_RANGE.min, referenceDegree: null },
+  { degree: DEFAULT_DEGREE, referenceDegree: null },
+  { degree: DEGREE_RANGE.max, referenceDegree: DEFAULT_DEGREE },
+] as const satisfies readonly { degree: number; referenceDegree: number | null }[];
 
 const REGIME_SENTENCE: Record<FitRegime, string> = {
   underfit: "Underfitting: the model is too simple to capture the pattern.",
@@ -83,10 +85,24 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
   const [degree, setDegree] = useState<number>(initialPreset.degree);
   const [seed, setSeed] = useState<number>(DEFAULT_SEED);
   const [showValidation, setShowValidation] = useState<boolean>(true);
+  const [referenceDegree, setReferenceDegree] = useState<number | null>(initialPreset.referenceDegree);
+
+  const syncControls = (
+    nextDegree: number,
+    nextSeedValue: number = seed,
+    nextShowValidation: boolean = showValidation,
+    nextReferenceDegree: number | null = referenceDegree,
+  ) => replaceSceneUrlState([
+    { key: "degree", value: String(nextDegree), defaultValue: String(initialPreset.degree) },
+    { key: "seed", value: String(nextSeedValue), defaultValue: String(DEFAULT_SEED) },
+    { key: "validation", value: nextShowValidation ? "on" : "off", defaultValue: "on" },
+    { key: "compare", value: nextReferenceDegree === null ? "off" : "on", defaultValue: initialPreset.referenceDegree === null ? "off" : "on" },
+    { key: "refDegree", value: nextReferenceDegree === null ? "" : String(nextReferenceDegree), defaultValue: "" },
+  ]);
 
   const chooseDegree = (next: number) => {
     setDegree(next);
-    replaceSceneUrlState([{ key: "degree", value: String(next), defaultValue: String(initialPreset.degree) }]);
+    syncControls(next);
   };
 
   // visx scales own domain→pixel for both panels; content renders plot-relative
@@ -109,11 +125,19 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
     setDegree(preset.degree);
     setSeed(DEFAULT_SEED);
     setShowValidation(true);
+    setReferenceDegree(preset.referenceDegree);
   }, [resetKey, step]);
 
   useSceneUrlState((params) => {
-    const restored = numberParam(params, "degree", DEGREE_RANGE);
-    if (restored !== undefined) setDegree(restored);
+    const restoredDegree = numberParam(params, "degree", DEGREE_RANGE);
+    const restoredSeed = numberParam(params, "seed", SEED_RANGE);
+    const restoredReferenceDegree = numberParam(params, "refDegree", DEGREE_RANGE);
+    setDegree(restoredDegree ?? initialPreset.degree);
+    setSeed(restoredSeed ?? DEFAULT_SEED);
+    setShowValidation(enumParam(params, "validation", ["off"] as const) !== "off");
+    if (restoredReferenceDegree !== undefined) setReferenceDegree(restoredReferenceDegree);
+    else if (enumParam(params, "compare", ["off"] as const) === "off") setReferenceDegree(null);
+    else setReferenceDegree(initialPreset.referenceDegree);
   }, step);
 
   const dataset = useMemo(() => samplePoints(seed), [seed]);
@@ -125,9 +149,15 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
     () => fitPolynomial(dataset.train, degree),
     [dataset, degree],
   );
+  const referenceCoefficients = useMemo(
+    () => referenceDegree === null ? null : fitPolynomial(dataset.train, referenceDegree),
+    [dataset, referenceDegree],
+  );
 
   const trainError = meanSquaredError(coefficients, dataset.train);
   const validationError = meanSquaredError(coefficients, dataset.validation);
+  const referenceTrainError = referenceCoefficients ? meanSquaredError(referenceCoefficients, dataset.train) : null;
+  const referenceValidationError = referenceCoefficients ? meanSquaredError(referenceCoefficients, dataset.validation) : null;
   const regime = regimeAtDegree(curve, degree);
 
   const bestValidationIndex = curve.validationError.reduce(
@@ -145,6 +175,16 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
     return points;
   }, [coefficients]);
 
+  const referenceFittedCurve = useMemo(() => {
+    if (!referenceCoefficients) return null;
+    const points: Point[] = [];
+    for (let i = 0; i <= CURVE_SAMPLES; i += 1) {
+      const x = i / CURVE_SAMPLES;
+      points.push({ x, y: predict(referenceCoefficients, x) });
+    }
+    return points;
+  }, [referenceCoefficients]);
+
   const truthCurve = useMemo(() => {
     const points: Point[] = [];
     for (let i = 0; i <= CURVE_SAMPLES; i += 1) {
@@ -155,7 +195,9 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
   }, []);
 
   function resample() {
-    setSeed((value) => nextSeed(value));
+    const next = nextSeed(seed);
+    setSeed(next);
+    syncControls(degree, next);
   }
 
   function adjustDegree(event: KeyboardEvent<HTMLDivElement>) {
@@ -168,7 +210,16 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
     }
   }
 
-  const statusDescription = `Degree ${degree}. Training error ${trainError.toFixed(3)}, validation error ${validationError.toFixed(3)}. ${REGIME_SENTENCE[regime]}`;
+  const comparisonContradiction = referenceTrainError !== null
+    && referenceValidationError !== null
+    && trainError < referenceTrainError
+    && validationError > referenceValidationError;
+  const comparisonSummary = referenceDegree !== null && referenceTrainError !== null && referenceValidationError !== null
+    ? referenceDegree === degree
+      ? `Current and kept fits both use degree ${degree}.`
+      : `Degree ${referenceDegree} → ${degree}: training ${referenceTrainError.toFixed(3)} → ${trainError.toFixed(3)}; validation ${referenceValidationError.toFixed(3)} → ${validationError.toFixed(3)}.`
+    : null;
+  const statusDescription = `Degree ${degree}. Training error ${trainError.toFixed(3)}, validation error ${validationError.toFixed(3)}. ${REGIME_SENTENCE[regime]}${comparisonSummary ? ` ${comparisonSummary}` : ""}`;
 
   return (
     <section aria-label="Overfitting visualisation" className="grid h-full min-h-[22rem] min-w-0 grid-rows-[minmax(0,1fr)_auto] overflow-hidden border border-outline bg-surface">
@@ -216,6 +267,19 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
               strokeDasharray="7 6"
               opacity={0.85}
             />
+
+            {referenceFittedCurve && referenceDegree !== degree ? (
+              <LinePath<Point>
+                data={referenceFittedCurve}
+                x={(point) => leftXScale(point.x)}
+                y={(point) => leftYScale(point.y)}
+                fill="none"
+                stroke={vizTokens.mutedInk}
+                strokeWidth={vizStroke.contourStrong}
+                strokeDasharray="3 4"
+                opacity={0.55}
+              />
+            ) : null}
 
             <LinePath<Point> data={fittedCurve} x={(point) => leftXScale(point.x)} y={(point) => leftYScale(point.y)}>
               {({ path: line }) => (
@@ -275,6 +339,9 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
           <text x={LEFT_PLOT.left} y={HEIGHT - 10} fill={vizTokens.mutedInk} fontSize="11" fontFamily="var(--font-dm-mono)">x</text>
           <text x={LEFT_WIDTH - LEFT_PLOT.right} y={HEIGHT - 10} textAnchor="end" fill={vizTokens.classA} fontSize="11" fontFamily="var(--font-dm-mono)">● train</text>
           <text x={LEFT_WIDTH - LEFT_PLOT.right} y={HEIGHT - 24} textAnchor="end" fill={vizTokens.classB} fontSize="11" fontFamily="var(--font-dm-mono)">○ validation</text>
+          {referenceDegree !== null && referenceDegree !== degree ? (
+            <text x={LEFT_PLOT.left + 8} y={LEFT_PLOT.top + 36} fill={vizTokens.mutedInk} fontSize="10" fontFamily="var(--font-dm-mono)">- - kept degree {referenceDegree}</text>
+          ) : null}
 
           {/* Right panel: error vs degree */}
           <Group left={RIGHT_X + RIGHT_PLOT.left} top={RIGHT_PLOT.top} clipPath={`url(#${clipId}-right)`}>
@@ -323,6 +390,36 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
               transition={reduced(playing ? vizMotion.cinematic : vizMotion.markerSpring, prefersReduced)}
             />
 
+            {referenceDegree !== null && referenceDegree !== degree ? (
+              <line
+                x1={rightXScale(referenceDegree)}
+                x2={rightXScale(referenceDegree)}
+                y1={0}
+                y2={RIGHT_PLOT_HEIGHT}
+                stroke={vizTokens.mutedInk}
+                strokeWidth={vizStroke.guide}
+                strokeDasharray="2 4"
+                opacity={0.7}
+              />
+            ) : null}
+
+            <circle
+              cx={rightXScale(bestDegree)}
+              cy={rightYOf(curve.validationError[bestValidationIndex])}
+              r={5}
+              fill={vizTokens.canvas}
+              stroke={vizTokens.classB}
+              strokeWidth={vizStroke.marker}
+            />
+            <text
+              x={rightXScale(bestDegree) + (bestDegree > 7 ? -8 : 8)}
+              y={Math.max(14, rightYOf(curve.validationError[bestValidationIndex]) - 9)}
+              textAnchor={bestDegree > 7 ? "end" : "start"}
+              fill={vizTokens.classB}
+              fontSize="9"
+              fontFamily="var(--font-dm-mono)"
+            >LOWEST VALIDATION</text>
+
             {bestDegree > DEGREE_RANGE.min && (
               <text x={rightXScale((DEGREE_RANGE.min + bestDegree) / 2)} y={RIGHT_PLOT_HEIGHT + 18} textAnchor="middle" fill={vizTokens.mutedInk} fontSize="10" fontFamily="var(--font-dm-mono)" letterSpacing="0.08em">UNDERFIT</text>
             )}
@@ -334,6 +431,9 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
           <text x={RIGHT_X + RIGHT_PLOT.left} y={RIGHT_PLOT.top - 6} fill={vizTokens.mutedInk} fontSize="12" fontFamily="var(--font-dm-mono)">ERROR VS DEGREE</text>
           <text x={RIGHT_X + RIGHT_PLOT.left} y={RIGHT_PLOT.top + 16} fill={vizTokens.classA} fontSize="11" fontFamily="var(--font-dm-mono)">— train</text>
           <text x={RIGHT_X + RIGHT_PLOT.left + 62} y={RIGHT_PLOT.top + 16} fill={vizTokens.classB} fontSize="11" fontFamily="var(--font-dm-mono)">— validation</text>
+          {referenceDegree !== null && referenceDegree !== degree ? (
+            <text x={RIGHT_X + RIGHT_PLOT.left + rightXScale(referenceDegree)} y={RIGHT_PLOT.top + 34} textAnchor="middle" fill={vizTokens.mutedInk} fontSize="9" fontFamily="var(--font-dm-mono)">KEPT D{referenceDegree}</text>
+          ) : null}
         </svg>
 
         <p className="sr-only" aria-live="polite">{statusDescription}</p>
@@ -355,7 +455,24 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
             onChange={(event) => chooseDegree(Number(event.target.value))}
             className="block min-h-9"
           />
+          <KeptComparisonButton
+            active={referenceDegree !== null}
+            activeLabel={`Clear kept degree ${referenceDegree ?? degree}`}
+            inactiveLabel="Keep this fit to compare"
+            onClick={() => {
+              const next = referenceDegree === null ? degree : null;
+              setReferenceDegree(next);
+              syncControls(degree, seed, showValidation, next);
+            }}
+          />
         </label>
+
+        {comparisonSummary ? (
+          <div className={`col-span-2 min-w-0 border-l-2 px-2 py-1 sm:max-w-sm ${comparisonContradiction ? "border-error" : "border-primary"}`}>
+            <p className="font-mono text-[9px] uppercase tracking-[0.06em] text-on-surface-variant">Kept versus current</p>
+            <p className={`text-[10px] leading-snug ${comparisonContradiction ? "text-error" : "text-on-surface"}`}>{comparisonSummary}</p>
+          </div>
+        ) : null}
 
         <div className="col-span-2 flex min-w-0 gap-2 sm:ml-auto sm:pb-px">
           <button
@@ -368,7 +485,11 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
           <button
             type="button"
             aria-pressed={showValidation}
-            onClick={() => setShowValidation((value) => !value)}
+            onClick={() => {
+              const next = !showValidation;
+              setShowValidation(next);
+              syncControls(degree, seed, next);
+            }}
             className={`min-h-9 flex-1 border px-3 text-xs transition-colors sm:flex-none ${showValidation ? "border-primary bg-primary text-on-primary" : "border-outline bg-surface text-on-surface hover:border-primary"}`}
           >
             Validation points

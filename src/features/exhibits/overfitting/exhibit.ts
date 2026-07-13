@@ -33,8 +33,8 @@ export const overfittingExhibit: ExhibitDefinition = {
     },
     {
       title: "Push the model past its limit",
-      instruction: "Raise the degree further and watch the two error curves separate on the right.",
-      observation: "Training error keeps falling as the curve threads through every point, but validation error climbs. The model has started memorising the noise.",
+      instruction: "Degree 3 is kept in grey. Compare it with the high-degree fit and the paired error values.",
+      observation: "Only model degree changes: training error falls while validation error rises. The flexible curve is fitting noise rather than a pattern that generalises.",
     },
   ],
   challenges: [

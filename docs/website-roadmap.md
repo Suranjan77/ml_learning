@@ -12,9 +12,11 @@ Updated: 2026-07-13
 | Release 3: Easier to share and trust | Complete | Meaningful scene state and guided steps are shareable; copy-link, clean embeds, visible WebGL fallback text, references, assumptions, methodology, unique canonical/social metadata, static preview images, and structured data are implemented and verified. |
 | Release 4: Expand carefully | Complete | Regression parameters and decision-tree partitions shipped as a two-exhibit wave with deterministic models, shareable controls, static metadata, budgets, four-viewport coverage, and Chromium/Firefox/WebKit verification. |
 | G0: Baseline and freeze | Complete | The 13-exhibit catalogue is frozen. The creative doctrine, flagship scorecard, signature states, and human-observation gate are defined in `docs/greatness-plan.md`. |
-| G1: Gradient Descent flagship | In progress | The code-side flagship revision is implemented: causal comparison defaults, stability regimes, direct annotations, deterministic signature states, camera inspection, and shareable state. Comprehension validation remains open. |
-| G2: Human observation | In progress | One ML-familiar laptop session is recorded. It exposed failures in first-action clarity, arrow meaning, regime distinction, comparison discovery, and intended recall; the first evidence-led revision is implemented and awaiting uncoached retest. |
-| G3-G6 | Blocked by gates | Reusable grammar, later flagships, homepage re-authoring, and naming wait for evidence from G1 and G2. |
+| G1: Gradient Descent flagship | Implementation complete | Causal comparison defaults, stability regimes, direct annotations, deterministic signature states, camera inspection, and shareable state are implemented. Final verification is intentionally deferred until the implementation phase ends. |
+| G2: Feedback incorporation | Complete | The first observation and subsequent maintainer review produced concrete revisions. Formal participant observation no longer blocks progress; reported issues will continue to be corrected directly. |
+| G3: Reusable grammar | Complete for current wave | The second-use rule produced one shared kept-comparison command. Trajectories, fitted curves, annotations, and causal summaries remain exhibit-owned. |
+| G4: Later flagships | In progress | Overfitting is selected as the second flagship because it offers a computed, directly manipulable contradiction between falling training error and rising validation error. |
+| G5-G6 | Pending | Homepage re-authoring and naming wait until the second flagship establishes what genuinely generalises. |
 
 Update this tracker in the same change that completes or materially advances a
 roadmap item. A release is complete only after its completion criteria have been
@@ -56,11 +58,21 @@ Updated: 2026-07-13
 - [x] Seed the guided valley and many-minima states with honest one-variable
   comparisons, make their cleared state URL-restorable, and reset the 3D camera
   with the exhibit lifecycle.
-- [x] Attach identity labels to the local downhill arrow, kept trajectory, and
-  global minimum so their meaning survives camera rotation and does not depend
-  on a distant legend or colour alone.
-- [ ] Complete the first uncoached human-observation round and revise the scene.
-- [ ] Pass the flagship scorecard and close G1/G2 before extracting shared UI.
+- [x] Render local downhill as a genuine arrow and attach identity labels only
+  where they clarify the kept trajectory and global minimum; remove the
+  distracting arrow text after maintainer review.
+- [x] Close the formal observation gate by maintainer direction and continue
+  through direct issue reports.
+- [x] Select Overfitting as the second flagship; defer shared abstraction until
+  its implementation proves which Gradient Descent patterns genuinely recur.
+- [x] Add a seeded moderate-degree baseline to the high-degree Overfitting
+  state, overlay the kept fit and degree marker, and state the computed
+  training-versus-validation contradiction.
+- [x] Make Overfitting's dataset seed, validation visibility, current degree,
+  and kept degree shareable without introducing user profiles or persistence.
+- [x] Apply the second-use rule: share only the kept-comparison command between
+  Gradient Descent and Overfitting while leaving each exhibit's visual traces
+  and causal summary independent.
 
 ### Release 1 implementation log
 
