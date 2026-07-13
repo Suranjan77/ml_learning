@@ -35,13 +35,19 @@ SVG/WebGL smoke checks in Firefox and WebKit.
 - `src/app/visualisations/`: index and statically generated workspace routes.
 - `src/app/tokens.css`: preserved colour, typography, shape, and motion system.
 - `src/lib/vizTokens.ts`: renderer-safe copies of visualisation colours.
-- `docs/visualisation-rebuild-plan.md`: implementation plan and work tracker.
+- `docs/website-roadmap.md`: current release and milestone tracker.
+- `docs/identity-decision.md`: visual identity and public-language rules.
+- `docs/embedding-and-static-reuse.md`: state links, iframe embeds, and static hosting.
+- `CONTRIBUTING.md`: contributor requirements and the exhibit workflow.
 
 ## Adding a visualisation
 
-1. Create a deterministic model and its tests.
-2. Build a responsive scene implementing `ExhibitSceneProps`.
-3. Keep the scene within the available workspace height; do not add page-length
-   explanatory sections.
-4. Register its metadata in `src/features/exhibits/registry.ts`.
-5. Verify keyboard, pointer, touch, reduced-motion, and accessible descriptions.
+Start with `npm run scaffold:exhibit -- --help`, then follow
+[`CONTRIBUTING.md`](CONTRIBUTING.md). The scaffold creates the model, metadata,
+scene, and test files but does not register unfinished work in the library.
+
+## Embedding
+
+Add `embed=1` to a visualisation URL for the navigation-free workspace. See
+[`docs/embedding-and-static-reuse.md`](docs/embedding-and-static-reuse.md) for
+state links, iframe markup, and static hosting constraints.

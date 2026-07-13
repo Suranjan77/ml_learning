@@ -17,7 +17,9 @@ Updated: 2026-07-13
 | G3: Reusable grammar | Complete for current wave | The second-use rule produced one shared kept-comparison command. Trajectories, fitted curves, annotations, and causal summaries remain exhibit-owned. |
 | G4: Later flagships | Complete | Overfitting and Decision Tree Partitions apply kept comparisons to error curves and spatial routing without forcing identical choreography. Their computed states, URL restoration, responsive layouts, and visual baselines are verified. |
 | G5: Homepage re-authoring | Complete | The first screen contains a real Gradient Descent micro-experiment using the flagship model, followed by three featured exhibits, question-led browsing, concrete implementation notes, and the complete collection. Four-viewport and interaction checks pass. |
-| G6: Identity decision | Pending | The clear descriptive title remains in place; naming stays deferred until the implemented identity has been reviewed as a whole. |
+| G6: Identity decision | Complete | Keep the descriptive name. Identity comes from the visual and interaction system; public copy follows the literal language rules in `docs/identity-decision.md`. |
+| D1: Static distribution groundwork | Complete | Contributor requirements, a tested non-destructive exhibit scaffold, state-link and iframe documentation, static-hosting instructions, and updated social copy are implemented and verified. |
+| D2: Reuse licence | Pending owner decision | The repository still needs an explicit code/content reuse decision before it can be described as openly reusable. |
 
 Update this tracker in the same change that completes or materially advances a
 roadmap item. A release is complete only after its completion criteria have been
@@ -98,6 +100,16 @@ Updated: 2026-07-13
   Chromium checks, and all four Firefox and containerised WebKit smoke checks.
 - [x] Capture and review five deterministic 1440×900 states for each of
   Gradient Descent, Overfitting, and Decision Tree Partitions.
+- [x] Close G6 without a rename: retain the descriptive title and document the
+  visual and plain-language identity rules in `docs/identity-decision.md`.
+- [x] Add a non-destructive `scaffold:exhibit` command that creates a model,
+  metadata definition, accessible scene, and focused tests, then names every
+  registration step still required.
+- [x] Add contributor requirements and dedicated documentation for shareable
+  states, iframe embeds, the static export, and root-versus-subpath hosting.
+- [x] Verify the distribution groundwork with 165 unit/component tests, lint,
+  the 21-page static export, every JavaScript route budget, 74 Chromium checks,
+  and all four Firefox and containerised WebKit smoke checks.
 
 ### Release 1 implementation log
 

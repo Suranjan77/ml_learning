@@ -10,6 +10,7 @@
     "test": "vitest --run",
     "budget": "node scripts/check-static-budget.mjs",
     "social-images": "node scripts/generate-social-images.mjs",
+    "scaffold:exhibit": "node scripts/scaffold-exhibit.mjs",
     "visual:gradient": "node scripts/capture-gradient-signatures.mjs",
     "visual:overfitting": "node scripts/capture-overfitting-signatures.mjs",
     "visual:decision-tree": "node scripts/capture-decision-tree-signatures.mjs",

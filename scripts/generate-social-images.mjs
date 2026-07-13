@@ -5,7 +5,7 @@ import sharp from "sharp";
 const cards = [
   ["home", "Interactive machine learning visualisations", "Watch the mechanism change"],
   ["library", "Visualisation library", "Explore by question, topic, or model"],
-  ["methodology", "Methodology and about", "Visible assumptions. No surveillance."],
+  ["methodology", "Methodology and about", "Assumptions, accessibility, and privacy"],
   ["gradient-descent", "Learning and optimisation", "How does gradient descent choose its next step?"],
   ["overfitting", "Generalisation", "When does a flexible model stop generalising?"],
   ["k-means", "Unsupervised learning", "How does k-means decide where clusters belong?"],
