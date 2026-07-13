@@ -5,6 +5,8 @@ import {
   depthOrder,
   MAX_RADIUS,
   projectPoint,
+  radialFeatureKernel,
+  radialFeatureMap,
   radialLift,
   SEPARATING_HEIGHT,
   splitByPlane,
@@ -21,6 +23,14 @@ describe("kernel trick exemplar model", () => {
     expect(radialLift(0, 0)).toBe(0);
     expect(radialLift(MAX_RADIUS, 0)).toBeCloseTo(1);
     expect(radialLift(1, 0)).toBeCloseTo(1 / MAX_RADIUS ** 2);
+  });
+
+  it("computes the kernel induced by the feature map", () => {
+    expect(radialFeatureMap(1, 0)).toEqual([1, 0, radialLift(1, 0)]);
+    const first = radialFeatureMap(1.2, -0.4);
+    const second = radialFeatureMap(-0.3, 0.8);
+    const dotProduct = first.reduce((sum, value, index) => sum + value * second[index], 0);
+    expect(radialFeatureKernel([1.2, -0.4], [-0.3, 0.8])).toBeCloseTo(dotProduct);
   });
 
   it("places the core below and ring above the separating plane", () => {

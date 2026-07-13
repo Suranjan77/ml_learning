@@ -13,6 +13,8 @@ export interface ScreenPoint {
   y: number;
 }
 
+export type RadialFeatureVector = readonly [x: number, y: number, radialHeight: number];
+
 export const MAX_RADIUS = 3.35;
 
 const INNER_POINTS = [
@@ -58,6 +60,21 @@ export function radialLift(x: number, y: number): number {
   return (Math.hypot(x, y) / MAX_RADIUS) ** 2;
 }
 
+/** Explicit map drawn by the scene. The third coordinate is normalized radius squared. */
+export function radialFeatureMap(x: number, y: number): RadialFeatureVector {
+  return [x, y, radialLift(x, y)];
+}
+
+/** Dot product induced by the explicit map, evaluated without building a 3D scene. */
+export function radialFeatureKernel(
+  first: readonly [number, number],
+  second: readonly [number, number],
+): number {
+  const a = radialFeatureMap(first[0], first[1]);
+  const b = radialFeatureMap(second[0], second[1]);
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
 /** Pseudo-3D projection interpolated from a top-down view to a tilted view. */
 export function projectPoint(x: number, y: number, z: number, lift: number): ScreenPoint {
   const amount = Math.max(0, Math.min(1, lift));
@@ -86,4 +103,4 @@ export function splitByPlane(points: readonly KernelPoint[]) {
 }
 
 export const KERNEL_DISCLOSURE =
-  "This exhibit draws an explicit radial lift to make the idea visible. In practice, a kernel can compute similarities as if points were lifted without ever constructing those lifted coordinates.";
+  "This exhibit draws the explicit map phi(x, y) = (x, y, (r / R)^2), with the third axis enlarged 4.2 times for legibility. A kernel can evaluate dot products from the unscaled map without drawing its coordinates. The horizontal separator is the midpoint between the nearest lifted samples in this authored radial example; the scene does not solve a general SVM.";

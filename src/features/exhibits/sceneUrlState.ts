@@ -25,6 +25,7 @@ export const SCENE_URL_KEYS = [
   "refEnding",
   "head",
   "query",
+  "lift",
   "temperature",
   "truncate",
   "topK",

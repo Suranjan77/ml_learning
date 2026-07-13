@@ -9,7 +9,7 @@ const cards = [
   ["gradient-descent", "Learning and optimisation", "How does gradient descent choose its next step?"],
   ["overfitting", "Generalisation", "When does a flexible model stop generalising?"],
   ["k-means", "Unsupervised learning", "How does k-means decide where clusters belong?"],
-  ["kernel-trick", "Classical machine learning", "How can an SVM separate concentric classes?"],
+  ["kernel-trick", "Classical machine learning", "How can a feature map turn a circular boundary into a flat one?"],
   ["attention", "Language models", "How does query-key similarity become an attention weight?"],
   ["token-sampling", "Language models", "How do temperature and truncation change what a language model writes?"],
   ["cnn-feature-maps", "Deep learning", "How does a CNN turn pixels into features?"],

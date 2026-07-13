@@ -147,6 +147,15 @@ test.describe("visualisation workspace", () => {
     await expect(page.getByRole("img", { name: /Attention connections from street/ })).toBeVisible();
   });
 
+  test("restores the Kernel feature-space view", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto("/visualisations/kernel-trick?step=1&lift=0.35");
+
+    await expect(page.getByRole("slider", { name: "Input-to-feature-space view" })).toHaveValue("0.35");
+    await expect(page.getByText("35%")).toBeVisible();
+    await expect(page.getByText("Explicit feature map", { exact: true })).toBeVisible();
+  });
+
   test("shares and restores a Gradient Descent start comparison", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto("/visualisations/gradient-descent?step=3");

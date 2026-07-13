@@ -22,6 +22,7 @@ Updated: 2026-07-13
 | D2: Reuse licence | Pending owner decision | The repository still needs an explicit code/content reuse decision before it can be described as openly reusable. |
 | A1: Attention fidelity | Complete | Attention scores and softmax weights are computed from disclosed tiny query/key vectors. Shareable controls, four reviewed signature states, responsive layouts, and browser restoration are verified. |
 | A2: Attention comparison | Complete | Changing the sentence ending retains the previous computed distribution as per-token markers and names the largest weight shifts while holding head and query constant. The comparison, URL restoration, responsive layout, and browser behavior are verified. |
+| K1: Kernel fidelity | Complete | The exhibit now frames one explicit radial feature map, connects a computed horizontal threshold to its exact circular input-space boundary, distinguishes view interpolation from model parameters, preserves orbit inspection, and restores the view from the URL. Four signature states and the full repository gate are verified. |
 
 Update this tracker in the same change that completes or materially advances a
 roadmap item. A release is complete only after its completion criteria have been
@@ -126,6 +127,17 @@ Updated: 2026-07-13
 - [x] Verify the retained comparison with 168 unit/component tests, lint, the
   static export, all route budgets, 75 Chromium checks, and the Firefox/WebKit
   smoke suites; review its desktop and 390×844 signatures directly.
+- [x] Narrow the Kernel exhibit from a general SVM claim to one explicit radial
+  feature map and the dot-product kernel it induces.
+- [x] Draw the lifted threshold contour, input-space circle, and four exact
+  correspondences together; add honest top-down and angled camera presets while
+  preserving free orbit.
+- [x] Rename the continuous slider as a view transition, make it
+  URL-restorable, and define four deterministic review states.
+- [x] Verify Kernel fidelity with 170 unit/component tests, lint, the static
+  export, every route budget, 76 Chromium checks, and all four Firefox and
+  WebKit smoke checks; review four desktop signatures and the 390×844 flat
+  separator directly.
 
 ### Release 1 implementation log
 

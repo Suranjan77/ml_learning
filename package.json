@@ -15,6 +15,7 @@
     "visual:overfitting": "node scripts/capture-overfitting-signatures.mjs",
     "visual:decision-tree": "node scripts/capture-decision-tree-signatures.mjs",
     "visual:attention": "node scripts/capture-attention-signatures.mjs",
+    "visual:kernel": "node scripts/capture-kernel-signatures.mjs",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "test:e2e": "npm run build && npm run budget && playwright test"
