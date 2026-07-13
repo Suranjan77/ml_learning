@@ -21,6 +21,16 @@ export function axisFromAngle(angle: number): Point {
   return { x: Math.cos(angle), y: Math.sin(angle) };
 }
 
+/** PCA axes are undirected: angles separated by 180 degrees are equivalent. */
+export function normalizeAxisAngle(angle: number) {
+  const halfTurn = Math.PI;
+  const quarterTurn = Math.PI / 2;
+  let normalized = angle;
+  while (normalized > quarterTurn) normalized -= halfTurn;
+  while (normalized < -quarterTurn) normalized += halfTurn;
+  return normalized;
+}
+
 export function project(point: Point, centre: Point, angle: number) {
   const axis = axisFromAngle(angle);
   const score = (point.x - centre.x) * axis.x + (point.y - centre.y) * axis.y;

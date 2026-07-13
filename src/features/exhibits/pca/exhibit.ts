@@ -9,6 +9,7 @@ export const pcaExhibit: ExhibitDefinition = {
   related: ["k-means", "overfitting"],
   assumptions: [
     "The dataset is hand-authored 2-D points; the principal components are the exact eigenvectors of their covariance.",
+    "A PCA axis is undirected, so angles 180 degrees apart describe the same projection. The control reports an equivalent angle between -90 and 90 degrees.",
     "Only the first component and its projection are emphasised; scaling choices and higher-dimensional behaviour are simplified.",
   ],
   references: [
@@ -17,7 +18,7 @@ export const pcaExhibit: ExhibitDefinition = {
   ],
   steps: [
     { title: "Choose a bad projection", instruction: "Inspect the long dashed reconstruction distances on the nearly perpendicular axis.", observation: "Collapsing data onto this line discards the direction where the points vary most." },
-    { title: "Rotate toward the data", instruction: "Move the angle slider and watch variance rise as reconstruction error falls.", observation: "The projected points spread out when the axis aligns with structure in the data." },
+    { title: "Rotate toward the data", instruction: "Drag across the plot or move the angle slider, then watch variance rise as reconstruction error falls.", observation: "The projected points spread out when the axis aligns with structure in the data." },
     { title: "Approach the principal axis", instruction: "Try to minimise reconstruction error manually.", observation: "For centred data, maximising projected variance and minimising squared reconstruction error identify the same axis." },
     { title: "Use the optimum", instruction: "Align the principal axis and compare the retained one-dimensional coordinates with the original cloud.", observation: "Thirty 2D points are now represented by thirty scalar scores plus the shared axis and mean." },
   ], challenges: ["Find an angle that retains about half the variation.", "Explain why PCA would fail to preserve a curved manifold even if it is visually simple."],

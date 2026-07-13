@@ -24,6 +24,7 @@ Updated: 2026-07-13
 | A2: Attention comparison | Complete | Changing the sentence ending retains the previous computed distribution as per-token markers and names the largest weight shifts while holding head and query constant. The comparison, URL restoration, responsive layout, and browser behavior are verified. |
 | K1: Kernel fidelity | Complete | The exhibit now frames one explicit radial feature map, connects a computed horizontal threshold to its exact circular input-space boundary, distinguishes view interpolation from model parameters, preserves orbit inspection, and restores the view from the URL. Four signature states and the full repository gate are verified. |
 | S1: Social visual arguments | Complete | All 16 public Open Graph images now use route-specific mechanism diagrams instead of one generic decorative motif. Registry alignment, raster dimensions, distinct output, metadata, and the static build are verified. |
+| P1: PCA direct projection | Complete | Equivalent undirected axes are normalised into the native slider range, the projection axis can be rotated directly on the plot, and integer angle state is URL-restorable. Pointer, responsive, model, and browser behavior are verified. |
 
 Update this tracker in the same change that completes or materially advances a
 roadmap item. A release is complete only after its completion criteria have been
@@ -148,6 +149,15 @@ Updated: 2026-07-13
 - [x] Verify social presentation with 174 unit/component tests, lint, the
   static export, every route budget, and the Chromium canonical/social metadata
   assertion.
+- [x] Fix the PCA perpendicular preset so its visible axis and native slider
+  agree on an equivalent angle inside the -90 to 90 degree range.
+- [x] Make the PCA plot a direct pointer/touch rotation surface while retaining
+  the slider and principal-axis command as keyboard controls.
+- [x] Restore and share the selected PCA angle through the URL, including a
+  browser drag-and-reload assertion.
+- [x] Verify PCA with 178 unit/component tests, lint, the static export, every
+  route budget, 77 Chromium checks, and all four Firefox and WebKit smoke
+  checks; inspect the desktop drag state and restored 390×844 layout directly.
 
 ### Release 1 implementation log
 

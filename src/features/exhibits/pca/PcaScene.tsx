@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { reduced, vizMotion } from "@/lib/vizMotion";
 import type { ExhibitSceneProps } from "../types";
 import { vizTokens } from "@/lib/vizTokens";
-import { POINTS, axisFromAngle, principalAngle, projectionStats } from "./model";
+import { numberParam, replaceSceneUrlState, useSceneUrlState } from "../sceneUrlState";
+import { POINTS, axisFromAngle, normalizeAxisAngle, principalAngle, projectionStats } from "./model";
 
 const WIDTH = 1_180; const HEIGHT = 520;
 const BOX = { left: 48, top: 28, width: 780, height: 452 } as const;
@@ -15,11 +16,19 @@ const OPTIMAL = principalAngle(POINTS);
 const PRESET_OFFSETS = [Math.PI / 2, 0.62, 0.18, 0] as const;
 
 export default function PcaScene({ step, resetKey, playing = false }: ExhibitSceneProps) {
-  const initialAngle = OPTIMAL + PRESET_OFFSETS[Math.max(0, Math.min(3, step))];
+  const initialAngle = normalizeAxisAngle(OPTIMAL + PRESET_OFFSETS[Math.max(0, Math.min(3, step))]);
+  const initialAngleDegrees = Math.round(initialAngle * 180 / Math.PI);
   const titleId = useId();
   const prefersReduced = useReducedMotion();
-  const [angle, setAngle] = useState(initialAngle);
-  useEffect(() => setAngle(initialAngle), [initialAngle, resetKey]);
+  const dragging = useRef(false);
+  const [angleDegrees, setAngleDegrees] = useState(initialAngleDegrees);
+  const angle = angleDegrees * Math.PI / 180;
+  useEffect(() => setAngleDegrees(initialAngleDegrees), [initialAngleDegrees, resetKey]);
+
+  useSceneUrlState((params) => {
+    setAngleDegrees(numberParam(params, "angle", { min: -90, max: 90, step: 1 }) ?? initialAngleDegrees);
+  }, `${step}-${resetKey}`);
+
   const stats = useMemo(() => projectionStats(POINTS, angle), [angle]);
   const optimalStats = useMemo(() => projectionStats(POINTS, OPTIMAL), []);
   const perpendicularStats = useMemo(() => projectionStats(POINTS, OPTIMAL + Math.PI / 2), []);
@@ -39,6 +48,42 @@ export default function PcaScene({ step, resetKey, playing = false }: ExhibitSce
     }).join(" ") + " Z";
   }, [optimalStats, perpendicularStats]);
 
+  const changeAngle = (nextDegrees: number) => {
+    const normalized = Math.round(normalizeAxisAngle(nextDegrees * Math.PI / 180) * 180 / Math.PI);
+    setAngleDegrees(normalized);
+    replaceSceneUrlState([
+      { key: "angle", value: String(normalized), defaultValue: String(initialAngleDegrees) },
+    ]);
+  };
+
+  const angleFromPointer = (event: ReactPointerEvent<SVGRectElement>) => {
+    const svg = event.currentTarget.ownerSVGElement;
+    if (!svg) return angle;
+    const matrix = svg.getScreenCTM();
+    let viewX: number;
+    let viewY: number;
+    if (matrix && typeof svg.createSVGPoint === "function") {
+      const point = svg.createSVGPoint();
+      point.x = event.clientX;
+      point.y = event.clientY;
+      const transformed = point.matrixTransform(matrix.inverse());
+      viewX = transformed.x;
+      viewY = transformed.y;
+    } else {
+      const bounds = svg.getBoundingClientRect();
+      if (bounds.width === 0 || bounds.height === 0) return angle;
+      viewX = (event.clientX - bounds.left) / bounds.width * WIDTH;
+      viewY = (event.clientY - bounds.top) / bounds.height * HEIGHT;
+    }
+    const x = (viewX - BOX.left) / BOX.width * 11 - 5.5;
+    const y = 3.8 - (viewY - BOX.top) / BOX.height * 7.6;
+    return Math.atan2(y - stats.centre.y, x - stats.centre.x);
+  };
+
+  const updateFromPointer = (event: ReactPointerEvent<SVGRectElement>) => {
+    changeAngle(angleFromPointer(event) * 180 / Math.PI);
+  };
+
   return <section aria-label="Principal component analysis visualisation" className="grid h-full min-h-[22rem] grid-rows-[minmax(0,1fr)_auto] overflow-hidden border border-outline bg-surface">
     <div role="img" aria-labelledby={titleId} className="min-h-0 overflow-hidden">
       <span id={titleId} className="sr-only">Points projected onto a rotatable one-dimensional PCA axis</span>
@@ -50,10 +95,35 @@ export default function PcaScene({ step, resetKey, playing = false }: ExhibitSce
         <motion.line initial={false} animate={{ x1: sx(stats.centre.x - axis.x * length), y1: sy(stats.centre.y - axis.y * length), x2: sx(stats.centre.x + axis.x * length), y2: sy(stats.centre.y + axis.y * length) }} transition={reduced(playing ? vizMotion.cinematic : vizMotion.markerSpring, prefersReduced)} stroke={vizTokens.path} strokeWidth="4" />
         {POINTS.map((point, index) => <g key={index}><motion.line initial={false} x1={sx(point.x)} y1={sy(point.y)} animate={{ x2: sx(stats.projections[index].point.x), y2: sy(stats.projections[index].point.y) }} transition={reduced(playing ? vizMotion.cinematic : vizMotion.markerSpring, prefersReduced)} stroke={vizTokens.classB} strokeDasharray="3 3" opacity="0.38" /><motion.circle initial={false} animate={{ cx: sx(stats.projections[index].point.x), cy: sy(stats.projections[index].point.y) }} transition={reduced(playing ? vizMotion.cinematic : vizMotion.markerSpring, prefersReduced)} r="3" fill={vizTokens.path} /><circle cx={sx(point.x)} cy={sy(point.y)} r="5" fill={vizTokens.classA} stroke={vizTokens.pointOutline} strokeWidth="2" /></g>)}
         <circle cx={sx(stats.centre.x)} cy={sy(stats.centre.y)} r="8" fill={vizTokens.selection} stroke={vizTokens.pointOutline} strokeWidth="2" />
+        <rect
+          data-testid="pca-drag-surface"
+          x={BOX.left}
+          y={BOX.top}
+          width={BOX.width}
+          height={BOX.height}
+          fill="transparent"
+          className="cursor-crosshair touch-none"
+          onPointerDown={(event) => {
+            dragging.current = true;
+            event.currentTarget.setPointerCapture(event.pointerId);
+            updateFromPointer(event);
+          }}
+          onPointerMove={(event) => {
+            if (dragging.current) updateFromPointer(event);
+          }}
+          onPointerUp={(event) => {
+            dragging.current = false;
+            if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+              event.currentTarget.releasePointerCapture(event.pointerId);
+            }
+          }}
+          onPointerCancel={() => { dragging.current = false; }}
+          onLostPointerCapture={() => { dragging.current = false; }}
+        />
         <text x={BOX.left + 10} y={BOX.top + 18} fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>GREEN = ORIGINAL · GOLD = 1D COORDINATE · DASH = LOST INFORMATION</text>
         <g transform="translate(875 52)">
           <text fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>PROJECTION QUALITY</text>
-          <text y="48" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.mutedInk}>ANGLE</text><text x="250" y="48" textAnchor="end" fontFamily="var(--font-mono)" fontSize="20" fill={vizTokens.ink}>{Math.round(angle * 180 / Math.PI)}°</text>
+          <text y="48" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.mutedInk}>ANGLE</text><text x="250" y="48" textAnchor="end" fontFamily="var(--font-mono)" fontSize="20" fill={vizTokens.ink}>{angleDegrees}°</text>
           <text y="88" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.mutedInk}>VARIANCE KEPT</text><text x="250" y="88" textAnchor="end" fontFamily="var(--font-mono)" fontSize="17" fill={vizTokens.classA}>{stats.variance.toFixed(2)}</text>
           <text y="122" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.mutedInk}>RECONSTRUCTION ERROR</text><text x="250" y="122" textAnchor="end" fontFamily="var(--font-mono)" fontSize="17" fill={vizTokens.error}>{stats.reconstructionError.toFixed(2)}</text>
           <rect y="158" width="250" height="18" fill={vizTokens.grid} /><rect y="158" width={250 * Math.min(1, explained / 100)} height="18" fill={vizTokens.classA} />
@@ -65,8 +135,8 @@ export default function PcaScene({ step, resetKey, playing = false }: ExhibitSce
           <text y="355" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>BEST POSSIBLE ERROR</text><text x="250" y="355" textAnchor="end" fontFamily="var(--font-mono)" fontSize="14" fill={vizTokens.classA}>{optimalStats.reconstructionError.toFixed(2)}</text>
         </g>
       </svg>
-      <p className="sr-only" aria-live="polite">Axis angle {Math.round(angle * 180 / Math.PI)} degrees. Variance {stats.variance.toFixed(2)}. Reconstruction error {stats.reconstructionError.toFixed(2)}.</p>
+      <p className="sr-only" aria-live="polite">Axis angle {angleDegrees} degrees. Variance {stats.variance.toFixed(2)}. Reconstruction error {stats.reconstructionError.toFixed(2)}.</p>
     </div>
-    <div className="flex items-end gap-3 border-t border-outline bg-surface-container-low px-3 py-2"><label className="min-w-0 flex-1"><span className="flex justify-between font-mono text-[9px] uppercase tracking-label text-on-surface-variant"><span>Projection angle</span><span className="text-primary">{Math.round(angle * 180 / Math.PI)}°</span></span><input aria-label="Projection angle" type="range" min={-90} max={90} value={Math.round(angle * 180 / Math.PI)} onChange={(event) => setAngle(Number(event.target.value) * Math.PI / 180)} /></label><button type="button" onClick={() => setAngle(OPTIMAL)} className="min-h-9 shrink-0 border border-primary bg-primary px-3 text-xs text-on-primary">Align principal axis</button></div>
+    <div className="flex items-end gap-3 border-t border-outline bg-surface-container-low px-3 py-2"><label className="min-w-0 flex-1"><span className="flex justify-between font-mono text-[9px] uppercase tracking-label text-on-surface-variant"><span>Projection angle</span><span className="text-primary">{angleDegrees}°</span></span><input aria-label="Projection angle" type="range" min={-90} max={90} value={angleDegrees} onChange={(event) => changeAngle(Number(event.target.value))} /></label><button type="button" onClick={() => changeAngle(OPTIMAL * 180 / Math.PI)} className="min-h-9 shrink-0 border border-primary bg-primary px-3 text-xs text-on-primary">Align principal axis</button></div>
   </section>;
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { POINTS, mean, principalAngle, projectionStats } from "./model";
+import { POINTS, axisFromAngle, mean, normalizeAxisAngle, principalAngle, projectionStats } from "./model";
 
 describe("PCA model", () => {
   it("centres the authored dataset", () => {
@@ -14,5 +14,17 @@ describe("PCA model", () => {
     const perpendicular = projectionStats(POINTS, angle + Math.PI / 2);
     expect(principal.variance).toBeGreaterThan(perpendicular.variance);
     expect(principal.reconstructionError).toBeLessThan(perpendicular.reconstructionError);
+  });
+
+  it("normalises equivalent undirected axes into the slider range", () => {
+    const original = Math.PI * 0.7;
+    const normalized = normalizeAxisAngle(original);
+    const first = axisFromAngle(original);
+    const second = axisFromAngle(normalized);
+
+    expect(normalized).toBeGreaterThanOrEqual(-Math.PI / 2);
+    expect(normalized).toBeLessThanOrEqual(Math.PI / 2);
+    expect(Math.abs(first.x)).toBeCloseTo(Math.abs(second.x));
+    expect(Math.abs(first.y)).toBeCloseTo(Math.abs(second.y));
   });
 });

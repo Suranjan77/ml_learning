@@ -156,6 +156,28 @@ test.describe("visualisation workspace", () => {
     await expect(page.getByText("Explicit feature map", { exact: true })).toBeVisible();
   });
 
+  test("drags and restores the PCA projection axis", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto("/visualisations/pca?step=0");
+
+    const slider = page.getByRole("slider", { name: "Projection angle" });
+    await expect(slider).toHaveValue("-54");
+    const surface = page.getByTestId("pca-drag-surface");
+    const box = await surface.boundingBox();
+    if (!box) throw new Error("PCA drag surface is unavailable");
+
+    await page.mouse.move(box.x + box.width * 0.52, box.y + box.height * 0.52);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.86, box.y + box.height * 0.52, { steps: 8 });
+    await page.mouse.up();
+
+    await expect.poll(async () => Math.abs(Number(await slider.inputValue()))).toBeLessThanOrEqual(2);
+    const sharedAngle = await slider.inputValue();
+    await expect.poll(() => new URL(page.url()).searchParams.get("angle")).toBe(sharedAngle);
+    await page.reload();
+    await expect(slider).toHaveValue(sharedAngle);
+  });
+
   test("shares and restores a Gradient Descent start comparison", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto("/visualisations/gradient-descent?step=3");
