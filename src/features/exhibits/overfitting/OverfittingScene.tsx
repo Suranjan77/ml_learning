@@ -102,7 +102,7 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
 
   const chooseDegree = (next: number) => {
     setDegree(next);
-    syncControls(next);
+    syncControls(next, seed, showValidation, referenceDegree);
   };
 
   // visx scales own domain→pixel for both panels; content renders plot-relative
@@ -197,7 +197,7 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
   function resample() {
     const next = nextSeed(seed);
     setSeed(next);
-    syncControls(degree, next);
+    syncControls(degree, next, showValidation, referenceDegree);
   }
 
   function adjustDegree(event: KeyboardEvent<HTMLDivElement>) {
@@ -488,7 +488,7 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
             onClick={() => {
               const next = !showValidation;
               setShowValidation(next);
-              syncControls(degree, seed, next);
+              syncControls(degree, seed, next, referenceDegree);
             }}
             className={`min-h-9 flex-1 border px-3 text-xs transition-colors sm:flex-none ${showValidation ? "border-primary bg-primary text-on-primary" : "border-outline bg-surface text-on-surface hover:border-primary"}`}
           >

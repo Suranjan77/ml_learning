@@ -48,13 +48,13 @@ export default function Home() {
         <div className="mx-auto max-w-content">
           <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(280px,0.42fr)] md:items-end">
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-label text-primary">Three visual arguments</p>
+              <p className="font-mono text-[10px] uppercase tracking-label text-primary">Featured visualisations</p>
               <h2 className="mt-2 max-w-3xl text-balance font-headline text-3xl font-medium leading-tight text-on-surface sm:text-4xl">
-                Start where causality is already visible.
+                Start with these three.
               </h2>
             </div>
             <p className="text-sm leading-6 text-on-surface-variant">
-              Each flagship changes one meaningful variable, preserves the comparison, and makes the consequence inspectable without pretending the simplification is the complete model.
+              Each one keeps an earlier result on screen, so the effect of changing one input is easier to compare.
             </p>
           </div>
 
@@ -67,12 +67,12 @@ export default function Home() {
       <section className="border-b border-outline bg-background px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
         <div className="mx-auto max-w-content">
           <div className="max-w-3xl">
-            <p className="font-mono text-[10px] uppercase tracking-label text-primary">Explore by question</p>
+            <p className="font-mono text-[10px] uppercase tracking-label text-primary">Browse by question</p>
             <h2 className="mt-2 text-balance font-headline text-3xl font-medium leading-tight text-on-surface sm:text-4xl">
-              Enter through the mechanism you want to understand.
+              What do you want to see?
             </h2>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-on-surface-variant">
-              These doorways overlap deliberately. They are routes into the collection, not chapters, levels, or prerequisites.
+              Some visualisations appear in more than one group. There is no required order.
             </p>
           </div>
 
@@ -103,15 +103,15 @@ export default function Home() {
         <div className="mx-auto max-w-content">
           <div className="grid gap-8 lg:grid-cols-[0.6fr_1.4fr] lg:items-start">
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-label text-inverse-primary">Project principles</p>
-              <h2 className="mt-2 font-headline text-2xl font-medium sm:text-3xl">Built for understanding, not engagement metrics.</h2>
+              <p className="font-mono text-[10px] uppercase tracking-label text-inverse-primary">How the site works</p>
+              <h2 className="mt-2 font-headline text-2xl font-medium sm:text-3xl">Small models, shown clearly.</h2>
             </div>
             <dl className="grid gap-px bg-[#49443B] sm:grid-cols-2 lg:grid-cols-4">
               {[
-                ["Direct", "Manipulate the variable that causes the change."],
-                ["Inspectable", "Keep the previous state when comparison matters."],
-                ["Honest", "Computed, authored, and omitted behaviour is disclosed."],
-                ["Private", "No accounts, tracking, ads, or hidden learner profile."],
+                ["Controls", "Change the inputs used by the model."],
+                ["Comparisons", "Keep an earlier result visible while you make changes."],
+                ["Notes", "Read what is computed, simplified, or left out."],
+                ["Privacy", "No accounts, analytics, advertising, or tracking cookies."],
               ].map(([term, description]) => (
                 <div key={term} className="bg-inverse-surface p-4">
                   <dt className="font-mono text-[10px] uppercase tracking-label text-inverse-primary">{term}</dt>

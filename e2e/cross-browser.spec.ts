@@ -9,6 +9,7 @@ test("operates an SVG exhibit", async ({ page }) => {
 });
 
 test("renders a nonblank WebGL scene or an explicit fallback", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/visualisations/gradient-descent");
 
   await expect(page.locator('[data-testid="visualisation-workspace"]')).toBeVisible();

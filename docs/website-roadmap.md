@@ -12,11 +12,11 @@ Updated: 2026-07-13
 | Release 3: Easier to share and trust | Complete | Meaningful scene state and guided steps are shareable; copy-link, clean embeds, visible WebGL fallback text, references, assumptions, methodology, unique canonical/social metadata, static preview images, and structured data are implemented and verified. |
 | Release 4: Expand carefully | Complete | Regression parameters and decision-tree partitions shipped as a two-exhibit wave with deterministic models, shareable controls, static metadata, budgets, four-viewport coverage, and Chromium/Firefox/WebKit verification. |
 | G0: Baseline and freeze | Complete | The 13-exhibit catalogue is frozen. The creative doctrine, flagship scorecard, signature states, and human-observation gate are defined in `docs/greatness-plan.md`. |
-| G1: Gradient Descent flagship | Implementation complete | Causal comparison defaults, stability regimes, direct annotations, deterministic signature states, camera inspection, and shareable state are implemented. Final verification is intentionally deferred until the implementation phase ends. |
+| G1: Gradient Descent flagship | Complete | Causal comparison defaults, stability regimes, direct annotations, deterministic signature states, responsive camera targeting, orbit inspection, and shareable state are implemented and verified. |
 | G2: Feedback incorporation | Complete | The first observation and subsequent maintainer review produced concrete revisions. Formal participant observation no longer blocks progress; reported issues will continue to be corrected directly. |
 | G3: Reusable grammar | Complete for current wave | The second-use rule produced one shared kept-comparison command. Trajectories, fitted curves, annotations, and causal summaries remain exhibit-owned. |
-| G4: Later flagships | In progress | Overfitting and Decision Tree Partitions are the second and third flagships. They test whether causal comparison generalises across error curves and spatial routing without forcing identical choreography. |
-| G5: Homepage re-authoring | Implementation complete | The first screen now contains a real Gradient Descent micro-experiment using the flagship model, followed by the three flagships, question-led doorways, project principles, and the complete collection. Final responsive review is deferred. |
+| G4: Later flagships | Complete | Overfitting and Decision Tree Partitions apply kept comparisons to error curves and spatial routing without forcing identical choreography. Their computed states, URL restoration, responsive layouts, and visual baselines are verified. |
+| G5: Homepage re-authoring | Complete | The first screen contains a real Gradient Descent micro-experiment using the flagship model, followed by three featured exhibits, question-led browsing, concrete implementation notes, and the complete collection. Four-viewport and interaction checks pass. |
 | G6: Identity decision | Pending | The clear descriptive title remains in place; naming stays deferred until the implemented identity has been reviewed as a whole. |
 
 Update this tracker in the same change that completes or materially advances a
@@ -88,6 +88,16 @@ Updated: 2026-07-13
 - [x] Surface direct manipulation, honest simplification, inspectable
   comparison, and no-surveillance principles without making privacy the main
   product claim.
+- [x] Replace manifesto-style homepage and About copy with direct descriptions
+  of the controls, comparisons, notes, and privacy behaviour.
+- [x] Aim the Gradient Descent camera at the orbit target explicitly so the 3D
+  surface is framed consistently across portrait and landscape canvases while
+  preserving camera rotation.
+- [x] Complete the implementation-wide verification pass: lint, 162
+  unit/component tests, the 21-page static export, every JavaScript budget, 74
+  Chromium checks, and all four Firefox and containerised WebKit smoke checks.
+- [x] Capture and review five deterministic 1440×900 states for each of
+  Gradient Descent, Overfitting, and Decision Tree Partitions.
 
 ### Release 1 implementation log
 

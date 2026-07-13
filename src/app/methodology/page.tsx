@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 const sections = [
   {
     title: "Approach",
-    body: "Each exhibit makes one relationship visible through direct manipulation. Guided steps suggest useful observations without imposing a course order, assessment, or completion state. Deterministic models and hand-authored datasets are preferred so a shared URL restores the same explanation.",
+    body: "Each exhibit focuses on one relationship. Controls change the model or data directly, and guided steps point out useful states without requiring a fixed order. Models and datasets are deterministic where possible, so a shared URL reopens the same result.",
   },
   {
     title: "Evidence and simplification",
@@ -40,10 +40,10 @@ export default function MethodologyPage() {
       <div className="mx-auto max-w-5xl">
         <p className="font-mono text-[10px] uppercase tracking-label text-primary">About the library</p>
         <h1 className="mt-3 max-w-4xl text-balance font-headline text-4xl font-medium leading-tight text-on-surface sm:text-5xl">
-          Compact explanations, visible assumptions, no surveillance.
+          How the visualisations are made.
         </h1>
         <p className="mt-6 max-w-3xl text-lg leading-8 text-on-surface-variant">
-          Suranjan Poudel builds and maintains this open-source collection of interactive machine-learning visualisations. Its purpose is to make mechanisms inspectable, not to turn exploration into a course or collect behaviour.
+          Suranjan Poudel builds and maintains this collection of interactive machine-learning visualisations. Each page covers one topic, includes its assumptions and references, and runs without accounts or visitor analytics.
         </p>
 
         <div className="mt-12 grid gap-px border border-outline bg-outline md:grid-cols-2">

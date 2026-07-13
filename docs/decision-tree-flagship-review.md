@@ -1,6 +1,6 @@
 # Decision Tree Partitions Flagship Review
 
-Status: implementation in progress
+Status: implementation and visual review complete
 Updated: 2026-07-13
 
 ## Visual argument
@@ -34,6 +34,10 @@ Expected one-sentence recall:
 | Root propagation | `/visualisations/decision-tree?step=3` | The current threshold 5.5 is compared with kept 4.0; the crossed strip and rerouted points are explicit. |
 | Reverse root move | `/visualisations/decision-tree?step=3&threshold=3&refThreshold=4` | Moving the root in the other direction recomputes routing, predictions, and accuracy. |
 
+The reviewed 1440×900 references are stored in
+`docs/visual-baselines/decision-tree` and can be regenerated with
+`npm run visual:decision-tree` while the static export is running on port 3000.
+
 ## Provisional scorecard
 
 | Dimension | Score | Evidence or remaining risk |
@@ -46,7 +50,7 @@ Expected one-sentence recall:
 | Fidelity and honesty | 3 | Routing is computed while the authored split sequence and omitted training process are disclosed. |
 | Memory image | 2 | The intended image is a vertical root line sweeping across points while several downstream rectangles change. |
 | Interaction coherence | 3 | Depth reveals structure; threshold manipulation demonstrates propagation; the kept root provides contrast. |
-| Accessibility equivalence | 2 | Slider, keyboard, live counts, and non-colour halos communicate the core change; final review remains deferred. |
+| Accessibility equivalence | 2 | Slider, keyboard, live counts, non-colour halos, and four-viewport browser checks communicate the core change. |
 | Shareability | 3 | Depth, current root, and kept root are URL-restorable. |
 
 ## Choreography decision

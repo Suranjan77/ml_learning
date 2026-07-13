@@ -1,6 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import OverfittingScene from "./OverfittingScene";
+
+afterEach(() => window.history.replaceState({}, "", "/"));
 
 describe("OverfittingScene", () => {
   it("changes the fit and regime label when the degree slider moves", () => {
@@ -63,5 +65,27 @@ describe("OverfittingScene", () => {
 
     fireEvent.click(toggle);
     expect(toggle).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("seeds a moderate fit for a degree-only overfitting comparison", () => {
+    render(<OverfittingScene step={2} resetKey={0} />);
+
+    expect(screen.getByRole("button", { name: "Clear kept degree 3" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getAllByText(/Degree 3 → 11: training/)).toHaveLength(2);
+    expect(screen.getByText(/Degree 11\..*Overfitting:/)).toBeInTheDocument();
+  });
+
+  it("shares resampling, validation visibility, and a cleared comparison", () => {
+    window.history.replaceState({}, "", "/visualisations/overfitting/");
+    render(<OverfittingScene step={2} resetKey={0} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Clear kept degree 3" }));
+    fireEvent.click(screen.getByRole("button", { name: "Resample data" }));
+    fireEvent.click(screen.getByRole("button", { name: "Validation points" }));
+
+    const params = new URL(window.location.href).searchParams;
+    expect(params.get("compare")).toBe("off");
+    expect(params.get("seed")).toBe("2");
+    expect(params.get("validation")).toBe("off");
   });
 });

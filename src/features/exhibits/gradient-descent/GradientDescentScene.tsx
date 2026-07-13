@@ -1,8 +1,8 @@
 "use client";
 
 import { Html, Line, OrbitControls } from "@react-three/drei";
-import type { ThreeEvent } from "@react-three/fiber";
-import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
+import { useThree, type ThreeEvent } from "@react-three/fiber";
+import { useEffect, useLayoutEffect, useMemo, useState, type KeyboardEvent } from "react";
 import { useReducedMotion } from "motion/react";
 import * as THREE from "three";
 import { VizCanvas } from "@/lib/three/VizCanvas";
@@ -63,6 +63,18 @@ const CONTOUR_LEVELS = {
   valley: [0.35, 0.9, 1.8, 3.2, 5],
 } as const;
 const MULTIMODAL_MINIMA = multimodalMinima();
+const CAMERA_TARGET = new THREE.Vector3(0, 1.15, 0);
+
+function AimCameraAtSurface() {
+  const camera = useThree((state) => state.camera);
+
+  useLayoutEffect(() => {
+    camera.lookAt(CAMERA_TARGET);
+    camera.updateProjectionMatrix();
+  }, [camera]);
+
+  return null;
+}
 
 function coordinateValue(value: number) {
   return String(Number(value.toFixed(2)));
@@ -291,6 +303,7 @@ function DescentScene3D({
       camera={{ position: [11, 8.5, 12.5], fov: 47, near: 0.1, far: 80 }}
       frameloop={reducedMotion ? "demand" : "always"}
     >
+      <AimCameraAtSurface />
       <ambientLight intensity={1.6} />
       <directionalLight position={[5, 9, 6]} intensity={2.2} />
       <SceneAxes />
@@ -368,7 +381,7 @@ function DescentScene3D({
         maxDistance={24}
         minPolarAngle={0.35}
         maxPolarAngle={Math.PI / 2.08}
-        target={[0, 1.15, 0]}
+        target={CAMERA_TARGET}
       />
     </VizCanvas>
   );

@@ -50,13 +50,13 @@ describe("GradientDescentScene", () => {
     expect(screen.getByText(/Loss increased/)).toBeInTheDocument();
   });
 
-  it("keeps one path while the learning rate changes for causal comparison", () => {
+  it("seeds a stable path while the learning rate changes for causal comparison", () => {
     render(<GradientDescentScene step={2} resetKey={0} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Keep this path to compare" }));
+    expect(screen.getByRole("button", { name: "Clear kept path at 0.40" })).toHaveAttribute("aria-pressed", "true");
     fireEvent.change(screen.getByRole("slider", { name: "Learning rate" }), { target: { value: "1.2" } });
 
-    expect(screen.getByRole("button", { name: "Clear kept path at 0.90" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Clear kept path at 0.40" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByText("Grey: kept path")).toBeInTheDocument();
     expect(screen.getByText("Compare: rate only")).toBeInTheDocument();
     expect(screen.getByText(/Diverging: after 14 steps, loss is .* higher/i)).toBeInTheDocument();
@@ -86,6 +86,6 @@ describe("GradientDescentScene", () => {
   it("shows a distinct multimodal failure case", () => {
     render(<GradientDescentScene step={3} resetKey={0} />);
     expect(screen.getByRole("button", { name: "Many minima" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByText(/local basin|global minimum/i)).toBeInTheDocument();
+    expect(screen.getByText(/Starts reach different basins/i)).toBeInTheDocument();
   });
 });

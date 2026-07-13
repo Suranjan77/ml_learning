@@ -23,6 +23,37 @@ const viewports = [
   { width: 1440, height: 900 },
 ];
 
+test.describe("homepage proof", () => {
+  for (const viewport of viewports) {
+    test(`fits and reveals the collection at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await page.goto("/");
+
+      await expect(page.getByRole("heading", { level: 1, name: "Machine learning visualisations" })).toBeVisible();
+      await expect(page.getByRole("slider", { name: "Homepage learning rate" })).toBeVisible();
+
+      const layout = await page.evaluate(() => ({
+        scrollWidth: document.documentElement.scrollWidth,
+        viewportWidth: document.documentElement.clientWidth,
+        nextSectionTop: document.querySelectorAll("main section")[1]?.getBoundingClientRect().top,
+      }));
+      expect(layout.scrollWidth).toBeLessThanOrEqual(layout.viewportWidth);
+      expect(layout.nextSectionTop).toBeLessThan(viewport.height);
+    });
+  }
+
+  test("turns an oscillating path into a converging path", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto("/");
+
+    const proof = page.getByRole("img", { name: /Top-down narrow loss valley/ });
+    await expect(proof).toHaveAttribute("aria-label", /current path at 0\.90 is oscillating/i);
+
+    await page.getByRole("slider", { name: "Homepage learning rate" }).fill("0.4");
+    await expect(proof).toHaveAttribute("aria-label", /current path at 0\.40 is converging/i);
+  });
+});
+
 test.describe("visualisation workspace", () => {
   for (const viewport of viewports) {
     test.describe(`${viewport.width}x${viewport.height}`, () => {
@@ -110,18 +141,17 @@ test.describe("visualisation workspace", () => {
     await page.goto("/visualisations/gradient-descent?step=3");
     await expect(page.getByText("Step 4 of 4")).toBeVisible();
 
-    await page.getByRole("button", { name: "Keep this path to compare" }).click();
     const landscape = page.getByTestId("loss-landscape");
     await landscape.focus();
     await landscape.press("ArrowRight");
 
-    await expect.poll(() => new URL(page.url()).searchParams.get("x")).toBe("-3.24");
+    await expect.poll(() => new URL(page.url()).searchParams.get("x")).toBe("0.56");
     expect(new URL(page.url()).searchParams.get("refX")).toBe("-3.4");
     expect(new URL(page.url()).searchParams.get("refY")).toBe("1.9");
     expect(new URL(page.url()).searchParams.get("refLr")).toBe("0.24");
 
     await page.reload();
-    await expect(landscape).toHaveAttribute("aria-label", /x -3\.24, y 1\.90/);
+    await expect(landscape).toHaveAttribute("aria-label", /x 0\.56, y 0\.40/);
     await expect(page.getByRole("button", { name: "Clear kept path at 0.24" })).toBeVisible();
   });
 
@@ -134,14 +164,14 @@ test.describe("visualisation workspace", () => {
 
     await page.goto("/visualisations/gradient-descent?step=2&lr=0.4");
     await expect(page.getByRole("slider", { name: "Learning rate" })).toHaveValue("0.4");
-    await expect(page.getByText(/Converging: after 14 steps, loss is .* lower/i)).toBeVisible();
+    await expect(page.getByText(/Current 0\.40 converging: after 14 steps, loss is .* lower/i)).toBeVisible();
 
     await page.goto("/visualisations/gradient-descent?step=2");
     await expect(page.getByText(/Overshoot: crossed the valley/)).toBeVisible();
     await expect(page.getByText(/0\.90 · oscillating/i)).toBeVisible();
 
     await page.goto("/visualisations/gradient-descent?step=2&lr=1.06");
-    await expect(page.getByText(/Diverging: after 14 steps, loss is .* higher/i)).toBeVisible();
+    await expect(page.getByText(/Current 1\.06 diverging: after 14 steps, loss is .* higher/i)).toBeVisible();
     await expect(page.getByText(/1\.06 · diverging/i)).toBeVisible();
 
     await page.goto("/visualisations/gradient-descent?step=3&x=0.4&y=0.4&refX=-3.4&refY=1.9&refLr=0.24");

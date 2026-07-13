@@ -89,12 +89,12 @@ export function GradientDescentProof() {
 
       <div className="relative z-10 mx-auto flex h-full max-w-content flex-col px-4 pb-5 pt-10 sm:px-6 sm:pb-7 sm:pt-14 lg:px-8 lg:pt-16">
         <div className="max-w-xl">
-          <p className="font-mono text-[10px] uppercase tracking-label text-primary">A public laboratory of visual arguments</p>
+          <p className="font-mono text-[10px] uppercase tracking-label text-primary">Interactive machine learning</p>
           <h1 className="mt-4 text-balance font-headline text-[2.7rem] font-medium leading-[1.02] text-on-surface sm:text-6xl lg:text-[4.25rem]">
             Machine learning visualisations
           </h1>
           <p className="mt-5 max-w-lg text-pretty text-base leading-7 text-on-surface-variant sm:text-lg">
-            Manipulate a meaningful variable, inspect the causal consequence, and see where a simple intuition stops working.
+            Change an input and watch the model respond. Each visualisation focuses on one idea and shows the assumptions behind it.
           </p>
           <Link href="/visualisations/gradient-descent?step=2" className="mt-6 inline-flex min-h-11 items-center gap-2 border border-accent bg-accent px-4 text-sm font-medium text-on-accent hover:bg-accent-hover">
             Open the full experiment <ArrowRight size={16} aria-hidden="true" />

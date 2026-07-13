@@ -34,6 +34,10 @@ uniform frames before capture. Regenerate the reviewed 1440×900 references with
 `npx playwright install firefox` followed by `npm run visual:gradient` while the
 static export is running on port 3000.
 
+The camera is aimed explicitly at the same target used by orbit controls. This
+keeps the surface framed on portrait canvases without removing background-drag
+rotation, which remains part of the inspection workflow.
+
 ## Observation evidence
 
 ### Session 1 — ML-familiar, laptop, pointer and keyboard

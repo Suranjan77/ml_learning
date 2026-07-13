@@ -1,6 +1,6 @@
 # Overfitting Flagship Review
 
-Status: implementation in progress
+Status: implementation and visual review complete
 Updated: 2026-07-13
 
 ## Visual argument
@@ -36,8 +36,7 @@ Expected one-sentence recall:
 
 Generate the five 1440×900 references with
 `npm run visual:overfitting` while the static export is running on port 3000.
-The images are intentionally deferred until the final implementation-wide
-visual review.
+The reviewed references are stored in `docs/visual-baselines/overfitting`.
 
 ## Provisional scorecard
 
@@ -51,7 +50,7 @@ visual review.
 | Fidelity and honesty | 3 | Fits and errors are computed; the synthetic truth and omissions are disclosed. |
 | Memory image | 2 | The intended image is a smooth kept curve under a noise-chasing current curve while the two error lines separate. |
 | Interaction coherence | 2 | Degree, resampling, validation visibility, and kept comparison all serve the generalisation argument. |
-| Accessibility equivalence | 2 | Keyboard degree control and live computed error descriptions exist; final review remains deferred. |
+| Accessibility equivalence | 2 | Keyboard degree control, live computed error descriptions, and four-viewport browser checks pass. |
 | Shareability | 3 | Degree, data seed, validation visibility, and kept degree are URL-restorable. |
 
 ## Reusable pattern decision
