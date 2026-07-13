@@ -73,8 +73,18 @@ jobs:
             ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Lint
+        run: npm run lint
+      - name: Run unit and component tests
+        run: npm run test
       - name: Build with Next.js
-        run: ${{ steps.detect-package-manager.outputs.runner }} next build
+        run: npm run build
+      - name: Check static JavaScript budgets
+        run: npm run budget
+      - name: Run browser tests
+        run: npm run e2e
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

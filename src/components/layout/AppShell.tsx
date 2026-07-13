@@ -1,10 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { clsx } from "clsx";
 import Header from "@/components/layout/Header";
-import Sidebar from "@/components/layout/Sidebar";
-import { useHydrated } from "@/lib/useHydrated";
 
 export default function AppShell({
   children,
@@ -12,30 +10,25 @@ export default function AppShell({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const isHydrated = useHydrated();
-  const showStudySidebar = isHydrated && pathname.startsWith("/algorithms/");
+  const isVisualisation = pathname.startsWith("/visualisations/");
+  const [embedMode, setEmbedMode] = useState(false);
+
+  useEffect(() => {
+    setEmbedMode(isVisualisation && new URLSearchParams(window.location.search).get("embed") === "1");
+  }, [isVisualisation]);
 
   return (
-    <div className="min-h-screen lg:flex">
-      {showStudySidebar && <Sidebar />}
-      <div
-        className={clsx(
-          "flex min-h-screen min-w-0 flex-1 flex-col",
-          showStudySidebar && "lg:ml-[300px]",
-        )}
-      >
-        <div
-          className={clsx(
-            "flex min-h-screen w-full min-w-0 flex-1 flex-col bg-background",
-            showStudySidebar
-              ? "mx-auto max-w-[1500px] border-x border-outline"
-              : "max-w-none",
-          )}
-        >
-          <Header />
-          <main className="min-w-0 flex-1">{children}</main>
-        </div>
-      </div>
+    <div
+      className={
+        isVisualisation
+          ? "flex h-dvh min-w-0 flex-col overflow-hidden bg-background"
+          : "min-h-dvh min-w-0 bg-background"
+      }
+    >
+      {embedMode ? null : <Header />}
+      <main className={isVisualisation ? "min-h-0 min-w-0 flex-1 overflow-hidden" : "min-w-0"}>
+        {children}
+      </main>
     </div>
   );
 }

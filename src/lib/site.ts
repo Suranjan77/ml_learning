@@ -1,9 +1,9 @@
 export const siteConfig = {
-  name: "ML Learn",
-  title: "ML Learn | Learning AI & ML",
+  name: "Machine Learning Visualisations",
+  title: "Interactive Machine Learning Visualisations",
   description:
-    "Understand AI through interactive machine learning visualisations, mathematical intuition, and production-ready learning experiences.",
-  shortDescription: "Understand AI, Mathematically & Intuitively",
+    "Change model inputs and inspect gradient paths, fitted curves, partitions, projections, and token probabilities.",
+  shortDescription: "Interactive machine learning visualisations",
   locale: "en_GB",
   keywords: [
     "machine learning",
@@ -14,6 +14,7 @@ export const siteConfig = {
     "interactive learning",
     "algorithm visualisations",
     "ML education",
+    "deep learning visualisations",
   ],
 } as const;
 
@@ -21,7 +22,7 @@ export function getSiteUrl() {
   const value =
     process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
     process.env.SITE_URL?.trim() ||
-    "http://localhost:3000";
+    "https://suranjan77.github.io";
 
   return value.replace(/\/+$/, "");
 }

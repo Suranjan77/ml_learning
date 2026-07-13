@@ -1,94 +1,5 @@
 @import "tailwindcss";
-
-@theme {
-    --font-headline: var(--font-shippori), serif;
-    --font-body: var(--font-outfit), system-ui, sans-serif;
-    --font-label: var(--font-dm-mono), monospace;
-    --font-mono: var(--font-dm-mono), monospace;
-
-    --color-background: #F5F2EC;
-    --color-surface: #FAF8F2;
-    --color-surface-dim: #E8E2D5;
-    --color-surface-bright: #FAF8F2;
-    --color-surface-container-lowest: #FAF8F2;
-    --color-surface-container-low: #F5F2EC;
-    --color-surface-container: #FAF8F2;
-    --color-surface-container-high: #EFEADF;
-    --color-surface-container-highest: #E8E2D5;
-    --color-on-background: #1E1B16;
-    --color-on-surface: #1E1B16;
-    --color-on-surface-variant: #6F6658;
-    --color-inverse-surface: #1E1B16;
-    --color-inverse-on-surface: #F5F2EC;
-    --color-outline: #E8E2D5;
-    --color-outline-variant: #DDD6C8;
-    --color-outline-dark: #BEB6A5;
-    --color-surface-tint: #556B4A;
-    --color-surface-variant: #E8E2D5;
-    --color-primary: #556B4A;
-    --color-primary-container: #E4E9DE;
-    --color-primary-fixed: #758469;
-    --color-on-primary: #F5F2EC;
-    --color-on-primary-container: #26311F;
-    --color-inverse-primary: #CAD4BF;
-    --color-secondary: #7B756A;
-    --color-secondary-container: #E8E2D5;
-    --color-secondary-fixed: #A89F90;
-    --color-on-secondary: #F5F2EC;
-    --color-on-secondary-container: #2F2B24;
-    --color-tertiary: #B8AE9E;
-    --color-tertiary-container: #EFEADF;
-    --color-tertiary-fixed: #D7CDBE;
-    --color-on-tertiary: #1E1B16;
-    --color-on-tertiary-container: #4C4439;
-    --color-error: #8D5149;
-    --color-error-container: #EAD7D3;
-    --color-on-error: #F5F2EC;
-    --color-on-error-container: #3B1713;
-    /* Warm rust — the single primary-action accent (distinct from the olive
-       primary used for links/active states and the muted error terracotta). */
-    --color-accent: #B0573E;
-    --color-accent-hover: #98472F;
-    --color-accent-container: #EFDBD0;
-    --color-on-accent: #FAF8F2;
-    --color-on-accent-container: #5A2616;
-    --color-success: #556B4A;
-    --color-warning: #927A4B;
-    --color-cyan: #556B4A;
-    --color-cyan-700: #556B4A;
-    --color-pink: #8D5149;
-    --color-yellow: #927A4B;
-    --color-green: #556B4A;
-
-    --radius-sm: 2px;
-    --radius-md: 2px;
-    --radius-lg: 2px;
-    --radius-xl: 2px;
-    --radius-2xl: 2px;
-    --radius-3xl: 2px;
-    --radius-full: 2px;
-
-    --shadow-elevation-0: none;
-    --shadow-elevation-1: none;
-    --shadow-elevation-2: none;
-    --shadow-elevation-3: none;
-    --shadow-elevation-4: none;
-
-    --ease-standard: cubic-bezier(0.2, 0, 0, 1);
-    --ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
-    --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
-    --ease-spring: cubic-bezier(0.2, 0, 0, 1);
-    --ease-emphasised: cubic-bezier(0.2, 0, 0, 1);
-    --duration-short1: 120ms;
-    --duration-short2: 180ms;
-    --duration-short3: 240ms;
-    --duration-short4: 300ms;
-    --duration-medium1: 360ms;
-    --duration-medium2: 420ms;
-    --duration-medium3: 500ms;
-    --duration-long1: 600ms;
-    --duration-long2: 720ms;
-}
+@import "./tokens.css";
 
 @utility elevation-0 { box-shadow: none; }
 @utility elevation-1 { box-shadow: none; }
@@ -243,6 +154,12 @@
 
 .text-balance { text-wrap: balance; }
 .text-pretty { text-wrap: pretty; }
+
+/* Keep authored diagrams crisp at fractional responsive scales. */
+[data-testid="visualisation-workspace"] svg {
+    shape-rendering: geometricPrecision;
+    text-rendering: geometricPrecision;
+}
 
 .crop-marks::before,
 .crop-marks::after {
@@ -419,6 +336,23 @@ input[type="range"]::-moz-range-thumb {
 @keyframes sweep {
     0% { transform: translateX(-100%); }
     100% { transform: translateX(100%); }
+}
+
+@keyframes guided-playback-sweep {
+    0% { transform: translateX(-110%); opacity: 0; }
+    12% { opacity: 0.48; }
+    72% { opacity: 0.2; }
+    100% { transform: translateX(110%); opacity: 0; }
+}
+
+.guided-playback-sweep {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+    width: 38%;
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-primary) 9%, transparent), transparent);
+    animation: guided-playback-sweep 2.4s var(--ease-standard) infinite;
 }
 
 @keyframes pop-in {

@@ -1,10 +1,11 @@
-# ML Learn
+# Interactive Machine Learning Visualisations
 
-ML Learn is an interactive machine learning curriculum that connects visual
-intuition, model behavior, and implementation-oriented explanations. It
-currently includes 29 modules across two guided tracks.
+A static web application for exploring machine-learning and deep-learning
+concepts through direct manipulation. Each visualisation is designed to fit in
+one browser viewport with its essential controls and explanation visible at the
+same time.
 
-## Run Locally
+## Development
 
 ```bash
 npm install
@@ -16,34 +17,37 @@ Open `http://localhost:3000`.
 ## Validation
 
 ```bash
-npm run test
 npm run lint
+npm run test
 npm run build
-npm run test:e2e
+npm run budget
+npm run e2e
 ```
 
-`test:e2e` builds the static export, serves the generated `out/` artifact, and
-runs the Cypress browser suite against the production-equivalent output.
+The production build is a static export written to `out/` for GitHub Pages.
+The budget check measures the compressed JavaScript referenced by every public
+route. Browser tests run the complete viewport suite in Chromium and focused
+SVG/WebGL smoke checks in Firefox and WebKit.
 
-## Project Structure
+## Structure
 
-- `src/data/algorithms_content/`: typed lesson content and the module registry.
-- `src/components/ui/visualizations/`: interactive module visualizations.
-- `src/components/lesson/`: reusable lesson-page sections and navigation.
-- `src/app/`: Next.js pages, route metadata, sitemap, and track pages.
-- `cypress/e2e/`: end-to-end coverage for core learner journeys.
+- `src/features/exhibits/`: visualisation models, scenes, metadata, and tests.
+- `src/app/visualisations/`: index and statically generated workspace routes.
+- `src/app/tokens.css`: preserved colour, typography, shape, and motion system.
+- `src/lib/vizTokens.ts`: renderer-safe copies of visualisation colours.
+- `docs/website-roadmap.md`: current release and milestone tracker.
+- `docs/identity-decision.md`: visual identity and public-language rules.
+- `docs/embedding-and-static-reuse.md`: exhibit links, iframe embeds, and static hosting.
+- `CONTRIBUTING.md`: contributor requirements and the exhibit workflow.
 
-## Add A Module
+## Adding a visualisation
 
-1. Create a typed `LearningModule` file in `src/data/algorithms_content/`.
-2. Export it from `src/data/algorithms_content/index.ts`.
-3. Add or reuse an appropriate category and learning track.
-4. Create the visualization component in
-   `src/components/ui/visualizations/`.
-5. Register the visualization in `D3Visualization.tsx`.
-6. Run the full validation commands above.
+Start with `npm run scaffold:exhibit -- --help`, then follow
+[`CONTRIBUTING.md`](CONTRIBUTING.md). The scaffold creates the model, metadata,
+scene, and test files but does not register unfinished work in the library.
 
-## Stack
+## Embedding
 
-Next.js 16, React 19, TypeScript, Tailwind CSS, D3, Framer Motion, KaTeX,
-Vitest, Testing Library, and Cypress.
+Add `embed=1` to a visualisation URL for the navigation-free workspace. See
+[`docs/embedding-and-static-reuse.md`](docs/embedding-and-static-reuse.md) for
+exhibit links, iframe markup, and static hosting constraints.
