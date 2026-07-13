@@ -21,6 +21,7 @@ Updated: 2026-07-13
 | D1: Static distribution groundwork | Complete | Contributor requirements, a tested non-destructive exhibit scaffold, state-link and iframe documentation, static-hosting instructions, and updated social copy are implemented and verified. |
 | D2: Reuse licence | Pending owner decision | The repository still needs an explicit code/content reuse decision before it can be described as openly reusable. |
 | A1: Attention fidelity | Complete | Attention scores and softmax weights are computed from disclosed tiny query/key vectors. Shareable controls, four reviewed signature states, responsive layouts, and browser restoration are verified. |
+| A2: Attention comparison | Complete | Changing the sentence ending retains the previous computed distribution as per-token markers and names the largest weight shifts while holding head and query constant. The comparison, URL restoration, responsive layout, and browser behavior are verified. |
 
 Update this tracker in the same change that completes or materially advances a
 roadmap item. A release is complete only after its completion criteria have been
@@ -118,6 +119,13 @@ Updated: 2026-07-13
 - [x] Verify Attention fidelity with 167 unit/component tests, lint, the static
   export, all route budgets, 75 Chromium checks, and the Firefox/WebKit smoke
   suites; review four desktop signatures and the 390×844 scene directly.
+- [x] Seed an ending-only Attention comparison, retain prior weights as compact
+  per-token markers, and state the two largest computed changes.
+- [x] Make the kept ending replaceable, clearable, and URL-restorable without
+  duplicating the curve diagram.
+- [x] Verify the retained comparison with 168 unit/component tests, lint, the
+  static export, all route budgets, 75 Chromium checks, and the Firefox/WebKit
+  smoke suites; review its desktop and 390×844 signatures directly.
 
 ### Release 1 implementation log
 

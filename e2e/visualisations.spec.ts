@@ -138,11 +138,12 @@ test.describe("visualisation workspace", () => {
 
   test("restores a computed Attention state", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
-    await page.goto("/visualisations/attention?ending=wide&head=previous-token&query=3");
+    await page.goto("/visualisations/attention?ending=wide&head=previous-token&query=3&refEnding=tired");
 
     await expect(page.getByRole("button", { name: "Use sentence ending in wide" })).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByRole("button", { name: "Show Previous token attention pattern" })).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByRole("button", { name: "Use street as the query token" })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("button", { name: "Clear kept tired" })).toBeVisible();
     await expect(page.getByRole("img", { name: /Attention connections from street/ })).toBeVisible();
   });
 

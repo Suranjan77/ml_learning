@@ -70,6 +70,7 @@ describe("AttentionScene", () => {
       "aria-pressed",
       "true",
     );
+    expect(screen.getByRole("button", { name: "Keep tired" })).toHaveAttribute("aria-pressed", "false");
   });
 
   it("applies guided step presets for autoplay", () => {
@@ -78,6 +79,10 @@ describe("AttentionScene", () => {
 
     rerender(<AttentionScene step={1} />);
     expect(screen.getByRole("button", { name: "Use sentence ending in wide" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Clear kept tired" })).toHaveAttribute("aria-pressed", "true");
+    const comparison = screen.getByText(/it, tired → wide:/i);
+    expect(comparison).toHaveTextContent(/Animal 45% → 5%/i);
+    expect(comparison).toHaveTextContent(/street 5% → 45%/i);
 
     rerender(<AttentionScene step={2} />);
     expect(screen.getByRole("button", { name: "Show Previous token attention pattern" })).toHaveAttribute("aria-pressed", "true");
@@ -95,5 +100,18 @@ describe("AttentionScene", () => {
     expect(params.get("ending")).toBe("wide");
     expect(params.get("head")).toBe("previous-token");
     expect(params.get("query")).toBe("3");
+    expect(params.get("compare")).toBe("on");
+    expect(params.get("refEnding")).toBe("tired");
+  });
+
+  it("clears the guided ending comparison through URL state", () => {
+    window.history.replaceState({}, "", "/visualisations/attention?step=1");
+    render(<AttentionScene step={1} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Clear kept tired" }));
+
+    const params = new URL(window.location.href).searchParams;
+    expect(params.get("compare")).toBe("off");
+    expect(params.has("refEnding")).toBe(false);
   });
 });

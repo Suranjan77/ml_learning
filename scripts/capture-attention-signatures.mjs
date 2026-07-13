@@ -6,7 +6,7 @@ const baseUrl = process.env.BASE_URL ?? "http://localhost:3000";
 const outputDirectory = resolve("docs/visual-baselines/attention");
 const states = [
   ["01-tired-reference.png", ""],
-  ["02-wide-reference.png", "?ending=wide"],
+  ["02-wide-reference.png", "?step=1"],
   ["03-previous-position.png", "?head=previous-token&query=6"],
   ["04-street-query.png", "?query=3"],
 ];

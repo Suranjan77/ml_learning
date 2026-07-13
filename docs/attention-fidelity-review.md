@@ -42,7 +42,7 @@ this sentence.
 | State | URL | Expected evidence |
 | --- | --- | --- |
 | Tired reference | `/visualisations/attention` | The contextual query gives Animal the highest computed score and weight. |
-| Wide reference | `/visualisations/attention?ending=wide` | The same query token now gives street the highest score and weight. |
+| Wide reference | `/visualisations/attention?step=1` | The same query token now gives street the highest score and weight while kept markers preserve the tired distribution. |
 | Previous position | `/visualisations/attention?head=previous-token&query=6` | The positional query aligns most strongly with the preceding token. |
 | Street query | `/visualisations/attention?query=3` | A non-pronoun query produces its own score and softmax distribution. |
 
@@ -54,9 +54,10 @@ scene also passes the shared 390×844, 768×1024, 1280×720, and 1440×900
 workspace checks; the portrait layout keeps all tokens, weights, and the
 computed/authored disclosure visible.
 
-## Remaining product question
+## Ending comparison
 
-The mechanism is now computed honestly, but the two sentence endings are still
-viewed one at a time. A future flagship review should decide whether a retained
-before/after distribution improves the context-change argument without making
-the compact scene too dense.
+Switching the ending keeps the prior computed distribution. A marker inside
+each context token shows its kept percentage, and the live summary names the two
+largest changes. The head and query remain fixed, so the comparison isolates the
+ending feature. The comparison can be cleared or replaced and is restored from
+the URL.

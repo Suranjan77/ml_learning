@@ -22,6 +22,7 @@ export const SCENE_URL_KEYS = [
   "seed",
   "validation",
   "ending",
+  "refEnding",
   "head",
   "query",
   "temperature",
