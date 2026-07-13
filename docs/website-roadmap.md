@@ -15,7 +15,7 @@ Updated: 2026-07-13
 | G1: Gradient Descent flagship | Implementation complete | Causal comparison defaults, stability regimes, direct annotations, deterministic signature states, camera inspection, and shareable state are implemented. Final verification is intentionally deferred until the implementation phase ends. |
 | G2: Feedback incorporation | Complete | The first observation and subsequent maintainer review produced concrete revisions. Formal participant observation no longer blocks progress; reported issues will continue to be corrected directly. |
 | G3: Reusable grammar | Complete for current wave | The second-use rule produced one shared kept-comparison command. Trajectories, fitted curves, annotations, and causal summaries remain exhibit-owned. |
-| G4: Later flagships | In progress | Overfitting is selected as the second flagship because it offers a computed, directly manipulable contradiction between falling training error and rising validation error. |
+| G4: Later flagships | In progress | Overfitting and Decision Tree Partitions are the second and third flagships. They test whether causal comparison generalises across error curves and spatial routing without forcing identical choreography. |
 | G5-G6 | Pending | Homepage re-authoring and naming wait until the second flagship establishes what genuinely generalises. |
 
 Update this tracker in the same change that completes or materially advances a
@@ -73,6 +73,11 @@ Updated: 2026-07-13
 - [x] Apply the second-use rule: share only the kept-comparison command between
   Gradient Descent and Overfitting while leaving each exhibit's visual traces
   and causal summary independent.
+- [x] Make the Decision Tree root boundary directly draggable, seed a kept root
+  comparison, and distinguish root rerouting from changed predictions and
+  accuracy.
+- [x] Define deterministic review states and deferred capture tooling for the
+  Overfitting and Decision Tree flagships.
 
 ### Release 1 implementation log
 

@@ -30,6 +30,7 @@ export const SCENE_URL_KEYS = [
   "intercept",
   "depth",
   "threshold",
+  "refThreshold",
 ] as const;
 
 /** Preserve route-level parameters while adding only non-default scene state. */
