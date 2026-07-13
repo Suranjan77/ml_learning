@@ -11,6 +11,7 @@ import {
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { reduced, vizMotion } from "@/lib/vizMotion";
 import type { ExhibitSceneProps } from "../types";
+import { enumParam, numberParam, replaceSceneUrlState, useSceneUrlState } from "../sceneUrlState";
 import { ATTENTION_DATA_DISCLOSURE, attentionExamples } from "./data";
 import { describeAttention, topTargets } from "./model";
 
@@ -18,6 +19,15 @@ type AttentionSceneProps = Partial<ExhibitSceneProps>;
 
 const DIAGRAM_WIDTH = 1000;
 const DIAGRAM_HEIGHT = 180;
+const STEP_PRESETS = [
+  { exampleIndex: 0, headIndex: 0 },
+  { exampleIndex: 1, headIndex: 0 },
+  { exampleIndex: 0, headIndex: 1 },
+] as const;
+
+function presetFor(step: number) {
+  return STEP_PRESETS[Math.max(0, Math.min(STEP_PRESETS.length - 1, step))];
+}
 
 function tokenX(index: number, count: number): number {
   return ((index + 0.5) / count) * DIAGRAM_WIDTH;
@@ -37,9 +47,10 @@ function formatWeight(weight: number): string {
 }
 
 export default function AttentionScene({ resetKey = 0, step = 0, playing = false }: AttentionSceneProps = {}) {
+  const initialPreset = presetFor(step);
   const prefersReduced = useReducedMotion();
-  const [exampleIndex, setExampleIndex] = useState(0);
-  const [headIndex, setHeadIndex] = useState(0);
+  const [exampleIndex, setExampleIndex] = useState<number>(initialPreset.exampleIndex);
+  const [headIndex, setHeadIndex] = useState<number>(initialPreset.headIndex);
   const [selectedIndex, setSelectedIndex] = useState(() =>
     attentionExamples[0].tokens.indexOf(attentionExamples[0].focusToken),
   );
@@ -51,6 +62,7 @@ export default function AttentionScene({ resetKey = 0, step = 0, playing = false
   const head = example.heads[headIndex];
   const sourceIndex = Math.min(selectedIndex, example.tokens.length - 1);
   const weights = head.weights[sourceIndex];
+  const scores = head.scores[sourceIndex];
   const targets = useMemo(() => topTargets(head, sourceIndex), [head, sourceIndex]);
   const rankByIndex = useMemo(
     () => new Map(targets.map(({ index }, rank) => [index, rank + 1])),
@@ -62,6 +74,19 @@ export default function AttentionScene({ resetKey = 0, step = 0, playing = false
   );
   const description = describeAttention(example, head, sourceIndex);
   const strongestTarget = targets[0]?.index;
+  const defaultQueryIndex = attentionExamples[initialPreset.exampleIndex].tokens.indexOf(
+    attentionExamples[initialPreset.exampleIndex].focusToken,
+  );
+
+  const syncControls = (
+    nextExampleIndex: number,
+    nextHeadIndex: number,
+    nextSelectedIndex: number,
+  ) => replaceSceneUrlState([
+    { key: "ending", value: attentionExamples[nextExampleIndex].id, defaultValue: attentionExamples[initialPreset.exampleIndex].id },
+    { key: "head", value: attentionExamples[nextExampleIndex].heads[nextHeadIndex].id, defaultValue: attentionExamples[initialPreset.exampleIndex].heads[initialPreset.headIndex].id },
+    { key: "query", value: String(nextSelectedIndex), defaultValue: String(defaultQueryIndex) },
+  ]);
 
   useEffect(() => {
     interactionReady.current = true;
@@ -71,13 +96,29 @@ export default function AttentionScene({ resetKey = 0, step = 0, playing = false
   }, []);
 
   useEffect(() => {
-    const preset = Math.max(0, Math.min(2, step));
-    const nextExampleIndex = preset === 1 ? 1 : 0;
+    const preset = presetFor(step);
+    const nextExampleIndex = preset.exampleIndex;
     const initial = attentionExamples[nextExampleIndex];
     setExampleIndex(nextExampleIndex);
-    setHeadIndex(preset === 2 ? 1 : 0);
+    setHeadIndex(preset.headIndex);
     setSelectedIndex(initial.tokens.indexOf(initial.focusToken));
   }, [resetKey, step]);
+
+  useSceneUrlState((params) => {
+    const ending = enumParam(params, "ending", ["tired", "wide"] as const);
+    const nextExampleIndex = ending === undefined
+      ? initialPreset.exampleIndex
+      : attentionExamples.findIndex((item) => item.id === ending);
+    const nextExample = attentionExamples[nextExampleIndex];
+    const headId = enumParam(params, "head", ["reference", "previous-token"] as const);
+    const nextHeadIndex = headId === undefined
+      ? initialPreset.headIndex
+      : nextExample.heads.findIndex((item) => item.id === headId);
+    const query = numberParam(params, "query", { min: 0, max: nextExample.tokens.length - 1, step: 1 });
+    setExampleIndex(nextExampleIndex);
+    setHeadIndex(nextHeadIndex);
+    setSelectedIndex(query ?? nextExample.tokens.indexOf(nextExample.focusToken));
+  }, step);
 
   useEffect(() => {
     if (!playing || prefersReduced) return;
@@ -90,13 +131,21 @@ export default function AttentionScene({ resetKey = 0, step = 0, playing = false
 
   function chooseExample(index: number) {
     const nextExample = attentionExamples[index];
+    const nextSelectedIndex = nextExample.tokens.indexOf(nextExample.focusToken);
     setExampleIndex(index);
-    setSelectedIndex(nextExample.tokens.indexOf(nextExample.focusToken));
+    setSelectedIndex(nextSelectedIndex);
+    syncControls(index, headIndex, nextSelectedIndex);
   }
 
   function chooseQuery(index: number, moveFocus = false) {
     setSelectedIndex(index);
+    syncControls(exampleIndex, headIndex, index);
     if (moveFocus) queryRefs.current[index]?.focus();
+  }
+
+  function chooseHead(index: number) {
+    setHeadIndex(index);
+    syncControls(exampleIndex, index, sourceIndex);
   }
 
   function handleQueryKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
@@ -166,7 +215,7 @@ export default function AttentionScene({ resetKey = 0, step = 0, playing = false
                   aria-label={`Show ${item.name} attention pattern`}
                   aria-pressed={active}
                   title={item.description}
-                  onClick={() => setHeadIndex(index)}
+                  onClick={() => chooseHead(index)}
                   className={`min-h-8 px-2.5 font-mono text-[11px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                     active
                       ? "bg-primary text-on-primary"
@@ -251,8 +300,8 @@ export default function AttentionScene({ resetKey = 0, step = 0, playing = false
         >
           <title id={`${accessibleId}-title`}>{`Attention connections from ${example.tokens[sourceIndex]}`}</title>
           <desc id={`${accessibleId}-description`}>
-            {description} Line width and target rank both indicate relative weight. These are
-            illustrative weights, not measurements from a model.
+            {description} Line width and target rank indicate relative weight. Scores and
+            weights are computed from authored query and key vectors, not measured from a trained model.
           </desc>
           <AnimatePresence>
             {connections.map(({ index, weight }) => {
@@ -301,13 +350,14 @@ export default function AttentionScene({ resetKey = 0, step = 0, playing = false
           >
             {example.tokens.map((token, index) => {
               const weight = weights[index];
+              const score = scores[index];
               const rank = rankByIndex.get(index);
               return (
                 <div
                   key={`${token}-${index}`}
                   role="listitem"
                   aria-label={`${token}, ${formatWeight(weight)} attention${rank ? `, rank ${rank}` : ""}`}
-                  title={`${token}: ${formatWeight(weight)}`}
+                  title={`${token}: score ${score.toFixed(2)}, weight ${formatWeight(weight)}`}
                   className={`flex min-h-12 min-w-0 flex-col justify-center border bg-surface px-0.5 text-center font-mono ${
                     rank === 1 ? "border-t-2 border-accent" : rank ? "border-primary" : "border-outline"
                   }`}
@@ -317,6 +367,7 @@ export default function AttentionScene({ resetKey = 0, step = 0, playing = false
                     {formatWeight(weight)}
                     {rank ? <strong className="font-medium text-primary">#{rank}</strong> : null}
                   </span>
+                  <span className="mt-0.5 hidden text-[8px] text-on-surface-variant md:block">score {score.toFixed(2)}</span>
                 </div>
               );
             })}
@@ -332,7 +383,7 @@ export default function AttentionScene({ resetKey = 0, step = 0, playing = false
           title={ATTENTION_DATA_DISCLOSURE}
           className="shrink-0 font-mono text-[9px] uppercase tracking-[0.08em] text-on-surface-variant sm:text-[10px]"
         >
-          Illustrative weights · not model output
+          QKᵀ / √{head.vectorDimension} → softmax · vectors authored
           <span className="sr-only">. {ATTENTION_DATA_DISCLOSURE}</span>
         </p>
       </footer>

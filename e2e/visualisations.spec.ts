@@ -136,6 +136,16 @@ test.describe("visualisation workspace", () => {
     await expect(page.getByRole("button", { name: "Current view copied" })).toBeVisible();
   });
 
+  test("restores a computed Attention state", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto("/visualisations/attention?ending=wide&head=previous-token&query=3");
+
+    await expect(page.getByRole("button", { name: "Use sentence ending in wide" })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("button", { name: "Show Previous token attention pattern" })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("button", { name: "Use street as the query token" })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("img", { name: /Attention connections from street/ })).toBeVisible();
+  });
+
   test("shares and restores a Gradient Descent start comparison", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto("/visualisations/gradient-descent?step=3");
@@ -209,7 +219,7 @@ test.describe("visualisation workspace", () => {
       page.getByRole("link", { name: /The Curious Case of Neural Text Degeneration/ }),
     ).toHaveAttribute("href", "https://arxiv.org/abs/1904.09751");
 
-    const related = page.getByRole("link", { name: /Attention/ });
+    const related = page.getByRole("link", { name: /attention/i });
     await expect(related).toBeVisible();
     await related.click();
     await expect(page).toHaveURL(/\/visualisations\/attention/);
@@ -254,7 +264,7 @@ test.describe("visualisation workspace", () => {
     const trigger = page.getByRole("button", { name: "Open insight and challenges" });
     await trigger.click();
 
-    const dialog = page.getByRole("dialog", { name: "Follow the Attention" });
+    const dialog = page.getByRole("dialog", { name: "Self-attention weights" });
     await expect(dialog).toBeVisible();
     await expect(page.getByRole("button", { name: "Close insight panel" })).toBeFocused();
 

@@ -20,6 +20,7 @@ Updated: 2026-07-13
 | G6: Identity decision | Complete | Keep the descriptive name. Identity comes from the visual and interaction system; public copy follows the literal language rules in `docs/identity-decision.md`. |
 | D1: Static distribution groundwork | Complete | Contributor requirements, a tested non-destructive exhibit scaffold, state-link and iframe documentation, static-hosting instructions, and updated social copy are implemented and verified. |
 | D2: Reuse licence | Pending owner decision | The repository still needs an explicit code/content reuse decision before it can be described as openly reusable. |
+| A1: Attention fidelity | Complete | Attention scores and softmax weights are computed from disclosed tiny query/key vectors. Shareable controls, four reviewed signature states, responsive layouts, and browser restoration are verified. |
 
 Update this tracker in the same change that completes or materially advances a
 roadmap item. A release is complete only after its completion criteria have been
@@ -110,6 +111,13 @@ Updated: 2026-07-13
 - [x] Verify the distribution groundwork with 165 unit/component tests, lint,
   the 21-page static export, every JavaScript route budget, 74 Chromium checks,
   and all four Firefox and containerised WebKit smoke checks.
+- [x] Replace hand-authored Attention probability rows with in-browser scaled
+  dot-product scores and softmax weights over disclosed authored vectors.
+- [x] Expose raw scores, the exact formula, authored/computed boundaries, and
+  URL-restorable ending, head, and query controls.
+- [x] Verify Attention fidelity with 167 unit/component tests, lint, the static
+  export, all route budgets, 75 Chromium checks, and the Firefox/WebKit smoke
+  suites; review four desktop signatures and the 390×844 scene directly.
 
 ### Release 1 implementation log
 

@@ -1,6 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import AttentionScene from "./AttentionScene";
+
+afterEach(() => window.history.replaceState({}, "", "/"));
 
 describe("AttentionScene", () => {
   it("renders a spatial, accessible view of every weighted connection", () => {
@@ -9,7 +11,8 @@ describe("AttentionScene", () => {
     expect(screen.getByRole("img", { name: /attention connections from it/i })).toBeInTheDocument();
     expect(container.querySelectorAll("svg path")).toHaveLength(8);
     expect(screen.getByRole("list", { name: /context tokens and attention weights/i })).toBeInTheDocument();
-    expect(screen.getByText(/illustrative weights · not model output/i)).toBeInTheDocument();
+    expect(screen.getByText(/QKᵀ \/ √6 → softmax · vectors authored/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/score /i).length).toBeGreaterThan(1);
 
     const widths = [...container.querySelectorAll("svg path")].map((path) =>
       Number(path.getAttribute("stroke-width")),
@@ -78,5 +81,19 @@ describe("AttentionScene", () => {
 
     rerender(<AttentionScene step={2} />);
     expect(screen.getByRole("button", { name: "Show Previous token attention pattern" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("shares the selected ending, head, and query token", () => {
+    window.history.replaceState({}, "", "/visualisations/attention");
+    render(<AttentionScene />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Use sentence ending in wide" }));
+    fireEvent.click(screen.getByRole("button", { name: "Show Previous token attention pattern" }));
+    fireEvent.click(screen.getByRole("button", { name: "Use street as the query token" }));
+
+    const params = new URL(window.location.href).searchParams;
+    expect(params.get("ending")).toBe("wide");
+    expect(params.get("head")).toBe("previous-token");
+    expect(params.get("query")).toBe("3");
   });
 });

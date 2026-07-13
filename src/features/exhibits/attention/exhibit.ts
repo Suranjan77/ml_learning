@@ -2,12 +2,12 @@ import type { ExhibitDefinition } from "../types";
 
 export const attentionExhibit: ExhibitDefinition = {
   slug: "attention",
-  title: "Follow the Attention",
-  question: "Which words does a transformer look at?",
+  title: "Self-attention weights",
+  question: "How does a self-attention head turn query-key similarity into weights?",
   summary:
-    "Select a token and inspect the weighted connections it makes to the rest of a sentence.",
+    "Select a query token and inspect the similarity scores and softmax weights it computes against every key.",
   insight:
-    "Attention builds a context-sensitive mixture of other token representations; changing one word can shift which connection receives the most weight.",
+    "Scaled dot products produce similarity scores; softmax turns those scores into a distribution used to mix token representations.",
   topic: "Language models",
   difficulty: "Approachable",
   duration: 5,
@@ -15,8 +15,9 @@ export const attentionExhibit: ExhibitDefinition = {
   tags: ["transformer", "self-attention", "language model", "context", "tokens", "weights"],
   related: ["token-sampling", "backpropagation"],
   assumptions: [
-    "Attention weights are hand-authored exemplars chosen to show how “it” resolves to different tokens; they are not computed from a trained transformer.",
-    "A single attention head over one short sentence is shown; multi-head mixing, positional encodings, and later layers are omitted.",
+    "Weights are computed in-browser with scaled dot-product attention over small hand-authored query and key vectors; they are not output from a trained transformer.",
+    "The reference query includes a hand-authored feature from the sentence ending, standing in for context supplied by an earlier layer.",
+    "One head over one short sentence is shown; value vectors, multi-head mixing, learned projections, residual connections, and later layers are omitted.",
   ],
   references: [
     { label: "Vaswani et al., Attention Is All You Need (2017)", href: "https://arxiv.org/abs/1706.03762" },
@@ -28,21 +29,21 @@ export const attentionExhibit: ExhibitDefinition = {
       instruction:
         "Start with the tired sentence and select ‘it’. Compare its three strongest targets.",
       observation:
-        "In this illustration, ‘animal’ receives the strongest weight because animals can be tired.",
+        "Each query-key dot product is scaled by √d; softmax turns the resulting scores into the displayed weights.",
     },
     {
       title: "Change one word",
       instruction:
         "Choose the sentence ending in ‘wide’, then select ‘it’ again.",
       observation:
-        "The strongest target shifts to ‘street’. Attention weights depend on context, not token identity alone.",
+        "Changing the ending changes the contextual query vector, which recomputes every score and weight while the query token remains ‘it’.",
     },
     {
       title: "Inspect another pattern",
       instruction:
         "Switch to the Previous token pattern and move through the tokens with the arrow keys.",
       observation:
-        "Different heads can express different relationships; this illustrative head mostly follows local sequence order.",
+        "The positional query aligns with the preceding key, showing how a different query-key projection produces a different distribution.",
     },
   ],
   challenges: [
