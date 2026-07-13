@@ -17,6 +17,8 @@ export const vizMotion = Object.freeze({
   draw: { duration: 0.55, ease: [0.2, 0, 0, 1] },
   /** A fast opacity/colour cross-fade for state swaps. */
   fade: { duration: 0.18, ease: [0.2, 0, 0, 1] },
+  /** A guided-playback camera beat: long enough to perceive the mechanism moving. */
+  cinematic: { duration: 1.45, ease: [0.16, 1, 0.3, 1] },
 } satisfies Record<string, Transition>);
 
 export type VizMotion = keyof typeof vizMotion;

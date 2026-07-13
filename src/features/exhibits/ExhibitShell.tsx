@@ -7,6 +7,10 @@ import { getExhibit } from "./registry";
 import { ExhibitScene } from "./sceneRegistry";
 import { SCENE_URL_KEYS } from "./sceneUrlState";
 
+// Keep guided playback close to the duration of the scene transitions. A long
+// hold here makes the walkthrough feel like a slideshow rather than animation.
+const WALKTHROUGH_STEP_INTERVAL_MS = 2400;
+
 export default function ExhibitShell({ slug }: { slug: string }) {
   const exhibit = getExhibit(slug)!;
   const relatedExhibits = exhibit.related
@@ -73,7 +77,10 @@ export default function ExhibitShell({ slug }: { slug: string }) {
       setPlaying(false);
       return;
     }
-    const timer = window.setTimeout(() => chooseStep(step + 1), 3200);
+    const timer = window.setTimeout(
+      () => chooseStep(step + 1),
+      WALKTHROUGH_STEP_INTERVAL_MS,
+    );
     return () => window.clearTimeout(timer);
   }, [chooseStep, exhibit.steps.length, playing, reducedMotion, step]);
 
@@ -214,8 +221,12 @@ export default function ExhibitShell({ slug }: { slug: string }) {
         inert={detailsOpen ? true : undefined}
         className="min-h-0 overflow-hidden bg-surface-container-low p-2 sm:p-3 lg:p-4"
       >
-        <div className="mx-auto h-full min-h-0 max-w-[1600px] overflow-hidden [&>section]:h-full [&>section]:min-h-0">
-          <ExhibitScene slug={slug} step={step} resetKey={resetKey} />
+        <div
+          className="relative mx-auto h-full min-h-0 max-w-[1600px] overflow-hidden [&>section]:h-full [&>section]:min-h-0"
+          data-guided-playback={playing ? "true" : undefined}
+        >
+          <ExhibitScene slug={slug} step={step} resetKey={resetKey} playing={playing} />
+          {playing ? <div className="guided-playback-sweep" aria-hidden="true" /> : null}
         </div>
       </section>
 

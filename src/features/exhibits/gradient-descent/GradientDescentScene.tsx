@@ -293,7 +293,7 @@ function DescentScene3D({
   );
 }
 
-export default function GradientDescentScene({ step, resetKey }: ExhibitSceneProps) {
+export default function GradientDescentScene({ step, resetKey, playing = false }: ExhibitSceneProps) {
   const initialPreset = presetFor(step);
   const prefersReduced = Boolean(useReducedMotion());
   const [surface, setSurface] = useState<SurfaceKind>(initialPreset.surface);
@@ -327,6 +327,12 @@ export default function GradientDescentScene({ step, resetKey }: ExhibitScenePro
     setVisibleSteps(preset.visibleSteps);
     setRunning(false);
   }, [resetKey, step]);
+
+  useEffect(() => {
+    if (!playing) return;
+    setRunning(true);
+    return () => setRunning(false);
+  }, [playing, resetKey, step]);
 
   useSceneUrlState((params) => {
     const restoredSurface = enumParam(params, "surface", ["bowl", "valley", "multimodal"] as const);

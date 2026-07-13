@@ -65,12 +65,12 @@
     --color-viz-error: #8D5149;
     --color-viz-path: #927A4B;
     --color-viz-selection: #B0573E;
-    --color-viz-grid: #E8E2D5;
-    --color-viz-axis: #6F6658;
-    --color-viz-border: #BEB6A5;
+    --color-viz-grid: #DED7CA;
+    --color-viz-axis: #625A4F;
+    --color-viz-border: #AFA693;
     --color-viz-canvas: #FAF8F2;
     --color-viz-ink: #1E1B16;
-    --color-viz-muted-ink: #6F6658;
+    --color-viz-muted-ink: #625A4F;
     --color-viz-point-outline: #FAF8F2;
 
     --radius-sm: 2px;

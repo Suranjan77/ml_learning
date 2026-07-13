@@ -13,7 +13,7 @@ const OUTPUT_POS = [785, 260] as const;
 
 function tone(value: number) { return value >= 0 ? vizTokens.classA : vizTokens.classB; }
 
-export default function BackpropScene({ step, resetKey }: ExhibitSceneProps) {
+export default function BackpropScene({ step, resetKey, playing = false }: ExhibitSceneProps) {
   const activeStep = Math.max(0, Math.min(3, step));
   const titleId = useId();
   const prefersReduced = Boolean(useReducedMotion());
@@ -29,6 +29,15 @@ export default function BackpropScene({ step, resetKey }: ExhibitSceneProps) {
   const showActivations = activeStep >= 1;
   const showLoss = activeStep >= 2;
   const showGradients = activeStep >= 3;
+
+  useEffect(() => {
+    if (!playing || prefersReduced || !showGradients) return;
+    const timer = window.setTimeout(() => {
+      setWeights((current) => applyGradients(current, gradients(input, target, current), learningRate));
+      setUpdates((value) => value + 1);
+    }, 650);
+    return () => window.clearTimeout(timer);
+  }, [input, learningRate, playing, prefersReduced, showGradients, target, updates]);
 
   return <section aria-label="Backpropagation visualisation" className="grid h-full min-h-[22rem] grid-rows-[minmax(0,1fr)_auto] overflow-hidden border border-outline bg-surface">
     <div role="img" aria-labelledby={titleId} className="min-h-0 overflow-x-auto overflow-y-hidden">

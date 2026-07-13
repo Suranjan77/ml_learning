@@ -1,135 +1,373 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
-import type { ExhibitSceneProps } from "../types";
+import { Line, OrbitControls } from "@react-three/drei";
+import { useFrame } from "@react-three/fiber";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useReducedMotion } from "motion/react";
+import * as THREE from "three";
+import { VizCanvas } from "@/lib/three/VizCanvas";
 import { vizTokens } from "@/lib/vizTokens";
+import type { ExhibitSceneProps } from "../types";
 import {
   DEFAULT_PARAMETERS,
   DOMAIN,
   evolveSwarm,
   initialSwarm,
   objective,
+  predatorAt,
   stepSwarm,
+  type Point,
   type SwarmParameters,
   type SwarmState,
 } from "./model";
 
-const WIDTH = 1_180;
-const HEIGHT = 520;
-const PLOT = { left: 40, right: 270, top: 22, bottom: 28 } as const;
-const PLOT_WIDTH = WIDTH - PLOT.left - PLOT.right;
-const PLOT_HEIGHT = HEIGHT - PLOT.top - PLOT.bottom;
 const STEP_ITERATIONS = [0, 1, 5, 14] as const;
+const HEIGHT_SCALE = 0.05;
+const SURFACE_LIFT = 0.055;
+const INITIAL_BEST_SCORE = initialSwarm().globalBestScore;
 
-const sx = (value: number) => PLOT.left + ((value - DOMAIN.min) / (DOMAIN.max - DOMAIN.min)) * PLOT_WIDTH;
-const sy = (value: number) => PLOT.top + ((DOMAIN.max - value) / (DOMAIN.max - DOMAIN.min)) * PLOT_HEIGHT;
-
-function starPoints(cx: number, cy: number, outer = 12, inner = 5) {
-  return Array.from({ length: 10 }, (_, index) => {
-    const radius = index % 2 === 0 ? outer : inner;
-    const angle = -Math.PI / 2 + index * Math.PI / 5;
-    return `${cx + Math.cos(angle) * radius},${cy + Math.sin(angle) * radius}`;
-  }).join(" ");
+function heightAt(point: Point) {
+  return objective(point) * HEIGHT_SCALE;
 }
 
-export default function ParticleSwarmScene({ step, resetKey }: ExhibitSceneProps) {
+function scenePoint(point: Point, lift = SURFACE_LIFT): [number, number, number] {
+  return [point.x, heightAt(point) + lift, point.y];
+}
+
+function buildLandscapeGeometry() {
+  const segments = 82;
+  const positions: number[] = [];
+  const colours: number[] = [];
+  const indices: number[] = [];
+  const low = new THREE.Color("#F2EEE4");
+  const middle = new THREE.Color("#D7CBB8");
+  const high = new THREE.Color("#A86B61");
+
+  for (let row = 0; row <= segments; row += 1) {
+    const z = DOMAIN.min + (row / segments) * (DOMAIN.max - DOMAIN.min);
+    for (let column = 0; column <= segments; column += 1) {
+      const x = DOMAIN.min + (column / segments) * (DOMAIN.max - DOMAIN.min);
+      const height = heightAt({ x, y: z });
+      positions.push(x, height, z);
+      const normalised = Math.min(1, objective({ x, y: z }) / 72);
+      const colour = normalised < 0.5
+        ? low.clone().lerp(middle, normalised * 2)
+        : middle.clone().lerp(high, (normalised - 0.5) * 2);
+      colours.push(colour.r, colour.g, colour.b);
+    }
+  }
+
+  for (let row = 0; row < segments; row += 1) {
+    for (let column = 0; column < segments; column += 1) {
+      const a = row * (segments + 1) + column;
+      const b = a + 1;
+      const c = a + segments + 1;
+      const d = c + 1;
+      indices.push(a, c, b, b, c, d);
+    }
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute("color", new THREE.Float32BufferAttribute(colours, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+function Landscape() {
+  const geometry = useMemo(() => buildLandscapeGeometry(), []);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+
+  return (
+    <group>
+      <mesh geometry={geometry}>
+        <meshStandardMaterial vertexColors roughness={0.92} metalness={0} side={THREE.DoubleSide} />
+      </mesh>
+      <mesh geometry={geometry} position={[0, 0.008, 0]}>
+        <meshBasicMaterial color={vizTokens.axis} wireframe transparent opacity={0.055} />
+      </mesh>
+    </group>
+  );
+}
+
+function GroundGrid() {
+  const lines = useMemo(() => {
+    const result: [number, number, number][][] = [];
+    for (let value = -5; value <= 5; value += 1) {
+      result.push([[value, 0, DOMAIN.min], [value, 0, DOMAIN.max]]);
+      result.push([[DOMAIN.min, 0, value], [DOMAIN.max, 0, value]]);
+    }
+    return result;
+  }, []);
+
+  return (
+    <group>
+      {lines.map((points, index) => <Line key={index} points={points} color={vizTokens.grid} lineWidth={1} transparent opacity={0.78} />)}
+      <Line points={[[DOMAIN.min, 0, 0], [DOMAIN.max, 0, 0]]} color={vizTokens.axis} lineWidth={1.4} />
+      <Line points={[[0, 0, DOMAIN.min], [0, 0, DOMAIN.max]]} color={vizTokens.axis} lineWidth={1.4} />
+      <Line points={[[DOMAIN.min, 0, DOMAIN.min], [DOMAIN.min, 4.8, DOMAIN.min]]} color={vizTokens.axis} lineWidth={1.4} />
+    </group>
+  );
+}
+
+function FlockAgent({
+  point,
+  leader,
+  reducedMotion,
+}: {
+  point: SwarmState["particles"][number];
+  leader: boolean;
+  reducedMotion: boolean;
+}) {
+  const root = useRef<THREE.Group>(null);
+  const leftWing = useRef<THREE.Mesh>(null);
+  const rightWing = useRef<THREE.Mesh>(null);
+  const [initialPosition] = useState(() => scenePoint(point, 0.2));
+  const target = useMemo(() => new THREE.Vector3(...scenePoint(point, 0.2)), [point]);
+  const colour = leader ? vizTokens.path : point.id % 2 === 0 ? vizTokens.classA : vizTokens.classB;
+
+  useFrame(({ clock }, delta) => {
+    if (!root.current) return;
+    const amount = reducedMotion ? 1 : 1 - Math.exp(-delta * 6.5);
+    root.current.position.lerp(target, amount);
+    const destinationYaw = Math.atan2(point.velocity.x, point.velocity.y);
+    const yawDelta = Math.atan2(
+      Math.sin(destinationYaw - root.current.rotation.y),
+      Math.cos(destinationYaw - root.current.rotation.y),
+    );
+    root.current.rotation.y += yawDelta * amount;
+    root.current.rotation.z = reducedMotion ? 0 : Math.sin(clock.elapsedTime * 3.2 + point.id) * 0.07;
+    const flap = reducedMotion ? 0.16 : 0.2 + Math.sin(clock.elapsedTime * 7.5 + point.id * 0.8) * 0.25;
+    if (leftWing.current) leftWing.current.rotation.z = flap;
+    if (rightWing.current) rightWing.current.rotation.z = -flap;
+  });
+
+  return (
+    <group ref={root} position={initialPosition} scale={leader ? 1.35 : 1} renderOrder={leader ? 8 : 6}>
+      <mesh rotation={[Math.PI / 2, 0, 0]}>
+        <coneGeometry args={[0.075, 0.34, 7]} />
+        <meshStandardMaterial color={colour} roughness={0.42} depthTest={false} />
+      </mesh>
+      <mesh ref={leftWing} position={[-0.12, 0, 0.015]} rotation={[0.06, -0.18, 0.2]}>
+        <boxGeometry args={[0.25, 0.018, 0.095]} />
+        <meshStandardMaterial color={colour} roughness={0.5} depthTest={false} />
+      </mesh>
+      <mesh ref={rightWing} position={[0.12, 0, 0.015]} rotation={[0.06, 0.18, -0.2]}>
+        <boxGeometry args={[0.25, 0.018, 0.095]} />
+        <meshStandardMaterial color={colour} roughness={0.5} depthTest={false} />
+      </mesh>
+      {leader ? (
+        <mesh position={[0, 0.17, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.12, 0.18, 24]} />
+          <meshBasicMaterial color={vizTokens.path} side={THREE.DoubleSide} depthTest={false} />
+        </mesh>
+      ) : null}
+    </group>
+  );
+}
+
+function Predator({ point, reducedMotion }: { point: Point; reducedMotion: boolean }) {
+  const root = useRef<THREE.Group>(null);
+  const [initialPosition] = useState(() => scenePoint(point, 0.72));
+  const target = useMemo(() => new THREE.Vector3(...scenePoint(point, 0.72)), [point]);
+
+  useFrame(({ clock }, delta) => {
+    if (!root.current) return;
+    root.current.position.lerp(target, reducedMotion ? 1 : 1 - Math.exp(-delta * 4));
+    if (!reducedMotion) root.current.position.y += Math.sin(clock.elapsedTime * 3.5) * 0.002;
+    root.current.rotation.y = -clock.elapsedTime * 0.22;
+  });
+
+  const surface = scenePoint(point, 0.045);
+  return (
+    <group>
+      <Line points={[surface, target.toArray() as [number, number, number]]} color={vizTokens.error} lineWidth={1.5} dashed dashSize={0.08} gapSize={0.06} transparent opacity={0.65} />
+      <mesh position={surface} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.62, 0.68, 42]} />
+        <meshBasicMaterial color={vizTokens.error} side={THREE.DoubleSide} transparent opacity={0.7} />
+      </mesh>
+      <group ref={root} position={initialPosition} scale={1.35} renderOrder={10}>
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <coneGeometry args={[0.12, 0.48, 4]} />
+          <meshStandardMaterial color={vizTokens.ink} roughness={0.35} depthTest={false} />
+        </mesh>
+        <mesh position={[-0.2, 0, 0.03]} rotation={[0, -0.2, -0.3]}>
+          <boxGeometry args={[0.38, 0.025, 0.13]} />
+          <meshStandardMaterial color={vizTokens.error} depthTest={false} />
+        </mesh>
+        <mesh position={[0.2, 0, 0.03]} rotation={[0, 0.2, 0.3]}>
+          <boxGeometry args={[0.38, 0.025, 0.13]} />
+          <meshStandardMaterial color={vizTokens.error} depthTest={false} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+function Swarm3D({ state, preview, reducedMotion, predator }: { state: SwarmState; preview: SwarmState; reducedMotion: boolean; predator: Point | null }) {
+  const best = scenePoint(state.globalBest, 0.1);
+  const leaderId = state.particles.reduce((winner, particle) => particle.bestScore < winner.bestScore ? particle : winner).id;
+
+  return (
+    <VizCanvas
+      label="Three-dimensional particle swarm landscape"
+      description="A rotatable Rastrigin cost surface with many local basins. Two coloured scouting flocks move in their velocity direction while sharing one gold leader. Small markers are personal-best positions, gold lines forecast the next move, and an optional predator creates a repulsive avoidance zone."
+      camera={{ position: [10.6, 8.2, 11.8], fov: 44, near: 0.1, far: 80 }}
+      frameloop={reducedMotion ? "demand" : "always"}
+    >
+      <ambientLight intensity={1.45} />
+      <directionalLight position={[6, 10, 7]} intensity={2.35} />
+      <directionalLight position={[-7, 4, -4]} intensity={0.45} />
+      <GroundGrid />
+      <Landscape />
+
+      {state.particles.map((particle, index) => {
+        const position = scenePoint(particle, 0.11);
+        const personalBest = scenePoint(particle.best, 0.075);
+        const forecast = scenePoint(preview.particles[index], 0.11);
+        return (
+          <group key={particle.id}>
+            <Line points={[position, personalBest]} color={vizTokens.classA} lineWidth={1} dashed dashSize={0.08} gapSize={0.06} transparent opacity={0.42} />
+            <Line points={[position, forecast]} color={vizTokens.path} lineWidth={2} transparent opacity={0.72} />
+            <mesh position={personalBest} renderOrder={3}>
+              <sphereGeometry args={[0.055, 12, 12]} />
+              <meshBasicMaterial color={vizTokens.classA} depthTest={false} />
+            </mesh>
+            <FlockAgent point={particle} leader={particle.id === leaderId} reducedMotion={reducedMotion} />
+          </group>
+        );
+      })}
+
+      {predator ? <Predator point={predator} reducedMotion={reducedMotion} /> : null}
+
+      <Line points={[[0, 0.04, 0], [0, 0.62, 0]]} color={vizTokens.classA} lineWidth={1.5} dashed dashSize={0.07} gapSize={0.05} transparent opacity={0.72} />
+      <mesh position={[0, 0.08, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.2, 0.3, 32]} />
+        <meshBasicMaterial color={vizTokens.classA} side={THREE.DoubleSide} />
+      </mesh>
+
+      <Line points={[[best[0], 0, best[2]], best]} color={vizTokens.path} lineWidth={1.5} dashed dashSize={0.08} gapSize={0.055} transparent opacity={0.7} />
+      <mesh position={best} rotation={[-Math.PI / 2, 0, 0]} renderOrder={5}>
+        <ringGeometry args={[0.16, 0.27, 32]} />
+        <meshBasicMaterial color={vizTokens.path} side={THREE.DoubleSide} depthTest={false} />
+      </mesh>
+      <mesh position={best} renderOrder={6}>
+        <sphereGeometry args={[0.09, 18, 18]} />
+        <meshBasicMaterial color={vizTokens.path} depthTest={false} />
+      </mesh>
+
+      <OrbitControls
+        makeDefault
+        enablePan={false}
+        minDistance={8}
+        maxDistance={23}
+        minPolarAngle={0.35}
+        maxPolarAngle={Math.PI / 2.08}
+        target={[0, 1.25, 0]}
+      />
+    </VizCanvas>
+  );
+}
+
+export default function ParticleSwarmScene({ step, resetKey, playing = false }: ExhibitSceneProps) {
   const initialIteration = STEP_ITERATIONS[Math.max(0, Math.min(STEP_ITERATIONS.length - 1, step))];
-  const titleId = useId();
+  const reducedMotion = Boolean(useReducedMotion());
   const [parameters, setParameters] = useState<SwarmParameters>(DEFAULT_PARAMETERS);
   const [state, setState] = useState<SwarmState>(() => evolveSwarm(initialIteration));
-  const [bestHistory, setBestHistory] = useState<number[]>(() => [evolveSwarm(initialIteration).globalBestScore]);
   const [running, setRunning] = useState(false);
+  const [predatorActive, setPredatorActive] = useState(step >= 3);
 
   useEffect(() => {
     setParameters(DEFAULT_PARAMETERS);
     const preset = evolveSwarm(initialIteration);
     setState(preset);
-    setBestHistory([preset.globalBestScore]);
     setRunning(false);
-  }, [initialIteration, resetKey]);
+    setPredatorActive(step >= 3);
+  }, [initialIteration, resetKey, step]);
+
+  useEffect(() => {
+    if (!playing) return;
+    setRunning(true);
+    return () => setRunning(false);
+  }, [initialIteration, playing, resetKey]);
 
   useEffect(() => {
     if (!running || state.iteration >= 30) return;
     const timer = window.setTimeout(() => setState((current) => {
-      const next = stepSwarm(current, parameters);
-      setBestHistory((history) => [...history, next.globalBestScore]);
-      return next;
+      const predator = predatorActive ? { ...predatorAt(current.iteration), radius: 2.15, strength: 1.35 } : undefined;
+      return stepSwarm(current, parameters, predator);
     }), 420);
     return () => window.clearTimeout(timer);
-  }, [parameters, running, state.iteration]);
+  }, [parameters, predatorActive, running, state.iteration]);
 
-  const preview = useMemo(() => stepSwarm(state, parameters), [parameters, state]);
+  const predator = predatorActive ? predatorAt(state.iteration) : null;
+  const preview = useMemo(() => stepSwarm(
+    state,
+    parameters,
+    predatorActive ? { ...predatorAt(state.iteration), radius: 2.15, strength: 1.35 } : undefined,
+  ), [parameters, predatorActive, state]);
   const exploration = state.particles.reduce((sum, particle) => sum + Math.hypot(particle.x - state.globalBest.x, particle.y - state.globalBest.y), 0) / state.particles.length;
-  const cells = useMemo(() => Array.from({ length: 28 * 16 }, (_, index) => {
-    const column = index % 28;
-    const row = Math.floor(index / 28);
-    const x = DOMAIN.min + (column / 27) * (DOMAIN.max - DOMAIN.min);
-    const y = DOMAIN.max - (row / 15) * (DOMAIN.max - DOMAIN.min);
-    return { column, row, score: Math.min(1, objective({ x, y }) / 62) };
-  }), []);
+  const improvement = Math.max(0, INITIAL_BEST_SCORE - state.globalBestScore);
 
   function restart() {
     const initial = initialSwarm();
     setState(initial);
-    setBestHistory([initial.globalBestScore]);
     setRunning(false);
   }
 
+  function takeStep() {
+    setRunning(false);
+    setState((current) => {
+      const predator = predatorActive ? { ...predatorAt(current.iteration), radius: 2.15, strength: 1.35 } : undefined;
+      return stepSwarm(current, parameters, predator);
+    });
+  }
+
   const status = `Iteration ${state.iteration}. Best objective ${state.globalBestScore.toFixed(3)} at x ${state.globalBest.x.toFixed(2)}, y ${state.globalBest.y.toFixed(2)}. Mean swarm distance ${exploration.toFixed(2)}.`;
-  const historyMaximum = Math.max(0.001, bestHistory[0]);
-  const historyPath = bestHistory.map((score, index) => `${index === 0 ? "M" : "L"}${(index / Math.max(1, bestHistory.length - 1)) * 205} ${365 + Math.min(1, score / historyMaximum) * 70}`).join(" ");
 
   return (
     <section aria-label="Particle swarm optimisation visualisation" className="grid h-full min-h-[22rem] grid-rows-[minmax(0,1fr)_auto] overflow-hidden border border-outline bg-surface">
-      <div className="relative min-h-0 overflow-hidden" role="img" aria-labelledby={titleId}>
-        <span id={titleId} className="sr-only">Particle swarm searching a multimodal Rastrigin landscape</span>
-        <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="h-full w-full" aria-hidden="true">
-          <rect width={WIDTH} height={HEIGHT} fill={vizTokens.canvas} />
-          <g>
-            {cells.map((cell) => <rect key={`${cell.column}-${cell.row}`} x={PLOT.left + cell.column * (PLOT_WIDTH / 28)} y={PLOT.top + cell.row * (PLOT_HEIGHT / 16)} width={PLOT_WIDTH / 28 + 0.5} height={PLOT_HEIGHT / 16 + 0.5} fill={vizTokens.error} opacity={0.035 + cell.score * 0.2} />)}
-            <rect x={PLOT.left} y={PLOT.top} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke={vizTokens.border} />
-            {state.particles.map((particle, index) => {
-              const next = preview.particles[index];
-              return <g key={particle.id}>
-                <line x1={sx(particle.x)} y1={sy(particle.y)} x2={sx(particle.best.x)} y2={sy(particle.best.y)} stroke={vizTokens.classA} strokeDasharray="3 4" opacity="0.34" />
-                <line x1={sx(particle.x)} y1={sy(particle.y)} x2={sx(next.x)} y2={sy(next.y)} stroke={vizTokens.path} strokeWidth="2" opacity="0.65" />
-                <circle cx={sx(particle.x)} cy={sy(particle.y)} r="6" fill={vizTokens.classB} stroke={vizTokens.pointOutline} strokeWidth="2" />
-                <circle cx={sx(particle.best.x)} cy={sy(particle.best.y)} r="2.5" fill={vizTokens.classA} />
-              </g>;
-            })}
-            <circle cx={sx(0)} cy={sy(0)} r="16" fill="none" stroke={vizTokens.classA} strokeWidth="2" opacity="0.45" />
-            <circle cx={sx(0)} cy={sy(0)} r="3" fill={vizTokens.classA} />
-            <polygon points={starPoints(sx(state.globalBest.x), sy(state.globalBest.y))} fill={vizTokens.path} stroke={vizTokens.pointOutline} strokeWidth="2" />
-            <text x={PLOT.left + 10} y={PLOT.top + 18} fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>DARKER = HIGHER COST · RINGS = LOCAL BASINS</text>
-          </g>
+      <div className="relative min-h-0 overflow-hidden">
+        <Swarm3D state={state} preview={preview} reducedMotion={reducedMotion} predator={predator} />
 
-          <g transform={`translate(${WIDTH - 245} 32)`}>
-            <text fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>SWARM STATE</text>
-            <text y="40" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.mutedInk}>ITERATION</text><text x="205" y="40" textAnchor="end" fontFamily="var(--font-mono)" fontSize="18" fill={vizTokens.ink}>{state.iteration}</text>
-            <line y1="54" x2="205" y2="54" stroke={vizTokens.grid} />
-            <text y="78" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.mutedInk}>GLOBAL BEST</text><text x="205" y="78" textAnchor="end" fontFamily="var(--font-mono)" fontSize="15" fill={vizTokens.classA}>{state.globalBestScore.toFixed(3)}</text>
-            <text y="105" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.mutedInk}>MEAN SPREAD</text><text x="205" y="105" textAnchor="end" fontFamily="var(--font-mono)" fontSize="15" fill={vizTokens.path}>{exploration.toFixed(2)}</text>
-            <rect y="132" width="205" height="88" fill={vizTokens.grid} opacity="0.55" />
-            <text x="12" y="153" fontFamily="var(--font-mono)" fontSize="9" fill={vizTokens.classB}>● PARTICLE</text>
-            <text x="12" y="176" fontFamily="var(--font-mono)" fontSize="9" fill={vizTokens.classA}>· PERSONAL BEST</text>
-            <text x="12" y="199" fontFamily="var(--font-mono)" fontSize="9" fill={vizTokens.path}>★ SHARED GLOBAL BEST</text>
-            <text y="251" fontFamily="var(--font-mono)" fontSize="9" fill={vizTokens.mutedInk}>NEXT MOVE COMBINES</text>
-            <text y="272" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.ink}>momentum + memory</text>
-            <text y="290" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.ink}>+ social pull</text>
-            <text y="335" fontFamily="var(--font-mono)" fontSize="9" fill={vizTokens.mutedInk}>BEST COST OVER TIME</text>
-            <rect y="350" width="205" height="100" fill={vizTokens.grid} opacity="0.4" />
-            <path d={historyPath} fill="none" stroke={vizTokens.classA} strokeWidth="3" strokeLinejoin="round" />
-          </g>
-        </svg>
+        <div className="pointer-events-none absolute left-3 top-3 hidden border border-outline bg-surface/92 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.08em] text-on-surface-variant backdrop-blur-sm sm:block">
+          <span>position x₁, x₂</span><span className="px-2 text-outline-dark">→</span><span className="text-primary">height = objective cost</span>
+        </div>
+        <div className="pointer-events-none absolute right-3 top-3 w-44 border border-outline bg-surface/94 p-2 backdrop-blur-sm sm:right-4 sm:top-4 sm:w-64 sm:p-3">
+          <div className="flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant">
+            <span>Swarm state</span><span className="text-primary">iteration {state.iteration}</span>
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 border-t border-outline pt-2 font-mono text-[9px] sm:gap-x-4 sm:border-y sm:py-2 sm:text-[10px]">
+            <span className="text-on-surface-variant">shared best</span><span className="text-right text-primary">{state.globalBestScore.toFixed(3)}</span>
+            <span className="hidden text-on-surface-variant sm:inline">mean spread</span><span className="hidden text-right text-warning sm:inline">{exploration.toFixed(2)}</span>
+            <span className="hidden text-on-surface-variant sm:inline">cost reduced</span><span className="hidden text-right text-on-surface sm:inline">{improvement.toFixed(2)}</span>
+          </div>
+          <div className="mt-2 hidden grid-cols-[auto_1fr] gap-x-2 gap-y-1 font-mono text-[8px] uppercase tracking-[0.06em] text-on-surface-variant sm:grid">
+            <span><span className="text-primary">◆</span> <span className="text-error">◆</span></span><span>two scouting wings</span>
+            <span className="text-primary">· ·</span><span>personal memory</span>
+            <span className="text-warning">—</span><span>next velocity</span>
+            <span className="text-warning">◎</span><span>shared leader / global best</span>
+          </div>
+        </div>
+        <div className="pointer-events-none absolute bottom-3 left-3 border border-outline bg-surface/90 px-2 py-1 font-mono text-[8px] uppercase tracking-[0.08em] text-on-surface-variant backdrop-blur-sm sm:left-4 sm:text-[9px]">
+          Drag to orbit · lower basins are better · birds point along velocity
+        </div>
         <p className="sr-only" aria-live="polite">{status}</p>
       </div>
 
       <div className="grid gap-2 border-t border-outline bg-surface-container-low p-2 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end sm:px-3">
-        {(["inertia", "cognitive", "social"] as const).map((key) => <label key={key} className="min-w-0"><span className="flex justify-between font-mono text-[9px] uppercase tracking-label text-on-surface-variant"><span>{key}</span><span className="text-primary">{parameters[key].toFixed(2)}</span></span><input aria-label={key} type="range" min="0" max="2.2" step="0.05" value={parameters[key]} onChange={(event) => setParameters((current) => ({ ...current, [key]: Number(event.target.value) }))} /></label>)}
+        {(["inertia", "cognitive", "social"] as const).map((key) => (
+          <label key={key} className="min-w-0">
+            <span className="flex justify-between font-mono text-[9px] uppercase tracking-label text-on-surface-variant"><span>{key}</span><span className="text-primary">{parameters[key].toFixed(2)}</span></span>
+            <input aria-label={key} type="range" min="0" max="2.2" step="0.05" value={parameters[key]} onChange={(event) => setParameters((current) => ({ ...current, [key]: Number(event.target.value) }))} />
+          </label>
+        ))}
         <div className="flex gap-2">
-          <button type="button" onClick={() => { setRunning(false); setState((current) => { const next = stepSwarm(current, parameters); setBestHistory((history) => [...history, next.globalBestScore]); return next; }); }} className="min-h-9 border border-primary bg-primary px-3 text-xs text-on-primary">Step</button>
-          <button type="button" onClick={() => setRunning((value) => !value)} className="min-h-9 border border-outline bg-surface px-3 text-xs">{running ? "Pause" : "Run"}</button>
-          <button type="button" onClick={restart} className="min-h-9 border border-outline bg-surface px-3 text-xs">Restart</button>
+          <button type="button" onClick={takeStep} className="min-h-9 border border-primary bg-primary px-3 text-xs text-on-primary">Step</button>
+          <button type="button" onClick={() => setRunning((value) => !value)} className="min-h-9 border border-outline bg-surface px-3 text-xs hover:border-primary">{running ? "Pause" : "Run"}</button>
+          <button type="button" aria-pressed={predatorActive} onClick={() => setPredatorActive((value) => !value)} className={`min-h-9 border px-3 text-xs ${predatorActive ? "border-error bg-error text-on-error" : "border-outline bg-surface hover:border-error"}`}>{predatorActive ? "Recall predator" : "Release predator"}</button>
+          <button type="button" onClick={restart} className="min-h-9 border border-outline bg-surface px-3 text-xs hover:border-primary">Restart</button>
         </div>
       </div>
     </section>

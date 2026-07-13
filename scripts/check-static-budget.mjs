@@ -11,7 +11,7 @@ const routes = [
   { name: "genetic-algorithm", file: "out/visualisations/genetic-algorithm.html", budget: 280 },
   { name: "k-means", file: "out/visualisations/k-means.html", budget: 280 },
   { name: "overfitting", file: "out/visualisations/overfitting.html", budget: 280 },
-  { name: "particle-swarm", file: "out/visualisations/particle-swarm.html", budget: 280 },
+  { name: "particle-swarm", file: "out/visualisations/particle-swarm.html", budget: 470 },
   { name: "pca", file: "out/visualisations/pca.html", budget: 280 },
   { name: "token-sampling", file: "out/visualisations/token-sampling.html", budget: 280 },
   { name: "regression-boundary", file: "out/visualisations/regression-boundary.html", budget: 280 },

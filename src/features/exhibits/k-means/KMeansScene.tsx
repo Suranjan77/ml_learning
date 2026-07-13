@@ -96,7 +96,7 @@ function presetFor(step: number) {
   return STEP_PRESETS[Math.max(0, Math.min(STEP_PRESETS.length - 1, step))];
 }
 
-export default function KMeansScene({ step, resetKey }: ExhibitSceneProps) {
+export default function KMeansScene({ step, resetKey, playing = false }: ExhibitSceneProps) {
   const initialPreset = presetFor(step);
   const svgRef = useRef<SVGSVGElement>(null);
   const stageId = useId();
@@ -160,6 +160,12 @@ export default function KMeansScene({ step, resetKey }: ExhibitSceneProps) {
     setDraggingIndex(null);
     setRunning(false);
   }, [resetKey, step]);
+
+  useEffect(() => {
+    if (!playing) return;
+    setRunning(true);
+    return () => setRunning(false);
+  }, [playing, resetKey, step]);
 
   useEffect(() => {
     if (!running) return;

@@ -246,8 +246,10 @@ function ParticleSwarmPreview() {
   const particles = [[58, 48], [92, 102], [130, 67], [172, 111], [222, 52], [270, 96], [313, 45], [245, 122], [144, 34]] as const;
   return <svg viewBox="0 0 360 150" className="h-full w-full" aria-hidden="true">
     {[30, 54, 82].map((radius) => <ellipse key={radius} cx="196" cy="78" rx={radius * 1.45} ry={radius * 0.62} fill="none" stroke="var(--color-outline-dark)" opacity="0.65" />)}
-    {particles.map(([x, y], index) => <g key={index}><line x1={x} y1={y} x2="196" y2="78" stroke="var(--color-primary)" strokeDasharray="3 4" opacity="0.35" /><circle cx={x} cy={y} r="5" fill="var(--color-error)" /></g>)}
-    <path d="M196 63 l4 10 11 1-8 7 3 11-10-6-10 6 3-11-8-7 11-1z" fill="var(--color-accent)" />
+    {particles.map(([x, y], index) => <g key={index} transform={`translate(${x} ${y}) rotate(${index * 17 - 35})`}><path d="M-10 3 L0 -2 L10 3 L4 1 L0 7 L-4 1 Z" fill={index % 2 ? "var(--color-error)" : "var(--color-primary)"} /></g>)}
+    <path d="M184 75 L196 68 L208 75 L201 73 L196 84 L191 73 Z" fill="var(--color-accent)" />
+    <path d="M303 108 l12-7 12 7-7-2-5 10-5-10z" fill="var(--color-on-surface)" />
+    <circle cx="315" cy="108" r="17" fill="none" stroke="var(--color-error)" strokeDasharray="3 3" />
   </svg>;
 }
 
@@ -279,6 +281,46 @@ function BackpropPreview() {
   return <svg viewBox="0 0 360 150" className="h-full w-full" aria-hidden="true">{inputs.flatMap((a,i) => hidden.map((b,j) => <line key={`${i}-${j}`} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} stroke={(i+j)%2 ? "var(--color-error)" : "var(--color-primary)"} strokeWidth={2+(i+j)} opacity="0.6" />))}{hidden.map((a,i)=><line key={i} x1={a[0]} y1={a[1]} x2={output[0]} y2={output[1]} stroke="var(--color-accent)" strokeWidth={i?2:5} opacity="0.65" />)}{inputs.map((p,i)=><circle key={i} cx={p[0]} cy={p[1]} r="12" fill="var(--color-surface)" stroke="var(--color-primary)" strokeWidth="3" />)}{hidden.map((p,i)=><circle key={i} cx={p[0]} cy={p[1]} r="15" fill="var(--color-primary-container)" stroke="var(--color-primary)" strokeWidth="3" />)}<circle cx={output[0]} cy={output[1]} r="19" fill="var(--color-accent-container)" stroke="var(--color-accent)" strokeWidth="3" /></svg>;
 }
 
+function RegressionPreview() {
+  const samples = [[48,108],[68,95],[91,91],[116,77],[141,72],[166,62],[192,58],[218,49],[245,42]] as const;
+  return <svg viewBox="0 0 360 150" className="h-full w-full" aria-hidden="true">
+    <g stroke="var(--color-outline)" strokeWidth="1">
+      {[38,68,98,128].map((y) => <line key={y} x1="28" y1={y} x2="258" y2={y} />)}
+      {[48,98,148,198,248].map((x) => <line key={x} x1={x} y1="22" x2={x} y2="132" />)}
+    </g>
+    <path d="M34 119 L254 30" fill="none" stroke="var(--color-accent)" strokeWidth="3" />
+    {samples.map(([x,y], index) => <g key={x}>
+      <line x1={x} y1={y} x2={x} y2={119 - (x - 34) * 0.405} stroke="var(--color-error)" strokeDasharray="2 2" opacity="0.6" />
+      <circle cx={x} cy={y} r="4" fill="var(--color-primary)" />
+      {index === 6 ? <circle cx={x} cy={y} r="8" fill="none" stroke="var(--color-primary)" opacity="0.45" /> : null}
+    </g>)}
+    <g transform="translate(282 28)">
+      <path d="M0 90 C10 35 24 18 48 62 S62 106 70 22" fill="none" stroke="var(--color-error)" strokeWidth="2" />
+      <path d="M8 106 L24 82 L40 88 L55 52" fill="none" stroke="var(--color-primary)" strokeWidth="2.5" />
+      {[8,24,40,55].map((x,index) => <circle key={x} cx={x} cy={[106,82,88,52][index]} r="3" fill="var(--color-primary)" />)}
+    </g>
+  </svg>;
+}
+
+function DecisionTreePreview() {
+  const points = [[45,43,"a"],[71,61,"a"],[92,37,"a"],[118,83,"a"],[69,110,"a"],[154,45,"b"],[184,68,"b"],[211,38,"b"],[226,96,"b"],[168,112,"b"]] as const;
+  return <svg viewBox="0 0 360 150" className="h-full w-full" aria-hidden="true">
+    <rect x="25" y="20" width="220" height="110" fill="var(--color-primary-container)" opacity="0.7" />
+    <rect x="132" y="20" width="113" height="110" fill="var(--color-accent-container)" opacity="0.82" />
+    <rect x="25" y="91" width="107" height="39" fill="var(--color-accent-container)" opacity="0.58" />
+    <line x1="132" x2="132" y1="20" y2="130" stroke="var(--color-accent)" strokeWidth="3" />
+    <line x1="25" x2="132" y1="91" y2="91" stroke="var(--color-primary)" strokeWidth="2" />
+    {points.map(([x,y,label]) => <circle key={`${x}-${y}`} cx={x} cy={y} r="4.5" fill={label === "a" ? "var(--color-primary)" : "var(--color-error)"} stroke="var(--color-surface)" strokeWidth="1.5" />)}
+    <g stroke="var(--color-outline-dark)" fill="var(--color-surface)">
+      <line x1="298" y1="46" x2="275" y2="82" /><line x1="298" y1="46" x2="327" y2="82" />
+      <rect x="276" y="27" width="44" height="22" /><rect x="255" y="82" width="39" height="22" fill="var(--color-primary-container)" /><rect x="310" y="82" width="39" height="22" fill="var(--color-accent-container)" />
+    </g>
+    <text x="298" y="42" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="8" fill="var(--color-on-surface)">x &lt; 4?</text>
+    <text x="274" y="96" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="8" fill="var(--color-primary)">A</text>
+    <text x="329" y="96" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="8" fill="var(--color-error)">B</text>
+  </svg>;
+}
+
 export function ExhibitPreview({ slug }: { slug: string }) {
   if (slug === "gradient-descent") return <GradientPreview />;
   if (slug === "attention") return <AttentionPreview />;
@@ -290,7 +332,10 @@ export function ExhibitPreview({ slug }: { slug: string }) {
   if (slug === "genetic-algorithm") return <GeneticPreview />;
   if (slug === "pca") return <PcaPreview />;
   if (slug === "backpropagation") return <BackpropPreview />;
-  return <KernelPreview />;
+  if (slug === "regression-boundary") return <RegressionPreview />;
+  if (slug === "decision-tree") return <DecisionTreePreview />;
+  if (slug === "kernel-trick") return <KernelPreview />;
+  return null;
 }
 
 export default function ExhibitCard({

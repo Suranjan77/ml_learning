@@ -67,7 +67,7 @@ function truncationSummary(method: TruncationMethod, topK: number, topP: number,
 
 const widthScale = scaleLinear({ domain: [0, 1], range: [0, BAR_MAX_WIDTH] });
 
-export default function TokenSamplingScene({ step, resetKey }: ExhibitSceneProps) {
+export default function TokenSamplingScene({ step, resetKey, playing = false }: ExhibitSceneProps) {
   const initialPreset = presetFor(step);
   const sceneId = useId();
   const prefersReduced = useReducedMotion();
@@ -158,6 +158,12 @@ export default function TokenSamplingScene({ step, resetKey }: ExhibitSceneProps
     setDrawCount((count) => count + 1);
   }
 
+  useEffect(() => {
+    if (!playing || prefersReduced) return;
+    const timer = window.setTimeout(drawSample, 620);
+    return () => window.clearTimeout(timer);
+  }, [drawCount, playing, prefersReduced, truncationResult.probabilities]);
+
   function clearSamples() {
     setSamples([]);
     setDrawCount(0);
@@ -234,7 +240,7 @@ export default function TokenSamplingScene({ step, resetKey }: ExhibitSceneProps
                 key={entry.token}
                 initial={false}
                 animate={{ y: rowY }}
-                transition={reduced(vizMotion.markerSpring, prefersReduced)}
+                transition={reduced(playing ? vizMotion.cinematic : vizMotion.markerSpring, prefersReduced)}
               >
                 <text x={LABEL_LEFT} y={BAR_HEIGHT * 0.72} fill={textColour} fontSize="14" fontFamily="var(--font-dm-mono)">{entry.token}</text>
                 <motion.rect

@@ -23,6 +23,12 @@ export interface SwarmParameters {
   social: number;
 }
 
+/** Optional environmental pressure used by the flocking metaphor, not canonical PSO. */
+export interface Repulsor extends Point {
+  radius: number;
+  strength: number;
+}
+
 export const DOMAIN = { min: -5.12, max: 5.12 } as const;
 export const DEFAULT_PARAMETERS: SwarmParameters = { inertia: 0.64, cognitive: 1.35, social: 1.55 };
 
@@ -30,6 +36,12 @@ export const DEFAULT_PARAMETERS: SwarmParameters = { inertia: 0.64, cognitive: 1
 export function objective(point: Point): number {
   return 20 + point.x ** 2 + point.y ** 2
     - 10 * (Math.cos(2 * Math.PI * point.x) + Math.cos(2 * Math.PI * point.y));
+}
+
+/** A deterministic orbit keeps the predator interaction reproducible. */
+export function predatorAt(iteration: number): Point {
+  const angle = iteration * 0.43 + 0.7;
+  return { x: Math.cos(angle) * 2.65, y: Math.sin(angle) * 2.15 };
 }
 
 function noise(id: number, iteration: number, channel: number) {
@@ -61,18 +73,32 @@ export function initialSwarm(count = 18): SwarmState {
   return { particles, globalBest: { ...best.best }, globalBestScore: best.bestScore, iteration: 0 };
 }
 
-export function stepSwarm(state: SwarmState, parameters: SwarmParameters): SwarmState {
+export function stepSwarm(state: SwarmState, parameters: SwarmParameters, repulsor?: Repulsor): SwarmState {
   const nextIteration = state.iteration + 1;
   const particles = state.particles.map((particle) => {
     const r1 = noise(particle.id, nextIteration, 1);
     const r2 = noise(particle.id, nextIteration, 2);
+    const distanceFromRepulsor = repulsor
+      ? Math.hypot(particle.x - repulsor.x, particle.y - repulsor.y)
+      : Number.POSITIVE_INFINITY;
+    const avoidance = repulsor && distanceFromRepulsor < repulsor.radius
+      ? repulsor.strength * (1 - distanceFromRepulsor / repulsor.radius)
+      : 0;
+    const awayX = repulsor && distanceFromRepulsor > 0.001
+      ? (particle.x - repulsor.x) / distanceFromRepulsor
+      : 0;
+    const awayY = repulsor && distanceFromRepulsor > 0.001
+      ? (particle.y - repulsor.y) / distanceFromRepulsor
+      : 0;
     const velocity = {
       x: clamp(parameters.inertia * particle.velocity.x
         + parameters.cognitive * r1 * (particle.best.x - particle.x)
-        + parameters.social * r2 * (state.globalBest.x - particle.x), -1.45, 1.45),
+        + parameters.social * r2 * (state.globalBest.x - particle.x)
+        + awayX * avoidance, -1.45, 1.45),
       y: clamp(parameters.inertia * particle.velocity.y
         + parameters.cognitive * r1 * (particle.best.y - particle.y)
-        + parameters.social * r2 * (state.globalBest.y - particle.y), -1.45, 1.45),
+        + parameters.social * r2 * (state.globalBest.y - particle.y)
+        + awayY * avoidance, -1.45, 1.45),
     };
     const position = { x: clamp(particle.x + velocity.x), y: clamp(particle.y + velocity.y) };
     const score = objective(position);

@@ -21,7 +21,7 @@ function curvePath() {
   }).join(" ");
 }
 
-export default function GeneticAlgorithmScene({ step, resetKey }: ExhibitSceneProps) {
+export default function GeneticAlgorithmScene({ step, resetKey, playing = false }: ExhibitSceneProps) {
   const initialGeneration = STEP_GENERATIONS[Math.max(0, Math.min(STEP_GENERATIONS.length - 1, step))];
   const titleId = useId();
   const [mutationRate, setMutationRate] = useState(DEFAULT_MUTATION_RATE);
@@ -33,6 +33,12 @@ export default function GeneticAlgorithmScene({ step, resetKey }: ExhibitScenePr
     setState(evolvePopulation(initialGeneration));
     setRunning(false);
   }, [initialGeneration, resetKey]);
+
+  useEffect(() => {
+    if (!playing) return;
+    setRunning(true);
+    return () => setRunning(false);
+  }, [initialGeneration, playing, resetKey]);
 
   useEffect(() => {
     if (!running || state.generation >= 25) return;

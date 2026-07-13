@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useId, useMemo, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import type { ExhibitSceneProps } from "../types";
 import { enumParam, numberParam, replaceSceneUrlState, useSceneUrlState } from "../sceneUrlState";
 import { vizTokens } from "@/lib/vizTokens";
+import { reduced, vizMotion } from "@/lib/vizMotion";
 import {
   CLASSIFICATION_POINTS,
   REGRESSION_POINTS,
@@ -30,9 +32,11 @@ const sy = (y: number) => PLOT.top + ((5 - y) / 10) * PLOT.height;
 const mx = (slope: number) => MAP.left + ((slope - SLOPE.min) / (SLOPE.max - SLOPE.min)) * MAP.width;
 const my = (intercept: number) => MAP.top + ((INTERCEPT.max - intercept) / (INTERCEPT.max - INTERCEPT.min)) * MAP.height;
 
-export default function RegressionScene({ step, resetKey }: ExhibitSceneProps) {
+export default function RegressionScene({ step, resetKey, playing = false }: ExhibitSceneProps) {
   const preset = PRESETS[Math.max(0, Math.min(PRESETS.length - 1, step))];
   const titleId = useId();
+  const prefersReduced = useReducedMotion();
+  const transition = reduced(playing ? vizMotion.cinematic : vizMotion.markerSpring, prefersReduced);
   const [mode, setMode] = useState<RegressionMode>(preset.mode);
   const [slope, setSlope] = useState<number>(preset.slope);
   const [intercept, setIntercept] = useState<number>(preset.intercept);
@@ -87,16 +91,16 @@ export default function RegressionScene({ step, resetKey }: ExhibitSceneProps) {
         {Array.from({ length: 11 }, (_, index) => <line key={`h${index}`} x1={PLOT.left} x2={PLOT.left + PLOT.width} y1={sy(-5 + index)} y2={sy(-5 + index)} stroke={vizTokens.grid} />)}
         {mode === "linear" ? REGRESSION_POINTS.map((point, index) => {
           const predicted = predictLinear(point.x, slope, intercept);
-          return <g key={index}><line x1={sx(point.x)} x2={sx(point.x)} y1={sy(point.y)} y2={sy(predicted)} stroke={vizTokens.error} strokeDasharray="3 3" opacity="0.55" /><circle cx={sx(point.x)} cy={sy(point.y)} r="5" fill={vizTokens.classA} stroke={vizTokens.pointOutline} strokeWidth="2" /></g>;
+          return <g key={index}><motion.line initial={false} x1={sx(point.x)} x2={sx(point.x)} y1={sy(point.y)} animate={{ y2: sy(predicted) }} transition={transition} stroke={vizTokens.error} strokeDasharray="3 3" opacity="0.55" /><circle cx={sx(point.x)} cy={sy(point.y)} r="5" fill={vizTokens.classA} stroke={vizTokens.pointOutline} strokeWidth="2" /></g>;
         }) : CLASSIFICATION_POINTS.map((point, index) => <g key={index}><circle cx={sx(point.x)} cy={sy(point.y)} r="7" fill={point.label === 1 ? vizTokens.classA : vizTokens.classB} stroke={vizTokens.pointOutline} strokeWidth="2" /><text x={sx(point.x)} y={sy(point.y) + 3} textAnchor="middle" fontSize="8" fill={vizTokens.canvas}>{point.label}</text></g>)}
-        <line x1={sx(-5)} y1={sy(predictLinear(-5, slope, intercept))} x2={sx(5)} y2={sy(predictLinear(5, slope, intercept))} stroke={vizTokens.selection} strokeWidth="5" />
+        <motion.line initial={false} x1={sx(-5)} x2={sx(5)} animate={{ y1: sy(predictLinear(-5, slope, intercept)), y2: sy(predictLinear(5, slope, intercept)) }} transition={transition} stroke={vizTokens.selection} strokeWidth="5" />
         <rect x={PLOT.left} y={PLOT.top} width={PLOT.width} height={PLOT.height} fill="none" stroke={vizTokens.border} />
         <text x={PLOT.left + 10} y={PLOT.top + 18} fontFamily="var(--font-dm-mono)" fontSize="10" fill={vizTokens.mutedInk}>{mode === "linear" ? "RESIDUAL LENGTH CONTRIBUTES TO SQUARED LOSS" : "ABOVE LINE → CLASS 1 · BELOW LINE → CLASS 0"}</text>
 
         <text x={MAP.left} y={32} fontFamily="var(--font-dm-mono)" fontSize="11" fill={vizTokens.mutedInk}>THE SAME PARAMETERS ON THE LOSS MAP</text>
         {heatCells.map((cell) => <rect key={`${cell.row}-${cell.column}`} x={MAP.left + cell.column * MAP.width / 15} y={MAP.top + cell.row * MAP.height / 15} width={MAP.width / 15 + 0.5} height={MAP.height / 15 + 0.5} fill={vizTokens.error} fillOpacity={0.08 + cell.intensity * 0.72} />)}
         <rect x={MAP.left} y={MAP.top} width={MAP.width} height={MAP.height} fill="none" stroke={vizTokens.border} />
-        <circle cx={mx(slope)} cy={my(intercept)} r="10" fill={vizTokens.canvas} stroke={vizTokens.selection} strokeWidth="5" />
+        <motion.circle initial={false} animate={{ cx: mx(slope), cy: my(intercept) }} transition={transition} r="10" fill={vizTokens.canvas} stroke={vizTokens.selection} strokeWidth="5" />
         <text x={MAP.left} y={MAP.top + MAP.height + 24} fontFamily="var(--font-dm-mono)" fontSize="10" fill={vizTokens.mutedInk}>SLOPE −1.5</text><text x={MAP.left + MAP.width} y={MAP.top + MAP.height + 24} textAnchor="end" fontFamily="var(--font-dm-mono)" fontSize="10" fill={vizTokens.mutedInk}>+1.5</text>
         <text x={MAP.left} y={MAP.top + MAP.height + 54} fontFamily="var(--font-dm-mono)" fontSize="12" fill={vizTokens.ink}>LOSS {currentLoss.toFixed(3)}</text>
         {accuracy !== null ? <text x={MAP.left + MAP.width} y={MAP.top + MAP.height + 54} textAnchor="end" fontFamily="var(--font-dm-mono)" fontSize="12" fill={vizTokens.classA}>ACCURACY {Math.round(accuracy * 100)}%</text> : null}

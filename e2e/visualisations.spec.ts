@@ -166,7 +166,7 @@ test.describe("visualisation workspace", () => {
 
     const play = page.getByRole("button", { name: "Play guided walkthrough" });
     await play.click();
-    await expect(page.getByText("Step 2 of 3")).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText("Step 2 of 3")).toBeVisible({ timeout: 3_500 });
 
     const pause = page.getByRole("button", { name: "Pause guided walkthrough" });
     await pause.click();

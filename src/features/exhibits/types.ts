@@ -4,6 +4,8 @@ export type ExhibitRenderer = "SVG" | "Canvas" | "WebGL";
 export interface ExhibitSceneProps {
   step: number;
   resetKey: number;
+  /** True while the shell is directing the guided, continuous walkthrough. */
+  playing?: boolean;
 }
 
 export interface ExhibitStep {

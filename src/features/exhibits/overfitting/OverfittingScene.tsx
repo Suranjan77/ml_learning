@@ -76,7 +76,7 @@ function errorScale(value: number): number {
   return Math.sqrt(Math.min(Math.max(value, 0), ERROR_CAP) / ERROR_CAP);
 }
 
-export default function OverfittingScene({ step, resetKey }: ExhibitSceneProps) {
+export default function OverfittingScene({ step, resetKey, playing = false }: ExhibitSceneProps) {
   const initialPreset = presetFor(step);
   const clipId = useId();
   const prefersReduced = useReducedMotion();
@@ -227,7 +227,7 @@ export default function OverfittingScene({ step, resetKey }: ExhibitSceneProps) 
                   strokeLinecap="round"
                   initial={false}
                   animate={{ d: line(fittedCurve) ?? "" }}
-                  transition={reduced(vizMotion.fade, prefersReduced)}
+                  transition={reduced(playing ? vizMotion.cinematic : vizMotion.fade, prefersReduced)}
                 />
               )}
             </LinePath>
@@ -243,7 +243,7 @@ export default function OverfittingScene({ step, resetKey }: ExhibitSceneProps) 
                 stroke={vizTokens.error}
                 strokeWidth={vizStroke.guide}
                 opacity={0.34}
-                transition={reduced(vizMotion.fade, prefersReduced)}
+                transition={reduced(playing ? vizMotion.cinematic : vizMotion.fade, prefersReduced)}
               />
             ))}
 
@@ -320,7 +320,7 @@ export default function OverfittingScene({ step, resetKey }: ExhibitSceneProps) 
               strokeDasharray="4 3"
               initial={false}
               animate={{ x1: rightXScale(degree), x2: rightXScale(degree) }}
-              transition={reduced(vizMotion.markerSpring, prefersReduced)}
+              transition={reduced(playing ? vizMotion.cinematic : vizMotion.markerSpring, prefersReduced)}
             />
 
             {bestDegree > DEGREE_RANGE.min && (

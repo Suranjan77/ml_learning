@@ -14,7 +14,7 @@ import type { ExhibitSceneProps } from "../types";
 import { ATTENTION_DATA_DISCLOSURE, attentionExamples } from "./data";
 import { describeAttention, topTargets } from "./model";
 
-type AttentionSceneProps = Partial<Pick<ExhibitSceneProps, "resetKey" | "step">>;
+type AttentionSceneProps = Partial<ExhibitSceneProps>;
 
 const DIAGRAM_WIDTH = 1000;
 const DIAGRAM_HEIGHT = 180;
@@ -36,7 +36,7 @@ function formatWeight(weight: number): string {
   return percentage < 1 ? "<1%" : `${percentage}%`;
 }
 
-export default function AttentionScene({ resetKey = 0, step = 0 }: AttentionSceneProps = {}) {
+export default function AttentionScene({ resetKey = 0, step = 0, playing = false }: AttentionSceneProps = {}) {
   const prefersReduced = useReducedMotion();
   const [exampleIndex, setExampleIndex] = useState(0);
   const [headIndex, setHeadIndex] = useState(0);
@@ -78,6 +78,15 @@ export default function AttentionScene({ resetKey = 0, step = 0 }: AttentionScen
     setHeadIndex(preset === 2 ? 1 : 0);
     setSelectedIndex(initial.tokens.indexOf(initial.focusToken));
   }, [resetKey, step]);
+
+  useEffect(() => {
+    if (!playing || prefersReduced) return;
+    const timer = window.setTimeout(
+      () => setSelectedIndex((current) => (current + 1) % example.tokens.length),
+      680,
+    );
+    return () => window.clearTimeout(timer);
+  }, [example.tokens.length, playing, prefersReduced, selectedIndex]);
 
   function chooseExample(index: number) {
     const nextExample = attentionExamples[index];
@@ -263,7 +272,7 @@ export default function AttentionScene({ resetKey = 0, step = 0 }: AttentionScen
                   initial={false}
                   animate={{ d: connectionPath(sourceIndex, index, example.tokens.length) }}
                   exit={{ opacity: 0 }}
-                  transition={reduced(vizMotion.markerSpring, prefersReduced)}
+                  transition={reduced(playing ? vizMotion.cinematic : vizMotion.markerSpring, prefersReduced)}
                 />
               );
             })}

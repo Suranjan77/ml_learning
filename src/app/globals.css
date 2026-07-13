@@ -155,6 +155,12 @@
 .text-balance { text-wrap: balance; }
 .text-pretty { text-wrap: pretty; }
 
+/* Keep authored diagrams crisp at fractional responsive scales. */
+[data-testid="visualisation-workspace"] svg {
+    shape-rendering: geometricPrecision;
+    text-rendering: geometricPrecision;
+}
+
 .crop-marks::before,
 .crop-marks::after {
     content: "";
@@ -330,6 +336,23 @@ input[type="range"]::-moz-range-thumb {
 @keyframes sweep {
     0% { transform: translateX(-100%); }
     100% { transform: translateX(100%); }
+}
+
+@keyframes guided-playback-sweep {
+    0% { transform: translateX(-110%); opacity: 0; }
+    12% { opacity: 0.48; }
+    72% { opacity: 0.2; }
+    100% { transform: translateX(110%); opacity: 0; }
+}
+
+.guided-playback-sweep {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+    width: 38%;
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-primary) 9%, transparent), transparent);
+    animation: guided-playback-sweep 2.4s var(--ease-standard) infinite;
 }
 
 @keyframes pop-in {

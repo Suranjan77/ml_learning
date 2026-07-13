@@ -35,7 +35,7 @@ function MatrixGrid({ matrix, x, y, size, selected, onSelect, label }: {
   </g>;
 }
 
-export default function CnnScene({ step, resetKey }: ExhibitSceneProps) {
+export default function CnnScene({ step, resetKey, playing = false }: ExhibitSceneProps) {
   const activeStep = Math.max(0, Math.min(3, step));
   const titleId = useId();
   const [filter, setFilter] = useState<FilterKind>(activeStep === 2 ? "horizontal" : "vertical");
@@ -47,6 +47,12 @@ export default function CnnScene({ step, resetKey }: ExhibitSceneProps) {
     setSelected({ row: 1, column: 2 });
     setScanning(activeStep === 1);
   }, [activeStep, resetKey]);
+
+  useEffect(() => {
+    if (!playing || activeStep >= 3) return;
+    setScanning(true);
+    return () => setScanning(false);
+  }, [activeStep, playing]);
 
   useEffect(() => {
     if (!scanning || activeStep >= 3) return;

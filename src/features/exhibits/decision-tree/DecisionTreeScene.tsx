@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import type { ExhibitSceneProps } from "../types";
 import { numberParam, replaceSceneUrlState, useSceneUrlState } from "../sceneUrlState";
 import { vizTokens } from "@/lib/vizTokens";
+import { reduced, vizMotion } from "@/lib/vizMotion";
 import { TREE_POINTS, leafCount, predictTree, treeAccuracy, type TreeConfig } from "./model";
 
 const WIDTH = 1180; const HEIGHT = 520;
@@ -13,9 +15,11 @@ const PRESETS = [{ depth: 1, threshold: 4 }, { depth: 2, threshold: 4 }, { depth
 const sx = (x: number) => PLOT.left + x / 10 * PLOT.width;
 const sy = (y: number) => PLOT.top + (10 - y) / 10 * PLOT.height;
 
-export default function DecisionTreeScene({ step, resetKey }: ExhibitSceneProps) {
+export default function DecisionTreeScene({ step, resetKey, playing = false }: ExhibitSceneProps) {
   const preset = PRESETS[Math.max(0, Math.min(PRESETS.length - 1, step))];
   const titleId = useId();
+  const prefersReduced = useReducedMotion();
+  const transition = reduced(playing ? vizMotion.cinematic : vizMotion.markerSpring, prefersReduced);
   const [depth, setDepth] = useState<TreeConfig["depth"]>(preset.depth);
   const [threshold, setThreshold] = useState<number>(preset.threshold);
   useEffect(() => { setDepth(preset.depth); setThreshold(preset.threshold); }, [preset, resetKey]);
@@ -47,9 +51,8 @@ export default function DecisionTreeScene({ step, resetKey }: ExhibitSceneProps)
       <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="h-full w-full" aria-hidden="true">
         <rect width={WIDTH} height={HEIGHT} fill={vizTokens.canvas} />
         {grid.map((cell) => <rect key={`${cell.row}-${cell.column}`} x={PLOT.left + cell.column * PLOT.width / 20} y={PLOT.top + cell.row * PLOT.height / 20} width={PLOT.width / 20 + 0.5} height={PLOT.height / 20 + 0.5} fill={cell.prediction === "A" ? vizTokens.classA : vizTokens.classB} fillOpacity="0.15" />)}
-        <line x1={sx(threshold)} x2={sx(threshold)} y1={PLOT.top} y2={PLOT.top + PLOT.height} stroke={vizTokens.selection} strokeWidth="4" />
-        {depth >= 2 ? <><line x1={PLOT.left} x2={sx(threshold)} y1={sy(6)} y2={sy(6)} stroke={vizTokens.path} strokeWidth="3" /><line x1={sx(threshold)} x2={PLOT.left + PLOT.width} y1={sy(4)} y2={sy(4)} stroke={vizTokens.path} strokeWidth="3" /></> : null}
-        {depth >= 3 ? <line x1={sx(7.2)} x2={sx(7.2)} y1={PLOT.top} y2={sy(4)} stroke={vizTokens.path} strokeWidth="3" /> : null}
+        <motion.line initial={false} animate={{ x1: sx(threshold), x2: sx(threshold) }} transition={transition} y1={PLOT.top} y2={PLOT.top + PLOT.height} stroke={vizTokens.selection} strokeWidth="4" />
+        {depth >= 2 ? <motion.g key={`branches-${depth}`} initial={playing ? { opacity: 0 } : false} animate={{ opacity: 1 }} transition={transition}><line x1={PLOT.left} x2={sx(threshold)} y1={sy(6)} y2={sy(6)} stroke={vizTokens.path} strokeWidth="3" /><line x1={sx(threshold)} x2={PLOT.left + PLOT.width} y1={sy(4)} y2={sy(4)} stroke={vizTokens.path} strokeWidth="3" />{depth >= 3 ? <line x1={sx(7.2)} x2={sx(7.2)} y1={PLOT.top} y2={sy(4)} stroke={vizTokens.path} strokeWidth="3" /> : null}</motion.g> : null}
         {TREE_POINTS.map((point, index) => <g key={index}><circle cx={sx(point.x)} cy={sy(point.y)} r="7" fill={point.label === "A" ? vizTokens.classA : vizTokens.classB} stroke={predictTree(point, config) === point.label ? vizTokens.pointOutline : vizTokens.error} strokeWidth={predictTree(point, config) === point.label ? 2 : 4} /><text x={sx(point.x)} y={sy(point.y) + 3} textAnchor="middle" fontSize="8" fill={vizTokens.canvas}>{point.label}</text></g>)}
         <rect x={PLOT.left} y={PLOT.top} width={PLOT.width} height={PLOT.height} fill="none" stroke={vizTokens.border} />
         <text x={PLOT.left + 10} y={PLOT.top + 18} fontFamily="var(--font-dm-mono)" fontSize="10" fill={vizTokens.mutedInk}>BACKGROUND = LEAF PREDICTION · RED OUTLINE = MISTAKE</text>

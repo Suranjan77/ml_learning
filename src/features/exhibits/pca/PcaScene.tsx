@@ -14,7 +14,7 @@ const sy = (y: number) => BOX.top + ((3.8 - y) / 7.6) * BOX.height;
 const OPTIMAL = principalAngle(POINTS);
 const PRESET_OFFSETS = [Math.PI / 2, 0.62, 0.18, 0] as const;
 
-export default function PcaScene({ step, resetKey }: ExhibitSceneProps) {
+export default function PcaScene({ step, resetKey, playing = false }: ExhibitSceneProps) {
   const initialAngle = OPTIMAL + PRESET_OFFSETS[Math.max(0, Math.min(3, step))];
   const titleId = useId();
   const prefersReduced = useReducedMotion();
@@ -47,8 +47,8 @@ export default function PcaScene({ step, resetKey }: ExhibitSceneProps) {
         {Array.from({ length: 9 }, (_, i) => <line key={`v${i}`} x1={sx(-4 + i)} x2={sx(-4 + i)} y1={BOX.top} y2={BOX.top + BOX.height} stroke={vizTokens.grid} />)}
         {Array.from({ length: 7 }, (_, i) => <line key={`h${i}`} x1={BOX.left} x2={BOX.left + BOX.width} y1={sy(-3 + i)} y2={sy(-3 + i)} stroke={vizTokens.grid} />)}
         <path d={varianceEllipse} fill={vizTokens.classA} fillOpacity="0.07" stroke={vizTokens.classA} strokeDasharray="7 6" opacity="0.72" />
-        <motion.line initial={false} animate={{ x1: sx(stats.centre.x - axis.x * length), y1: sy(stats.centre.y - axis.y * length), x2: sx(stats.centre.x + axis.x * length), y2: sy(stats.centre.y + axis.y * length) }} transition={reduced(vizMotion.markerSpring, prefersReduced)} stroke={vizTokens.path} strokeWidth="4" />
-        {POINTS.map((point, index) => <g key={index}><motion.line initial={false} x1={sx(point.x)} y1={sy(point.y)} animate={{ x2: sx(stats.projections[index].point.x), y2: sy(stats.projections[index].point.y) }} transition={reduced(vizMotion.markerSpring, prefersReduced)} stroke={vizTokens.classB} strokeDasharray="3 3" opacity="0.38" /><motion.circle initial={false} animate={{ cx: sx(stats.projections[index].point.x), cy: sy(stats.projections[index].point.y) }} transition={reduced(vizMotion.markerSpring, prefersReduced)} r="3" fill={vizTokens.path} /><circle cx={sx(point.x)} cy={sy(point.y)} r="5" fill={vizTokens.classA} stroke={vizTokens.pointOutline} strokeWidth="2" /></g>)}
+        <motion.line initial={false} animate={{ x1: sx(stats.centre.x - axis.x * length), y1: sy(stats.centre.y - axis.y * length), x2: sx(stats.centre.x + axis.x * length), y2: sy(stats.centre.y + axis.y * length) }} transition={reduced(playing ? vizMotion.cinematic : vizMotion.markerSpring, prefersReduced)} stroke={vizTokens.path} strokeWidth="4" />
+        {POINTS.map((point, index) => <g key={index}><motion.line initial={false} x1={sx(point.x)} y1={sy(point.y)} animate={{ x2: sx(stats.projections[index].point.x), y2: sy(stats.projections[index].point.y) }} transition={reduced(playing ? vizMotion.cinematic : vizMotion.markerSpring, prefersReduced)} stroke={vizTokens.classB} strokeDasharray="3 3" opacity="0.38" /><motion.circle initial={false} animate={{ cx: sx(stats.projections[index].point.x), cy: sy(stats.projections[index].point.y) }} transition={reduced(playing ? vizMotion.cinematic : vizMotion.markerSpring, prefersReduced)} r="3" fill={vizTokens.path} /><circle cx={sx(point.x)} cy={sy(point.y)} r="5" fill={vizTokens.classA} stroke={vizTokens.pointOutline} strokeWidth="2" /></g>)}
         <circle cx={sx(stats.centre.x)} cy={sy(stats.centre.y)} r="8" fill={vizTokens.selection} stroke={vizTokens.pointOutline} strokeWidth="2" />
         <text x={BOX.left + 10} y={BOX.top + 18} fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>GREEN = ORIGINAL · GOLD = 1D COORDINATE · DASH = LOST INFORMATION</text>
         <g transform="translate(875 52)">

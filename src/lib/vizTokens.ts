@@ -1,11 +1,11 @@
 /** Stable colour values for renderers that cannot consume CSS custom properties. */
 export const vizTokens = Object.freeze({
   canvas: "#FAF8F2",
-  grid: "#E8E2D5",
-  axis: "#6F6658",
-  border: "#BEB6A5",
+  grid: "#DED7CA",
+  axis: "#625A4F",
+  border: "#AFA693",
   ink: "#1E1B16",
-  mutedInk: "#6F6658",
+  mutedInk: "#625A4F",
   classA: "#556B4A",
   classB: "#8D5149",
   prediction: "#556B4A",
