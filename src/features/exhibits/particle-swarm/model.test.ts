@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_PARAMETERS, evolveSwarm, initialSwarm, objective, predatorAt, stepSwarm } from "./model";
+import { DEFAULT_PARAMETERS, evolveSwarm, initialSwarm, objective, particleForces, predatorAt, stepSwarm } from "./model";
 
 describe("particle swarm model", () => {
   it("has its global Rastrigin minimum at the origin", () => {
@@ -21,6 +21,32 @@ describe("particle swarm model", () => {
     const evolved = evolveSwarm(18);
     expect(evolved.globalBestScore).toBeLessThan(initial.globalBestScore);
     expect(evolved.iteration).toBe(18);
+  });
+
+  it("exposes the exact force components used by the next step", () => {
+    const state = evolveSwarm(4);
+    const particle = state.particles[3];
+    const forces = particleForces(state, particle, DEFAULT_PARAMETERS);
+    const nextParticle = stepSwarm(state, DEFAULT_PARAMETERS).particles[3];
+
+    expect(nextParticle.velocity.x).toBeCloseTo(forces.velocity.x, 10);
+    expect(nextParticle.velocity.y).toBeCloseTo(forces.velocity.y, 10);
+  });
+
+  it("removes personal and shared pull when their weights are zero", () => {
+    const state = evolveSwarm(3);
+    const forces = particleForces(state, state.particles[5], {
+      ...DEFAULT_PARAMETERS,
+      cognitive: 0,
+      social: 0,
+    });
+
+    expect(forces.cognitive.x).toBeCloseTo(0, 10);
+    expect(forces.cognitive.y).toBeCloseTo(0, 10);
+    expect(forces.social.x).toBeCloseTo(0, 10);
+    expect(forces.social.y).toBeCloseTo(0, 10);
+    expect(forces.velocity.x).toBeCloseTo(forces.inertia.x, 10);
+    expect(forces.velocity.y).toBeCloseTo(forces.inertia.y, 10);
   });
 
   it("supports a deterministic predator-avoidance extension", () => {

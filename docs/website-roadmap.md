@@ -27,10 +27,18 @@ Updated: 2026-07-13
 | P1: PCA direct projection | Complete | Equivalent undirected axes are normalised into the native slider range, the projection axis can be rotated directly on the plot, and integer angle state is URL-restorable. Pointer, responsive, model, and browser behavior are verified. |
 | C1: CNN receptive-field state | Complete | Filter and output-cell coordinates are URL-restorable, the focusable diagram moves the receptive field with arrow keys, and its live description reports the exact patch response. Automatic scanning remains transient. |
 | B1: Backpropagation replay state | Complete | Inputs, target, learning rate, and update count reconstruct weights deterministically from the authored starting network. Changing evidence resets incompatible update history, and the complete state is URL-restorable. |
+| V1: Public visual language | Complete | The generic homepage feature band is removed, the hero names concrete manipulations and disclosures, methodology metadata uses literal descriptions, and sharing now means the stable exhibit route. |
+| E1: Causal mechanism pass | Complete | Genetic Algorithm shows the actual crossover child and changed mutation bits. Particle Swarm decomposes one computed move into inertia, personal, shared, and optional repulsion arrows while preserving orbit. Both pass the static, model, viewport, and budget gates. |
 
 Update this tracker in the same change that completes or materially advances a
 roadmap item. A release is complete only after its completion criteria have been
 verified.
+
+Exact scene-state sharing is closed to further expansion by maintainer
+direction. “Copy exhibit link” now copies the stable exhibit route without
+guided-step or control parameters. Existing parameter restoration remains
+supported where already implemented, but it is not a requirement for the
+remaining exhibits.
 
 ### Greatness phase implementation log
 
@@ -179,6 +187,21 @@ Updated: 2026-07-13
 - [x] Verify Backpropagation with 185 unit/component tests, lint, the static
   export, every route budget, 79 Chromium checks, and all four Firefox and
   WebKit smoke checks.
+- [x] Remove the generic homepage feature manifesto, replace abstract public
+  copy with concrete manipulations and disclosures, and make the copy action
+  share the stable exhibit route without parameter state.
+- [x] Record the Genetic Algorithm's displayed reproduction example directly
+  from the deterministic model, distinguish crossover from mutation, highlight
+  changed bits, and correct the selection disclosure from fitness-proportional
+  to two-candidate tournament selection.
+- [x] Extract Particle Swarm's exact inertia, personal, shared, and repulsion
+  components from the model; render a raised, uniformly enlarged arrow chain
+  for one camera-legible particle while retaining free orbit and the full-swarm
+  forecast.
+- [x] Verify the wave with lint, 190 unit/component tests, the 21-page static
+  export, every route budget, all 79 Chromium scenarios, a post-tuning
+  four-viewport Particle Swarm run, and a nonblank 300-colour Firefox WebGL
+  capture reviewed at 1440x900.
 
 ### Release 1 implementation log
 

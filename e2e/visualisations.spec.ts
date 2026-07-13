@@ -117,7 +117,8 @@ test.describe("visualisation workspace", () => {
     await expect(page).toHaveURL(/\/visualisations$/);
   });
 
-  test("shares and restores meaningful scene state", async ({ page }) => {
+  test("restores meaningful scene state and copies the exhibit route", async ({ page }) => {
+    await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto("/visualisations/overfitting");
 
@@ -132,8 +133,9 @@ test.describe("visualisation workspace", () => {
     await page.reload();
     await expect(degree).toHaveValue(sharedDegree);
 
-    await page.getByRole("button", { name: "Copy current view" }).click();
-    await expect(page.getByRole("button", { name: "Current view copied" })).toBeVisible();
+    await page.getByRole("button", { name: "Copy exhibit link" }).click();
+    await expect(page.getByRole("button", { name: "Exhibit link copied" })).toBeVisible();
+    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe("http://localhost:3000/visualisations/overfitting");
   });
 
   test("restores a computed Attention state", async ({ page }) => {

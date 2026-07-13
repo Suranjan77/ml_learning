@@ -14,9 +14,11 @@ import {
   evolveSwarm,
   initialSwarm,
   objective,
+  particleForces,
   predatorAt,
   stepSwarm,
   type Point,
+  type Repulsor,
   type SwarmParameters,
   type SwarmState,
 } from "./model";
@@ -24,6 +26,8 @@ import {
 const STEP_ITERATIONS = [0, 1, 5, 14] as const;
 const HEIGHT_SCALE = 0.05;
 const SURFACE_LIFT = 0.055;
+const FORCE_DISPLAY_SCALE = 1.65;
+const INITIAL_CAMERA_RIGHT = { x: 0.744, y: -0.668 } as const;
 const INITIAL_BEST_SCORE = initialSwarm().globalBestScore;
 
 function heightAt(point: Point) {
@@ -205,14 +209,49 @@ function Predator({ point, reducedMotion }: { point: Point; reducedMotion: boole
   );
 }
 
-function Swarm3D({ state, preview, reducedMotion, predator }: { state: SwarmState; preview: SwarmState; reducedMotion: boolean; predator: Point | null }) {
+function ForceArrow({ from, to, colour }: { from: [number, number, number]; to: [number, number, number]; colour: string }) {
+  const direction = new THREE.Vector3(...to).sub(new THREE.Vector3(...from));
+  const length = direction.length();
+  if (length < 0.025) return null;
+  const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
+
+  return <group>
+    <Line points={[from, to]} color={colour} lineWidth={4} depthTest={false} />
+    <mesh position={to} quaternion={quaternion} renderOrder={12}>
+      <coneGeometry args={[0.085, 0.25, 12]} />
+      <meshBasicMaterial color={colour} depthTest={false} />
+    </mesh>
+  </group>;
+}
+
+function Swarm3D({ state, preview, parameters, reducedMotion, repulsor }: { state: SwarmState; preview: SwarmState; parameters: SwarmParameters; reducedMotion: boolean; repulsor?: Repulsor }) {
   const best = scenePoint(state.globalBest, 0.1);
   const leaderId = state.particles.reduce((winner, particle) => particle.bestScore < winner.bestScore ? particle : winner).id;
+  const focusParticle = state.particles.reduce((winner, candidate) => {
+    const forces = particleForces(state, candidate, DEFAULT_PARAMETERS);
+    const winnerForces = particleForces(state, winner, DEFAULT_PARAMETERS);
+    const score = Math.abs(forces.inertia.x * INITIAL_CAMERA_RIGHT.x + forces.inertia.y * INITIAL_CAMERA_RIGHT.y)
+      + Math.abs(forces.cognitive.x * INITIAL_CAMERA_RIGHT.x + forces.cognitive.y * INITIAL_CAMERA_RIGHT.y)
+      + Math.abs(forces.social.x * INITIAL_CAMERA_RIGHT.x + forces.social.y * INITIAL_CAMERA_RIGHT.y);
+    const winnerScore = Math.abs(winnerForces.inertia.x * INITIAL_CAMERA_RIGHT.x + winnerForces.inertia.y * INITIAL_CAMERA_RIGHT.y)
+      + Math.abs(winnerForces.cognitive.x * INITIAL_CAMERA_RIGHT.x + winnerForces.cognitive.y * INITIAL_CAMERA_RIGHT.y)
+      + Math.abs(winnerForces.social.x * INITIAL_CAMERA_RIGHT.x + winnerForces.social.y * INITIAL_CAMERA_RIGHT.y);
+    return score > winnerScore ? candidate : winner;
+  });
+  const focus = { particle: focusParticle, forces: particleForces(state, focusParticle, parameters, repulsor) };
+  const forceHeight = heightAt(focus.particle) + 1.18;
+  const forceStart: [number, number, number] = [focus.particle.x, forceHeight, focus.particle.y];
+  const focusPosition = scenePoint(focus.particle, 0.18);
+  const inertiaEnd: [number, number, number] = [forceStart[0] + focus.forces.inertia.x * FORCE_DISPLAY_SCALE, forceHeight, forceStart[2] + focus.forces.inertia.y * FORCE_DISPLAY_SCALE];
+  const cognitiveEnd: [number, number, number] = [inertiaEnd[0] + focus.forces.cognitive.x * FORCE_DISPLAY_SCALE, forceHeight, inertiaEnd[2] + focus.forces.cognitive.y * FORCE_DISPLAY_SCALE];
+  const socialEnd: [number, number, number] = [cognitiveEnd[0] + focus.forces.social.x * FORCE_DISPLAY_SCALE, forceHeight, cognitiveEnd[2] + focus.forces.social.y * FORCE_DISPLAY_SCALE];
+  const repulsionEnd: [number, number, number] = [socialEnd[0] + focus.forces.repulsion.x * FORCE_DISPLAY_SCALE, forceHeight, socialEnd[2] + focus.forces.repulsion.y * FORCE_DISPLAY_SCALE];
+  const forecastEnd: [number, number, number] = [forceStart[0] + focus.forces.velocity.x * FORCE_DISPLAY_SCALE, forceHeight, forceStart[2] + focus.forces.velocity.y * FORCE_DISPLAY_SCALE];
 
   return (
     <VizCanvas
       label="Three-dimensional particle swarm landscape"
-      description="A rotatable Rastrigin cost surface with many local basins. Two coloured scouting flocks move in their velocity direction while sharing one gold leader. Small markers are personal-best positions, gold lines forecast the next move, and an optional predator creates a repulsive avoidance zone."
+      description="A rotatable Rastrigin cost surface with many local basins. One ringed particle shows its inertia, personal-best pull, shared-best pull, and combined next move as uniformly enlarged arrows. The whole swarm shares one gold leader; an optional predator adds a repulsive component."
       camera={{ position: [10.6, 8.2, 11.8], fov: 44, near: 0.1, far: 80 }}
       frameloop={reducedMotion ? "demand" : "always"}
     >
@@ -229,7 +268,7 @@ function Swarm3D({ state, preview, reducedMotion, predator }: { state: SwarmStat
         return (
           <group key={particle.id}>
             <Line points={[position, personalBest]} color={vizTokens.classA} lineWidth={1} dashed dashSize={0.08} gapSize={0.06} transparent opacity={0.42} />
-            <Line points={[position, forecast]} color={vizTokens.path} lineWidth={2} transparent opacity={0.72} />
+            <Line points={[position, forecast]} color={vizTokens.path} lineWidth={1.2} transparent opacity={0.28} />
             <mesh position={personalBest} renderOrder={3}>
               <sphereGeometry args={[0.055, 12, 12]} />
               <meshBasicMaterial color={vizTokens.classA} depthTest={false} />
@@ -239,7 +278,18 @@ function Swarm3D({ state, preview, reducedMotion, predator }: { state: SwarmStat
         );
       })}
 
-      {predator ? <Predator point={predator} reducedMotion={reducedMotion} /> : null}
+      <mesh position={forceStart} rotation={[-Math.PI / 2, 0, 0]} renderOrder={11}>
+        <ringGeometry args={[0.25, 0.34, 24]} />
+        <meshBasicMaterial color={vizTokens.ink} side={THREE.DoubleSide} depthTest={false} />
+      </mesh>
+      <Line points={[focusPosition, forceStart]} color={vizTokens.ink} lineWidth={1.5} dashed dashSize={0.08} gapSize={0.06} transparent opacity={0.58} depthTest={false} />
+      <ForceArrow from={forceStart} to={inertiaEnd} colour={vizTokens.mutedInk} />
+      <ForceArrow from={inertiaEnd} to={cognitiveEnd} colour={vizTokens.classA} />
+      <ForceArrow from={cognitiveEnd} to={socialEnd} colour={vizTokens.path} />
+      {repulsor ? <ForceArrow from={socialEnd} to={repulsionEnd} colour={vizTokens.error} /> : null}
+      <ForceArrow from={forceStart} to={forecastEnd} colour={vizTokens.selection} />
+
+      {repulsor ? <Predator point={repulsor} reducedMotion={reducedMotion} /> : null}
 
       <Line points={[[0, 0.04, 0], [0, 0.62, 0]]} color={vizTokens.classA} lineWidth={1.5} dashed dashSize={0.07} gapSize={0.05} transparent opacity={0.72} />
       <mesh position={[0, 0.08, 0]} rotation={[-Math.PI / 2, 0, 0]}>
@@ -301,12 +351,15 @@ export default function ParticleSwarmScene({ step, resetKey, playing = false }: 
     return () => window.clearTimeout(timer);
   }, [parameters, predatorActive, running, state.iteration]);
 
-  const predator = predatorActive ? predatorAt(state.iteration) : null;
+  const repulsor = useMemo(
+    () => predatorActive ? { ...predatorAt(state.iteration), radius: 2.15, strength: 1.35 } : undefined,
+    [predatorActive, state.iteration],
+  );
   const preview = useMemo(() => stepSwarm(
     state,
     parameters,
-    predatorActive ? { ...predatorAt(state.iteration), radius: 2.15, strength: 1.35 } : undefined,
-  ), [parameters, predatorActive, state]);
+    repulsor,
+  ), [parameters, repulsor, state]);
   const exploration = state.particles.reduce((sum, particle) => sum + Math.hypot(particle.x - state.globalBest.x, particle.y - state.globalBest.y), 0) / state.particles.length;
   const improvement = Math.max(0, INITIAL_BEST_SCORE - state.globalBestScore);
 
@@ -324,12 +377,12 @@ export default function ParticleSwarmScene({ step, resetKey, playing = false }: 
     });
   }
 
-  const status = `Iteration ${state.iteration}. Best objective ${state.globalBestScore.toFixed(3)} at x ${state.globalBest.x.toFixed(2)}, y ${state.globalBest.y.toFixed(2)}. Mean swarm distance ${exploration.toFixed(2)}.`;
+  const status = `Iteration ${state.iteration}. Best objective ${state.globalBestScore.toFixed(3)} at x ${state.globalBest.x.toFixed(2)}, y ${state.globalBest.y.toFixed(2)}. Mean swarm distance ${exploration.toFixed(2)}. Force weights: inertia ${parameters.inertia.toFixed(2)}, personal pull ${parameters.cognitive.toFixed(2)}, shared pull ${parameters.social.toFixed(2)}.${predatorActive ? " Repulsion is active." : ""}`;
 
   return (
     <section aria-label="Particle swarm optimisation visualisation" className="grid h-full min-h-[22rem] grid-rows-[minmax(0,1fr)_auto] overflow-hidden border border-outline bg-surface">
       <div className="relative min-h-0 overflow-hidden">
-        <Swarm3D state={state} preview={preview} reducedMotion={reducedMotion} predator={predator} />
+        <Swarm3D state={state} preview={preview} parameters={parameters} reducedMotion={reducedMotion} repulsor={repulsor} />
 
         <div className="pointer-events-none absolute left-3 top-3 hidden border border-outline bg-surface/92 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.08em] text-on-surface-variant backdrop-blur-sm sm:block">
           <span>position x₁, x₂</span><span className="px-2 text-outline-dark">→</span><span className="text-primary">height = objective cost</span>
@@ -345,8 +398,12 @@ export default function ParticleSwarmScene({ step, resetKey, playing = false }: 
           </div>
           <div className="mt-2 hidden grid-cols-[auto_1fr] gap-x-2 gap-y-1 font-mono text-[8px] uppercase tracking-[0.06em] text-on-surface-variant sm:grid">
             <span><span className="text-primary">◆</span> <span className="text-error">◆</span></span><span>two scouting wings</span>
-            <span className="text-primary">· ·</span><span>personal memory</span>
-            <span className="text-warning">—</span><span>next velocity</span>
+            <span className="text-on-surface">◎</span><span>focused forces · enlarged</span>
+            <span className="text-on-surface-variant">→</span><span>inertia component</span>
+            <span className="text-primary">→</span><span>personal-best pull</span>
+            <span className="text-warning">→</span><span>shared-best pull</span>
+            <span className="text-error">→</span><span>combined next move</span>
+            {predatorActive ? <><span className="text-error">→</span><span>repulsion component</span></> : null}
             <span className="text-warning">◎</span><span>shared leader / global best</span>
           </div>
         </div>

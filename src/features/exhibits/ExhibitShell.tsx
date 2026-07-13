@@ -147,8 +147,11 @@ export default function ExhibitShell({ slug }: { slug: string }) {
     setResetKey((key) => key + 1);
   }
 
-  async function copyCurrentView() {
-    const href = window.location.href;
+  async function copyExhibitLink() {
+    const url = new URL(window.location.href);
+    url.search = "";
+    url.hash = "";
+    const href = url.toString();
     try {
       await navigator.clipboard.writeText(href);
     } catch {
@@ -312,10 +315,10 @@ export default function ExhibitShell({ slug }: { slug: string }) {
             </button>
             <button
               type="button"
-              onClick={copyCurrentView}
+              onClick={copyExhibitLink}
               className="inline-flex h-11 items-center justify-center border border-outline bg-background px-3 text-sm transition-colors hover:border-primary hover:text-primary"
-              aria-label={copied ? "Current view copied" : "Copy current view"}
-              title={copied ? "Copied" : "Copy current view"}
+              aria-label={copied ? "Exhibit link copied" : "Copy exhibit link"}
+              title={copied ? "Copied" : "Copy exhibit link"}
             >
               {copied ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
             </button>
@@ -329,7 +332,7 @@ export default function ExhibitShell({ slug }: { slug: string }) {
               <ChevronRight className="ml-1" size={17} aria-hidden="true" />
             </button>
           </div>
-          <span className="sr-only" aria-live="polite">{copied ? "Current view URL copied to the clipboard." : ""}</span>
+          <span className="sr-only" aria-live="polite">{copied ? "Exhibit link copied to the clipboard." : ""}</span>
         </div>
       </footer>
 

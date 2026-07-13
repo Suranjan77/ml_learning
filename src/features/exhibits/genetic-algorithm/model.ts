@@ -7,9 +7,16 @@ export interface Individual {
 export interface GeneticState {
   population: Individual[];
   generation: number;
-  selectedParents: [string, string] | null;
-  crossoverPoint: number | null;
+  reproduction: ReproductionExample | null;
   mutationCount: number;
+}
+
+export interface ReproductionExample {
+  parents: [string, string];
+  crossoverPoint: number;
+  beforeMutation: string;
+  afterMutation: string;
+  mutatedBits: number[];
 }
 
 export const GENOME_LENGTH = 12;
@@ -45,7 +52,7 @@ function genomeFromSeed(seed: number) {
 
 export function initialPopulation(): GeneticState {
   const population = Array.from({ length: POPULATION_SIZE }, (_, index) => evaluate(genomeFromSeed(index + 1)));
-  return { population, generation: 0, selectedParents: null, crossoverPoint: null, mutationCount: 0 };
+  return { population, generation: 0, reproduction: null, mutationCount: 0 };
 }
 
 function tournament(population: Individual[], seed: number) {
@@ -57,8 +64,7 @@ function tournament(population: Individual[], seed: number) {
 export function nextGeneration(state: GeneticState, mutationRate = DEFAULT_MUTATION_RATE): GeneticState {
   const ranked = [...state.population].sort((a, b) => b.fitness - a.fitness);
   const genomes = [ranked[0].genome];
-  let firstParents: [string, string] | null = null;
-  let firstCrossover: number | null = null;
+  let reproduction: ReproductionExample | null = null;
   let mutationCount = 0;
 
   while (genomes.length < POPULATION_SIZE) {
@@ -67,17 +73,25 @@ export function nextGeneration(state: GeneticState, mutationRate = DEFAULT_MUTAT
     const parentA = tournament(state.population, seed);
     const parentB = tournament(state.population, seed + 11);
     const crossoverPoint = 2 + Math.floor(random(seed + 23) * (GENOME_LENGTH - 3));
-    let child = parentA.genome.slice(0, crossoverPoint) + parentB.genome.slice(crossoverPoint);
-    child = [...child].map((bit, index) => {
+    const beforeMutation = parentA.genome.slice(0, crossoverPoint) + parentB.genome.slice(crossoverPoint);
+    const mutatedBits: number[] = [];
+    const child = [...beforeMutation].map((bit, index) => {
       if (random(seed + 100 + index) < mutationRate) {
         mutationCount += 1;
+        mutatedBits.push(index);
         return bit === "1" ? "0" : "1";
       }
       return bit;
     }).join("");
-    if (!firstParents) {
-      firstParents = [parentA.genome, parentB.genome];
-      firstCrossover = crossoverPoint;
+    const candidate = {
+      parents: [parentA.genome, parentB.genome] as [string, string],
+      crossoverPoint,
+      beforeMutation,
+      afterMutation: child,
+      mutatedBits,
+    };
+    if (!reproduction || (reproduction.mutatedBits.length === 0 && mutatedBits.length > 0)) {
+      reproduction = candidate;
     }
     genomes.push(child);
   }
@@ -85,8 +99,7 @@ export function nextGeneration(state: GeneticState, mutationRate = DEFAULT_MUTAT
   return {
     population: genomes.map(evaluate),
     generation: state.generation + 1,
-    selectedParents: firstParents,
-    crossoverPoint: firstCrossover,
+    reproduction,
     mutationCount,
   };
 }

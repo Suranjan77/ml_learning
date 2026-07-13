@@ -48,7 +48,7 @@ Score every dimension from 0 to 3: absent, weak, good, exceptional.
 | Memory image | Is there one durable visual behaviour or contrast? |
 | Interaction coherence | Does every major control serve the central argument? |
 | Accessibility equivalence | Is the idea available without fine motor control, colour, continuous motion, or vision alone? |
-| Shareability | Can a discovery state be reproduced cleanly? |
+| Shareability | Can the exhibit itself be linked directly without an account or service? |
 
 A flagship has no zero scores; scores at least 2 for visual argument, causal
 clarity, fidelity, and accessibility; and scores 3 in at least two of
@@ -110,7 +110,7 @@ flagship consideration.
 - No analytics, tracking, cookies, accounts, profiles, advertising, or
   engagement mechanics.
 - Non-linear exploration and no forced course sequence.
-- Shareable URL state where practical.
+- Every exhibit has a stable, directly shareable route; exact parameter state is optional.
 - Keyboard, touch, pointer, reduced-motion, and nonvisual support.
 - Visible assumptions, simplifications, and references.
 - Deterministic behaviour where it improves explanation and testing.

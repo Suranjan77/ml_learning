@@ -2,20 +2,17 @@
 
 Updated: 2026-07-13
 
-## Link to a specific state
+## Link to an exhibit
 
-Open an exhibit, set its controls, and use **Copy current view**. Supported
-non-default controls and the current guided step are stored in the query string.
-The link does not depend on an account, cookie, local storage, or backend.
+Open an exhibit and use **Copy exhibit link**. The copied address points to the
+normal exhibit route without guided-step or control parameters. It does not
+depend on an account, cookie, local storage, or backend.
 
 Example:
 
 ```text
-https://suranjan77.github.io/visualisations/gradient-descent?step=2&lr=0.4
+https://suranjan77.github.io/visualisations/gradient-descent
 ```
-
-Invalid or out-of-range scene parameters are ignored. Default values are
-removed from the URL to keep links readable.
 
 ## Embed an exhibit
 
@@ -25,7 +22,7 @@ guided steps, insight dialog, and a link to the full page.
 
 ```html
 <iframe
-  src="https://suranjan77.github.io/visualisations/gradient-descent?step=2&amp;lr=0.4&amp;embed=1"
+  src="https://suranjan77.github.io/visualisations/gradient-descent?embed=1"
   title="Gradient descent learning-rate visualisation"
   width="1280"
   height="720"

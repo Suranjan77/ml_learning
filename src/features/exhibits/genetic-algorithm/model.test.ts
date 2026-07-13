@@ -12,6 +12,28 @@ describe("genetic algorithm model", () => {
     expect(nextGeneration(initial, DEFAULT_MUTATION_RATE)).toEqual(nextGeneration(initial, DEFAULT_MUTATION_RATE));
   });
 
+  it("records an actual crossover child and every changed bit", () => {
+    const evolved = nextGeneration(initialPopulation(), DEFAULT_MUTATION_RATE);
+    const example = evolved.reproduction;
+    expect(example).not.toBeNull();
+    if (!example) return;
+
+    expect(example.beforeMutation).toBe(
+      example.parents[0].slice(0, example.crossoverPoint)
+      + example.parents[1].slice(example.crossoverPoint),
+    );
+    const changedBits = [...example.beforeMutation]
+      .flatMap((bit, index) => bit === example.afterMutation[index] ? [] : [index]);
+    expect(example.mutatedBits).toEqual(changedBits);
+    expect(evolved.population.some((individual) => individual.genome === example.afterMutation)).toBe(true);
+  });
+
+  it("shows crossover without inventing mutations when mutation is disabled", () => {
+    const example = nextGeneration(initialPopulation(), 0).reproduction;
+    expect(example?.mutatedBits).toEqual([]);
+    expect(example?.afterMutation).toBe(example?.beforeMutation);
+  });
+
   it("preserves the elite and improves the best solution", () => {
     const initial = initialPopulation();
     const evolved = evolvePopulation(10);

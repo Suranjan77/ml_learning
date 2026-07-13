@@ -30,7 +30,7 @@ First answer these questions in the issue or pull request:
 3. What change becomes visible because of that manipulation?
 4. Why is a static diagram or existing exhibit insufficient?
 5. What is computed, authored, or omitted?
-6. Which deterministic states should be covered by tests and shared URLs?
+6. Which deterministic states should be covered by tests?
 
 Catalogue expansion is intentionally selective. Do not register an unfinished
 placeholder merely to reserve a topic.
@@ -59,7 +59,9 @@ adding the exhibit to:
 - `scripts/generate-social-images.mjs`
 - the relevant browser coverage in `e2e/`
 
-Use `sceneUrlState.ts` for shareable non-default controls. Add a shared runtime
+Preserve existing `sceneUrlState.ts` behavior when changing an exhibit that
+already uses it. New exhibits need only a stable route unless control-state
+restoration has a separate, concrete requirement. Add a shared runtime
 abstraction only after a second exhibit needs the same semantic behaviour.
 
 ## Validation

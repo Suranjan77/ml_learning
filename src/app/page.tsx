@@ -99,30 +99,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="border-b border-outline bg-inverse-surface px-4 py-10 text-inverse-on-surface sm:px-6 sm:py-12 lg:px-8">
-        <div className="mx-auto max-w-content">
-          <div className="grid gap-8 lg:grid-cols-[0.6fr_1.4fr] lg:items-start">
-            <div>
-              <p className="font-mono text-[10px] uppercase tracking-label text-inverse-primary">How the site works</p>
-              <h2 className="mt-2 font-headline text-2xl font-medium sm:text-3xl">Small models, shown clearly.</h2>
-            </div>
-            <dl className="grid gap-px bg-[#49443B] sm:grid-cols-2 lg:grid-cols-4">
-              {[
-                ["Controls", "Change the inputs used by the model."],
-                ["Comparisons", "Keep an earlier result visible while you make changes."],
-                ["Notes", "Read what is computed, simplified, or left out."],
-                ["Privacy", "No accounts, analytics, advertising, or tracking cookies."],
-              ].map(([term, description]) => (
-                <div key={term} className="bg-inverse-surface p-4">
-                  <dt className="font-mono text-[10px] uppercase tracking-label text-inverse-primary">{term}</dt>
-                  <dd className="mt-2 text-sm leading-6 text-inverse-on-surface/80">{description}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        </div>
-      </section>
-
       <section className="bg-background px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
         <div className="mx-auto max-w-content">
           <div className="flex items-end justify-between gap-5">

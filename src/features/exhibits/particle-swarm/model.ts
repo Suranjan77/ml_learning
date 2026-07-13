@@ -29,6 +29,14 @@ export interface Repulsor extends Point {
   strength: number;
 }
 
+export interface ParticleForces {
+  inertia: Point;
+  cognitive: Point;
+  social: Point;
+  repulsion: Point;
+  velocity: Point;
+}
+
 export const DOMAIN = { min: -5.12, max: 5.12 } as const;
 export const DEFAULT_PARAMETERS: SwarmParameters = { inertia: 0.64, cognitive: 1.35, social: 1.55 };
 
@@ -51,6 +59,49 @@ function noise(id: number, iteration: number, channel: number) {
 
 function clamp(value: number, min: number = DOMAIN.min, max: number = DOMAIN.max) {
   return Math.max(min, Math.min(max, value));
+}
+
+export function particleForces(
+  state: SwarmState,
+  particle: Particle,
+  parameters: SwarmParameters,
+  repulsor?: Repulsor,
+): ParticleForces {
+  const nextIteration = state.iteration + 1;
+  const r1 = noise(particle.id, nextIteration, 1);
+  const r2 = noise(particle.id, nextIteration, 2);
+  const distanceFromRepulsor = repulsor
+    ? Math.hypot(particle.x - repulsor.x, particle.y - repulsor.y)
+    : Number.POSITIVE_INFINITY;
+  const avoidance = repulsor && distanceFromRepulsor < repulsor.radius
+    ? repulsor.strength * (1 - distanceFromRepulsor / repulsor.radius)
+    : 0;
+  const away = repulsor && distanceFromRepulsor > 0.001
+    ? { x: (particle.x - repulsor.x) / distanceFromRepulsor, y: (particle.y - repulsor.y) / distanceFromRepulsor }
+    : { x: 0, y: 0 };
+  const inertia = {
+    x: parameters.inertia * particle.velocity.x,
+    y: parameters.inertia * particle.velocity.y,
+  };
+  const cognitive = {
+    x: parameters.cognitive * r1 * (particle.best.x - particle.x),
+    y: parameters.cognitive * r1 * (particle.best.y - particle.y),
+  };
+  const social = {
+    x: parameters.social * r2 * (state.globalBest.x - particle.x),
+    y: parameters.social * r2 * (state.globalBest.y - particle.y),
+  };
+  const repulsion = { x: away.x * avoidance, y: away.y * avoidance };
+  return {
+    inertia,
+    cognitive,
+    social,
+    repulsion,
+    velocity: {
+      x: clamp(inertia.x + cognitive.x + social.x + repulsion.x, -1.45, 1.45),
+      y: clamp(inertia.y + cognitive.y + social.y + repulsion.y, -1.45, 1.45),
+    },
+  };
 }
 
 export function initialSwarm(count = 18): SwarmState {
@@ -76,30 +127,7 @@ export function initialSwarm(count = 18): SwarmState {
 export function stepSwarm(state: SwarmState, parameters: SwarmParameters, repulsor?: Repulsor): SwarmState {
   const nextIteration = state.iteration + 1;
   const particles = state.particles.map((particle) => {
-    const r1 = noise(particle.id, nextIteration, 1);
-    const r2 = noise(particle.id, nextIteration, 2);
-    const distanceFromRepulsor = repulsor
-      ? Math.hypot(particle.x - repulsor.x, particle.y - repulsor.y)
-      : Number.POSITIVE_INFINITY;
-    const avoidance = repulsor && distanceFromRepulsor < repulsor.radius
-      ? repulsor.strength * (1 - distanceFromRepulsor / repulsor.radius)
-      : 0;
-    const awayX = repulsor && distanceFromRepulsor > 0.001
-      ? (particle.x - repulsor.x) / distanceFromRepulsor
-      : 0;
-    const awayY = repulsor && distanceFromRepulsor > 0.001
-      ? (particle.y - repulsor.y) / distanceFromRepulsor
-      : 0;
-    const velocity = {
-      x: clamp(parameters.inertia * particle.velocity.x
-        + parameters.cognitive * r1 * (particle.best.x - particle.x)
-        + parameters.social * r2 * (state.globalBest.x - particle.x)
-        + awayX * avoidance, -1.45, 1.45),
-      y: clamp(parameters.inertia * particle.velocity.y
-        + parameters.cognitive * r1 * (particle.best.y - particle.y)
-        + parameters.social * r2 * (state.globalBest.y - particle.y)
-        + awayY * avoidance, -1.45, 1.45),
-    };
+    const { velocity } = particleForces(state, particle, parameters, repulsor);
     const position = { x: clamp(particle.x + velocity.x), y: clamp(particle.y + velocity.y) };
     const score = objective(position);
     const improved = score < particle.bestScore;

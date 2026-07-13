@@ -14,7 +14,7 @@ export const geneticAlgorithmExhibit: ExhibitDefinition = {
   related: ["particle-swarm", "gradient-descent"],
   assumptions: [
     "Genomes, the fitness function, and mutation/crossover rates are hand-authored to make selection pressure visible.",
-    "Selection is simplified (fitness-proportional) and the population is small and deterministically seeded for reproducibility.",
+    "Selection uses deterministic two-candidate tournaments; one elite is retained, and the population is deliberately small.",
   ],
   references: [
     { label: "Holland, Adaptation in Natural and Artificial Systems (1975/1992)" },

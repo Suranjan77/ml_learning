@@ -50,6 +50,12 @@ device identifiers, or unnecessary personal information.
 
 ## Design response
 
-- Evidence supporting the intended causal takeaway:
-- Changes required:
-- Changes deliberately rejected and why:
+- Evidence supporting the intended causal takeaway: The participant connected a
+  higher learning rate with larger steps, described skipping a minimum, and
+  correctly inferred that gradient descent only knows the nearby surface.
+- Changes required: Keep the learning-rate regimes explicit, show local descent
+  with a real arrow rather than a text label, clarify move-versus-orbit cues,
+  and retain a visible comparison path.
+- Changes deliberately rejected and why: Restricting camera rotation was
+  rejected. Orbit was the participant's first action and makes the locations of
+  minima easier to inspect from different perspectives.

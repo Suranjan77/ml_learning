@@ -4,12 +4,12 @@ import { ExternalLink } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Methodology and about",
-  description: "How the machine-learning visualisations are designed, sourced, tested, and kept private and accessible.",
+  description: "How the machine-learning visualisations are built, sourced, and reviewed.",
   alternates: { canonical: "/methodology" },
   openGraph: {
     url: "/methodology",
     title: "Methodology and about",
-    description: "The approach, evidence, accessibility, privacy, and reuse model behind the visualisation library.",
+    description: "Models, references, accessibility, privacy, and reuse terms for the visualisation library.",
     images: [{ url: "/social/methodology.png", width: 1200, height: 630, alt: "Methodology for the machine learning visualisation library" }],
   },
   twitter: { images: ["/social/methodology.png"] },
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 const sections = [
   {
     title: "Approach",
-    body: "Each exhibit focuses on one relationship. Controls change the model or data directly, and guided steps point out useful states without requiring a fixed order. Models and datasets are deterministic where possible, so a shared URL reopens the same result.",
+    body: "Each exhibit focuses on one relationship. Controls change the model or data directly, and guided steps point out useful states without requiring a fixed order. Fixed models and datasets keep the examples repeatable.",
   },
   {
     title: "Evidence and simplification",
@@ -68,7 +68,7 @@ export default function MethodologyPage() {
         <section className="mt-10 border border-outline bg-surface p-6 sm:p-8">
           <h2 className="font-headline text-2xl font-medium text-on-surface">Share or embed an exhibit</h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-on-surface-variant">
-            Use “Copy current view” in any workspace to preserve its guided step and supported scene controls. For a navigation-free iframe, add <code className="bg-surface-container-high px-1.5 py-0.5 font-mono text-xs">?embed=1</code> (or <code className="bg-surface-container-high px-1.5 py-0.5 font-mono text-xs">&amp;embed=1</code> after existing parameters) to the normal exhibit URL. Embedded views retain keyboard controls and a link back to the full page.
+            Use “Copy exhibit link” in any workspace to copy its normal page address. For a navigation-free iframe, add <code className="bg-surface-container-high px-1.5 py-0.5 font-mono text-xs">?embed=1</code> to that address. Embedded views retain keyboard controls and a link back to the full page.
           </p>
           <Link href="/visualisations" className="mt-5 inline-flex min-h-11 items-center border border-outline px-4 text-sm font-medium text-on-surface hover:border-primary hover:text-primary">
             Choose a visualisation

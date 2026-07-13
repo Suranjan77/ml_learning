@@ -49,6 +49,9 @@ export default function GeneticAlgorithmScene({ step, resetKey, playing = false 
   const ranked = useMemo(() => [...state.population].sort((a, b) => b.fitness - a.fitness), [state.population]);
   const best = ranked[0];
   const diversity = new Set(state.population.map((individual) => individual.genome)).size;
+  const reproductionSummary = state.reproduction
+    ? `Example child crossed after bit ${state.reproduction.crossoverPoint}${state.reproduction.mutatedBits.length > 0 ? ` and changed bits ${state.reproduction.mutatedBits.map((bit) => bit + 1).join(", ")}` : " with no mutation"}.`
+    : "";
 
   return (
     <section aria-label="Genetic algorithm visualisation" className="grid h-full min-h-[22rem] grid-rows-[minmax(0,1fr)_auto] overflow-hidden border border-outline bg-surface">
@@ -82,14 +85,19 @@ export default function GeneticAlgorithmScene({ step, resetKey, playing = false 
             <text y="108" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.mutedInk}>UNIQUE GENOMES</text><text x="300" y="108" textAnchor="end" fontFamily="var(--font-mono)" fontSize="17" fill={vizTokens.path}>{diversity}/12</text>
             <line y1="130" x2="300" y2="130" stroke={vizTokens.grid} />
             <text y="158" fontFamily="var(--font-mono)" fontSize="9" fill={vizTokens.mutedInk}>ONE REPRODUCTION EXAMPLE</text>
-            {state.selectedParents ? <>
-              <text y="188" fontFamily="var(--font-mono)" fontSize="12" fill={vizTokens.classA}>{state.selectedParents[0]}</text>
-              <text y="212" fontFamily="var(--font-mono)" fontSize="12" fill={vizTokens.classB}>{state.selectedParents[1]}</text>
-              <line x1={(state.crossoverPoint ?? 0) * 7.2} y1="173" x2={(state.crossoverPoint ?? 0) * 7.2} y2="220" stroke={vizTokens.selection} strokeWidth="2" />
-              <text y="241" fontFamily="var(--font-mono)" fontSize="12"><tspan fill={vizTokens.classA}>{state.selectedParents[0].slice(0, state.crossoverPoint ?? 0)}</tspan><tspan fill={vizTokens.classB}>{state.selectedParents[1].slice(state.crossoverPoint ?? 0)}</tspan></text>
-              <text x="105" y="241" fontFamily="var(--font-mono)" fontSize="9" fill={vizTokens.mutedInk}>← CHILD BEFORE MUTATION</text>
-              <text y="267" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.selection}>CROSS AT BIT {state.crossoverPoint}</text>
-              <text y="290" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.path}>{state.mutationCount} BIT MUTATIONS THIS GENERATION</text>
+            {state.reproduction ? <>
+              <text y="184" fontFamily="var(--font-mono)" fontSize="9" fill={vizTokens.mutedInk}>PARENT A</text>
+              <text x="82" y="184" fontFamily="var(--font-mono)" fontSize="12" fill={vizTokens.classA}>{state.reproduction.parents[0]}</text>
+              <text y="207" fontFamily="var(--font-mono)" fontSize="9" fill={vizTokens.mutedInk}>PARENT B</text>
+              <text x="82" y="207" fontFamily="var(--font-mono)" fontSize="12" fill={vizTokens.classB}>{state.reproduction.parents[1]}</text>
+              <line x1={82 + state.reproduction.crossoverPoint * 7.2} y1="168" x2={82 + state.reproduction.crossoverPoint * 7.2} y2="239" stroke={vizTokens.selection} strokeWidth="2" />
+              <text y="238" fontFamily="var(--font-mono)" fontSize="9" fill={vizTokens.mutedInk}>CROSSOVER</text>
+              <text x="82" y="238" fontFamily="var(--font-mono)" fontSize="12"><tspan fill={vizTokens.classA}>{state.reproduction.beforeMutation.slice(0, state.reproduction.crossoverPoint)}</tspan><tspan fill={vizTokens.classB}>{state.reproduction.beforeMutation.slice(state.reproduction.crossoverPoint)}</tspan></text>
+              <text y="267" fontFamily="var(--font-mono)" fontSize="9" fill={vizTokens.mutedInk}>MUTATION</text>
+              <text x="82" y="267" fontFamily="var(--font-mono)" fontSize="12">
+                {[...state.reproduction.afterMutation].map((bit, index) => <tspan key={index} fill={state.reproduction?.mutatedBits.includes(index) ? vizTokens.error : vizTokens.ink} fontWeight={state.reproduction?.mutatedBits.includes(index) ? 700 : 400}>{bit}</tspan>)}
+              </text>
+              <text y="292" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.path}>{state.mutationCount} CHANGED BITS ACROSS THE POPULATION</text>
             </> : <text y="190" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.mutedInk}>Take a step to select parents.</text>}
             <rect y="310" width="300" height="84" fill={vizTokens.grid} opacity="0.55" />
             <text x="12" y="333" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.ink}>SELECTION exploits fitness</text>
@@ -97,7 +105,7 @@ export default function GeneticAlgorithmScene({ step, resetKey, playing = false 
             <text x="12" y="379" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.ink}>MUTATION restores variation</text>
           </g>
         </svg>
-        <p className="sr-only" aria-live="polite">Generation {state.generation}. Best fitness {best.fitness.toFixed(3)}. {diversity} unique genomes remain.</p>
+        <p className="sr-only" aria-live="polite">Generation {state.generation}. Best fitness {best.fitness.toFixed(3)}. {diversity} unique genomes remain. {reproductionSummary}</p>
       </div>
 
       <div className="flex flex-wrap items-end gap-3 border-t border-outline bg-surface-container-low px-3 py-2">

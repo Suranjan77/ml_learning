@@ -2,7 +2,7 @@ export const siteConfig = {
   name: "Machine Learning Visualisations",
   title: "Interactive Machine Learning Visualisations",
   description:
-    "Interactive visualisations for understanding machine learning and deep learning concepts through direct manipulation.",
+    "Change model inputs and inspect gradient paths, fitted curves, partitions, projections, and token probabilities.",
   shortDescription: "Interactive machine learning visualisations",
   locale: "en_GB",
   keywords: [

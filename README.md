@@ -37,7 +37,7 @@ SVG/WebGL smoke checks in Firefox and WebKit.
 - `src/lib/vizTokens.ts`: renderer-safe copies of visualisation colours.
 - `docs/website-roadmap.md`: current release and milestone tracker.
 - `docs/identity-decision.md`: visual identity and public-language rules.
-- `docs/embedding-and-static-reuse.md`: state links, iframe embeds, and static hosting.
+- `docs/embedding-and-static-reuse.md`: exhibit links, iframe embeds, and static hosting.
 - `CONTRIBUTING.md`: contributor requirements and the exhibit workflow.
 
 ## Adding a visualisation
@@ -50,4 +50,4 @@ scene, and test files but does not register unfinished work in the library.
 
 Add `embed=1` to a visualisation URL for the navigation-free workspace. See
 [`docs/embedding-and-static-reuse.md`](docs/embedding-and-static-reuse.md) for
-state links, iframe markup, and static hosting constraints.
+exhibit links, iframe markup, and static hosting constraints.
