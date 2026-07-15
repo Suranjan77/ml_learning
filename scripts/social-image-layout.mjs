@@ -2,7 +2,7 @@ export const socialCards = [
   { name: "home", topic: "Interactive machine learning visualisations", question: "Watch the mechanism change" },
   { name: "library", topic: "Visualisation library", question: "Explore by question, topic, or model" },
   { name: "methodology", topic: "Methodology and about", question: "Assumptions, accessibility, and privacy" },
-  { name: "gradient-descent", topic: "Learning and optimisation", question: "How can the same local next step converge, oscillate, diverge, or find a different basin?" },
+  { name: "gradient-descent", topic: "Learning and optimisation", question: "Does taking a bigger step always get you to the bottom faster?" },
   { name: "overfitting", topic: "Generalisation", question: "When does a flexible model stop generalising?" },
   { name: "k-means", topic: "Unsupervised learning", question: "How does k-means decide where clusters belong?" },
   { name: "kernel-trick", topic: "Classical machine learning", question: "How can a feature map turn a circular boundary into a flat one?" },

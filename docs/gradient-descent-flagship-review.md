@@ -24,9 +24,10 @@ states.
 | --- | --- | --- |
 | Local slope and first update | `/visualisations/gradient-descent?step=1` | One computed update and its local gradient are visible. |
 | Stable valley convergence | `/visualisations/gradient-descent?step=2&lr=0.4` | The 14-step loss is lower without crossing the stability boundary. |
-| Ravine oscillation | `/visualisations/gradient-descent?step=2` | The path repeatedly crosses the valley at learning rate 0.90. |
+| Ravine oscillation | `/visualisations/gradient-descent?step=2&lr=0.9` | The path repeatedly crosses the marked valley floor at learning rate 0.90. |
 | Divergence | `/visualisations/gradient-descent?step=2&lr=1.06` | The 14-step loss is higher immediately beyond the tested stable boundary. |
 | Different basins | `/visualisations/gradient-descent?step=3` | The guided default holds learning rate constant; the kept start ends near loss 1.53 while the current start reaches loss 0.00. |
+| Memory comparison | `/visualisations/gradient-descent?step=4` | Stable and diverging paths remain visible from the same start on the same landscape. |
 
 All five states are covered by model, component, or browser assertions. The
 Firefox baseline environment renders a real 1406×535 WebGL canvas and rejects

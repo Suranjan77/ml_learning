@@ -16,6 +16,7 @@
     "visual:decision-tree": "node scripts/capture-decision-tree-signatures.mjs",
     "visual:attention": "node scripts/capture-attention-signatures.mjs",
     "visual:kernel": "node scripts/capture-kernel-signatures.mjs",
+    "visual:particle-swarm": "node scripts/capture-particle-swarm-signatures.mjs",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "test:e2e": "npm run build && npm run budget && playwright test"

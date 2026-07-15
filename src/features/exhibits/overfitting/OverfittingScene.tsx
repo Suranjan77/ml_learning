@@ -219,6 +219,9 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
       ? `Current and kept fits both use degree ${degree}.`
       : `Degree ${referenceDegree} → ${degree}: training ${referenceTrainError.toFixed(3)} → ${trainError.toFixed(3)}; validation ${referenceValidationError.toFixed(3)} → ${validationError.toFixed(3)}.`
     : null;
+  const generalisationGap = validationError - trainError;
+  const trainDelta = referenceTrainError === null ? null : trainError - referenceTrainError;
+  const validationDelta = referenceValidationError === null ? null : validationError - referenceValidationError;
   const statusDescription = `Degree ${degree}. Training error ${trainError.toFixed(3)}, validation error ${validationError.toFixed(3)}. ${REGIME_SENTENCE[regime]}${comparisonSummary ? ` ${comparisonSummary}` : ""}`;
 
   return (
@@ -360,6 +363,37 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
               />
             ))}
 
+            <motion.line
+              initial={false}
+              animate={{
+                x1: rightXScale(degree),
+                x2: rightXScale(degree),
+                y1: rightYOf(trainError),
+                y2: rightYOf(validationError),
+              }}
+              transition={reduced(playing ? vizMotion.cinematic : vizMotion.markerSpring, prefersReduced)}
+              stroke={vizTokens.selection}
+              strokeWidth="5"
+              opacity="0.32"
+            />
+            <motion.circle initial={false} animate={{ cx: rightXScale(degree), cy: rightYOf(trainError) }} transition={reduced(vizMotion.markerSpring, prefersReduced)} r="5" fill={vizTokens.classA} stroke={vizTokens.canvas} strokeWidth="2" />
+            <motion.circle initial={false} animate={{ cx: rightXScale(degree), cy: rightYOf(validationError) }} transition={reduced(vizMotion.markerSpring, prefersReduced)} r="5" fill={vizTokens.classB} stroke={vizTokens.canvas} strokeWidth="2" />
+            <motion.text
+              initial={false}
+              animate={{ x: rightXScale(degree) + (degree > 8 ? -9 : 9), y: (rightYOf(trainError) + rightYOf(validationError)) / 2 }}
+              transition={reduced(vizMotion.markerSpring, prefersReduced)}
+              textAnchor={degree > 8 ? "end" : "start"}
+              dominantBaseline="middle"
+              fill={generalisationGap > 0 ? vizTokens.error : vizTokens.classA}
+              fontSize="9"
+              fontFamily="var(--font-dm-mono)"
+            >GAP {Math.abs(generalisationGap).toFixed(3)}</motion.text>
+
+            {referenceDegree !== null && referenceDegree !== degree && referenceTrainError !== null && referenceValidationError !== null ? <>
+              <line x1={rightXScale(referenceDegree)} y1={rightYOf(referenceTrainError)} x2={rightXScale(degree)} y2={rightYOf(trainError)} stroke={vizTokens.classA} strokeWidth="1.5" strokeDasharray="3 3" opacity="0.7" />
+              <line x1={rightXScale(referenceDegree)} y1={rightYOf(referenceValidationError)} x2={rightXScale(degree)} y2={rightYOf(validationError)} stroke={vizTokens.classB} strokeWidth="1.5" strokeDasharray="3 3" opacity="0.7" />
+            </> : null}
+
             <LinePath
               data={curve.degrees.map((d, i) => ({ degree: d, value: curve.trainError[i] }))}
               x={(point) => rightXScale(point.degree)}
@@ -469,8 +503,9 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
 
         {comparisonSummary ? (
           <div className={`col-span-2 min-w-0 border-l-2 px-2 py-1 sm:max-w-sm ${comparisonContradiction ? "border-error" : "border-primary"}`}>
-            <p className="font-mono text-[9px] uppercase tracking-[0.06em] text-on-surface-variant">Kept versus current</p>
+            <p className={`font-headline text-sm font-medium ${comparisonContradiction ? "text-error" : "text-primary"}`}>{comparisonContradiction ? "Training improved. Validation worsened." : "Kept versus current"}</p>
             <p className={`text-[10px] leading-snug ${comparisonContradiction ? "text-error" : "text-on-surface"}`}>{comparisonSummary}</p>
+            {trainDelta !== null && validationDelta !== null ? <p className="mt-0.5 font-mono text-[9px] uppercase text-on-surface-variant">train {trainDelta <= 0 ? "↓" : "↑"} {Math.abs(trainDelta).toFixed(3)} · validation {validationDelta <= 0 ? "↓" : "↑"} {Math.abs(validationDelta).toFixed(3)}</p> : null}
           </div>
         ) : null}
 

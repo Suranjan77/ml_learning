@@ -20,11 +20,12 @@ describe("GradientDescentScene", () => {
   });
 
   it("uses the guided high-rate preset to show valley overshoot", () => {
+    window.history.replaceState({}, "", "/visualisations/gradient-descent?step=2&lr=0.9");
     render(<GradientDescentScene step={2} resetKey={0} />);
 
     expect(screen.getByRole("button", { name: "valley" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("slider", { name: "Learning rate" })).toHaveValue("0.9");
-    expect(screen.getByText(/Overshoot: crossed the valley/)).toBeInTheDocument();
+    expect(screen.getByText(/valley-floor crossings/i)).toBeInTheDocument();
   });
 
   it("supports keyboard positioning and deterministic external reset", () => {
@@ -57,7 +58,7 @@ describe("GradientDescentScene", () => {
     fireEvent.change(screen.getByRole("slider", { name: "Learning rate" }), { target: { value: "1.2" } });
 
     expect(screen.getByRole("button", { name: "Clear kept path at 0.40" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByText("Grey: kept path")).toBeInTheDocument();
+    expect(screen.getByText("Green: reference")).toBeInTheDocument();
     expect(screen.getByText("Compare: rate only")).toBeInTheDocument();
     expect(screen.getByText(/Diverging: after 14 steps, loss is .* higher/i)).toBeInTheDocument();
   });
@@ -87,5 +88,35 @@ describe("GradientDescentScene", () => {
     render(<GradientDescentScene step={3} resetKey={0} />);
     expect(screen.getByRole("button", { name: "Many minima" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByText(/Starts reach different basins/i)).toBeInTheDocument();
+  });
+
+  it("lets the learner predict, then responds to computed instability", () => {
+    render(<GradientDescentScene step={2} resetKey={0} />);
+
+    expect(screen.getByText(/If the step gets bigger, what do you expect/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Converge faster" }));
+    fireEvent.change(screen.getByRole("slider", { name: "Learning rate" }), { target: { value: "1.06" } });
+
+    expect(screen.getByText("There it is.")).toBeInTheDocument();
+    expect(screen.getByText(/You expected faster convergence.*loss is .* higher/i)).toBeInTheDocument();
+  });
+
+  it("acknowledges the computed tested boundary after an unstable trial", () => {
+    render(<GradientDescentScene step={2} resetKey={0} />);
+    const slider = screen.getByRole("slider", { name: "Learning rate" });
+
+    fireEvent.change(slider, { target: { value: "1.06" } });
+    fireEvent.change(slider, { target: { value: "1.04" } });
+
+    expect(screen.getByText("You found the tested edge.")).toBeInTheDocument();
+    expect(screen.getByText(/1\.04 is the largest slider value/i)).toBeInTheDocument();
+  });
+
+  it("ends by holding the stable and unstable memory image together", () => {
+    render(<GradientDescentScene step={4} resetKey={0} />);
+
+    expect(screen.getByText("Keep this image")).toBeInTheDocument();
+    expect(screen.getByText(/Same start\. Same landscape\. Different step size/i)).toBeInTheDocument();
+    expect(screen.getByRole("slider", { name: "Learning rate" })).toHaveValue("1.06");
   });
 });

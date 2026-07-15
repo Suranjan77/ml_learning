@@ -8,6 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: getAbsoluteUrl("/"), priority: 1, changeFrequency: "monthly" },
     { url: getAbsoluteUrl("/visualisations"), priority: 0.9, changeFrequency: "weekly" },
+    { url: getAbsoluteUrl("/concepts"), priority: 0.85, changeFrequency: "monthly" },
     { url: getAbsoluteUrl("/methodology"), priority: 0.5, changeFrequency: "yearly" },
     ...exhibits.map(({ slug }) => ({ url: getAbsoluteUrl(`/visualisations/${slug}`), priority: 0.8, changeFrequency: "monthly" as const })),
   ];

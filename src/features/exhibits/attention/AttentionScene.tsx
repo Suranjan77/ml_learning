@@ -79,6 +79,11 @@ export default function AttentionScene({ resetKey = 0, step = 0, playing = false
   );
   const description = describeAttention(example, head, sourceIndex);
   const strongestTarget = targets[0]?.index;
+  const strongestScore = strongestTarget === undefined ? null : scores[strongestTarget];
+  const strongestWeight = strongestTarget === undefined ? null : weights[strongestTarget];
+  const scoreMaximum = Math.max(...scores);
+  const softmaxNumerator = strongestScore === null ? null : Math.exp(strongestScore - scoreMaximum);
+  const softmaxDenominator = scores.reduce((sum, score) => sum + Math.exp(score - scoreMaximum), 0);
   const defaultQueryIndex = attentionExamples[initialPreset.exampleIndex].tokens.indexOf(
     attentionExamples[initialPreset.exampleIndex].focusToken,
   );
@@ -409,13 +414,18 @@ export default function AttentionScene({ resetKey = 0, step = 0, playing = false
                   </span>
                   <span className="mt-0.5 hidden text-[8px] text-on-surface-variant md:block">score {score.toFixed(2)}</span>
                   {referenceWeights ? (
-                    <span
-                      className="relative mx-1 mt-1 block h-1 border-t border-outline-dark"
-                      aria-hidden="true"
-                      title={`Kept ${referenceExample?.tokens.at(-1)} weight ${formatWeight(referenceWeights[index])}`}
-                    >
-                      <span className="absolute -top-1 h-2 w-px bg-on-surface-variant" style={{ left: `${Math.min(100, referenceWeights[index] * 100)}%` }} />
-                    </span>
+                    <>
+                      <span className={`mt-0.5 text-[8px] ${weight - referenceWeights[index] > 0.005 ? "text-accent" : weight - referenceWeights[index] < -0.005 ? "text-error" : "text-on-surface-variant"}`}>
+                        {(weight - referenceWeights[index]) >= 0 ? "+" : ""}{Math.round((weight - referenceWeights[index]) * 100)} pts vs kept
+                      </span>
+                      <span
+                        className="relative mx-1 mt-1 block h-1 border-t border-outline-dark"
+                        aria-hidden="true"
+                        title={`Kept ${referenceExample?.tokens.at(-1)} weight ${formatWeight(referenceWeights[index])}`}
+                      >
+                        <span className="absolute -top-1 h-2 w-px bg-on-surface-variant" style={{ left: `${Math.min(100, referenceWeights[index] * 100)}%` }} />
+                      </span>
+                    </>
                   ) : null}
                 </div>
               );
@@ -424,17 +434,19 @@ export default function AttentionScene({ resetKey = 0, step = 0, playing = false
         </div>
       </figure>
 
-      <footer className="flex flex-wrap items-center justify-between gap-x-5 gap-y-1.5 border-t border-outline px-3 py-2.5 text-xs leading-5">
-        <p aria-live="polite" className="min-w-0 text-on-surface-variant">
+      <footer className="grid gap-2 border-t border-outline px-3 py-2 text-xs leading-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-5">
+        <div className="min-w-0">
+          <p aria-live="polite" className="text-on-surface-variant">
           <span className="font-medium text-on-surface">{comparisonSummary ?? description}</span>
-        </p>
-        <p
-          title={ATTENTION_DATA_DISCLOSURE}
-          className="shrink-0 font-mono text-[9px] uppercase tracking-[0.08em] text-on-surface-variant sm:text-[10px]"
-        >
-          QKᵀ / √{head.vectorDimension} → softmax · vectors authored
-          <span className="sr-only">. {ATTENTION_DATA_DISCLOSURE}</span>
-        </p>
+          </p>
+          <p title={ATTENTION_DATA_DISCLOSURE} className="font-mono text-[8px] uppercase tracking-[0.08em] text-on-surface-variant sm:text-[9px]">QKᵀ / √{head.vectorDimension} → softmax · vectors authored<span className="sr-only">. {ATTENTION_DATA_DISCLOSURE}</span></p>
+        </div>
+        {strongestTarget !== undefined && strongestScore !== null && strongestWeight !== null && softmaxNumerator !== null ? (
+          <div className="border-l-2 border-accent pl-3 font-mono text-[9px] leading-4 text-on-surface-variant" aria-label={`${example.tokens[sourceIndex]} to ${example.tokens[strongestTarget]} score ${strongestScore.toFixed(2)} becomes attention weight ${formatWeight(strongestWeight)}`}>
+            <p className="uppercase text-accent">Trace the strongest arc · {example.tokens[sourceIndex]} → {example.tokens[strongestTarget]}</p>
+            <p><span className="text-on-surface">score {strongestScore.toFixed(2)}</span> → exp(score − max) {softmaxNumerator.toFixed(2)} / Σ {softmaxDenominator.toFixed(2)} → <strong className="font-medium text-accent">weight {formatWeight(strongestWeight)}</strong></p>
+          </div>
+        ) : null}
       </footer>
     </section>
   );

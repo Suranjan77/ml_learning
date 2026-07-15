@@ -172,6 +172,33 @@ export function assessPath(path: DescentState[], surface: SurfaceKind): PathAsse
   return { behaviour, lossDelta, relativeLossDelta, crossings };
 }
 
+/**
+ * Find the largest rate on a disclosed test grid whose final loss is lower
+ * than its starting loss. This is deliberately a finite experiment, not a
+ * claim about every real-valued rate between two slider values.
+ */
+export function largestReducingRate(
+  start: Point = DEFAULT_START,
+  surface: SurfaceKind = "valley",
+  range: { min: number; max: number; step: number } = LEARNING_RATE_RANGE,
+  steps = DEFAULT_STEPS,
+): number | undefined {
+  const sampleCount = Math.round((range.max - range.min) / range.step);
+  let largest: number | undefined;
+
+  for (let index = 0; index <= sampleCount; index += 1) {
+    const rate = Number((range.min + index * range.step).toFixed(10));
+    const path = descentPath(start, rate, surface, steps);
+    const first = path[0];
+    const last = path.at(-1);
+    if (last && Number.isFinite(last.loss) && last.loss < first.loss - EPSILON) {
+      largest = rate;
+    }
+  }
+
+  return largest;
+}
+
 /** Points on an equal-loss line, used to draw contours that match the model. */
 export function contourPoints(surface: SurfaceKind, level: number, samples = 96): Point[] {
   const points: Point[] = [];

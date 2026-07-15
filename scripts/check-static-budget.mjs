@@ -5,6 +5,7 @@ const KIB = 1024;
 const routes = [
   { name: "homepage", file: "out/index.html", budget: 210 },
   { name: "library", file: "out/visualisations.html", budget: 210 },
+  { name: "concept-map", file: "out/concepts.html", budget: 210 },
   { name: "attention", file: "out/visualisations/attention.html", budget: 280 },
   { name: "backpropagation", file: "out/visualisations/backpropagation.html", budget: 280 },
   { name: "cnn-feature-maps", file: "out/visualisations/cnn-feature-maps.html", budget: 280 },

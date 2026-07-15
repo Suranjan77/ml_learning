@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
-import { Check, ChevronLeft, ChevronRight, Copy, ExternalLink, Lightbulb, Pause, Play, RotateCcw, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Copy, ExternalLink, Lightbulb, Pause, Play, RotateCcw, Share2, X } from "lucide-react";
 import { getExhibit } from "./registry";
 import { ExhibitScene } from "./sceneRegistry";
 import { SCENE_URL_KEYS } from "./sceneUrlState";
+import { GradientDescentNextConcepts } from "./gradient-descent/GradientDescentNextConcepts";
 
 // Keep guided playback close to the duration of the scene transitions. A long
 // hold here makes the walkthrough feel like a slideshow rather than animation.
@@ -26,6 +27,7 @@ export default function ExhibitShell({ slug }: { slug: string }) {
   const dialogRef = useRef<HTMLElement>(null);
   const sceneId = useId();
   const current = exhibit.steps[step];
+  const finalStep = step === exhibit.steps.length - 1;
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -147,6 +149,31 @@ export default function ExhibitShell({ slug }: { slug: string }) {
     setResetKey((key) => key + 1);
   }
 
+  function togglePlayback() {
+    if (playing) {
+      setPlaying(false);
+      return;
+    }
+
+    if (finalStep) {
+      chooseStep(0);
+      setPlaying(true);
+      return;
+    }
+
+    const next = step + 1;
+    chooseStep(next);
+    setPlaying(next < exhibit.steps.length - 1);
+  }
+
+  const playbackLabel = reducedMotion
+    ? "Automatic walkthrough disabled by reduced-motion preference"
+    : playing
+      ? "Pause guided walkthrough"
+      : finalStep
+        ? "Replay guided walkthrough"
+        : "Auto-play guided steps";
+
   async function copyExhibitLink() {
     const url = new URL(window.location.href);
     url.search = "";
@@ -174,7 +201,8 @@ export default function ExhibitShell({ slug }: { slug: string }) {
     <article
       data-testid="visualisation-workspace"
       data-embed={embedMode ? "true" : undefined}
-      className="relative grid h-full min-h-0 grid-rows-[76px_minmax(0,1fr)_148px] overflow-hidden sm:grid-rows-[72px_minmax(0,1fr)_104px]"
+      data-guided-step={step}
+      className="relative grid h-full min-h-0 grid-rows-[76px_minmax(0,1fr)_172px] overflow-hidden sm:grid-rows-[72px_minmax(0,1fr)_104px]"
     >
       <header inert={detailsOpen ? true : undefined} className="border-b border-outline bg-surface px-4 sm:px-6 lg:px-8">
         <div className="mx-auto grid h-full max-w-[1600px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
@@ -240,9 +268,10 @@ export default function ExhibitShell({ slug }: { slug: string }) {
               <span className="shrink-0 font-mono text-[10px] uppercase tracking-label text-primary">
                 Step {step + 1} of {exhibit.steps.length}
               </span>
-              <span className="truncate text-sm font-medium text-on-surface">
+              <span data-testid="guided-step-title" className="truncate text-sm font-medium text-on-surface">
                 {current.title}
               </span>
+              {playing ? <span className="hidden shrink-0 font-mono text-[9px] uppercase tracking-label text-primary lg:inline">Auto-playing</span> : null}
               <span className="ml-1 hidden items-center gap-1 md:flex" aria-label="Guided step progress">
                 {exhibit.steps.map((item, index) => (
                   <button
@@ -259,12 +288,12 @@ export default function ExhibitShell({ slug }: { slug: string }) {
             <p className="mt-1 line-clamp-2 text-sm leading-5 text-on-surface sm:line-clamp-1">
               {current.instruction}
             </p>
-            <p className="mt-0.5 hidden truncate text-xs text-on-surface-variant md:block">
+            <p className="mt-0.5 line-clamp-2 text-xs leading-4 text-on-surface-variant sm:line-clamp-1">
               {current.observation}
             </p>
           </div>
 
-          <div className="grid shrink-0 grid-cols-[40px_40px_40px_40px_40px_minmax(80px,1fr)] gap-1.5 sm:flex sm:items-center sm:gap-2">
+          <div className="grid shrink-0 grid-cols-[40px_64px_40px_40px_40px_minmax(80px,1fr)] gap-1.5 sm:flex sm:items-center sm:gap-2">
             <button
               type="button"
               disabled={step === 0}
@@ -279,21 +308,15 @@ export default function ExhibitShell({ slug }: { slug: string }) {
             <button
               type="button"
               disabled={reducedMotion}
-              onClick={() => {
-                if (playing) {
-                  setPlaying(false);
-                } else {
-                  if (step === exhibit.steps.length - 1) chooseStep(0);
-                  setPlaying(true);
-                }
-              }}
+              onClick={togglePlayback}
               className={`inline-flex h-11 items-center justify-center border px-3 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-35 ${playing ? "border-primary bg-primary text-on-primary" : "border-outline bg-background hover:border-primary hover:text-primary"}`}
-              aria-label={reducedMotion ? "Automatic walkthrough disabled by reduced-motion preference" : playing ? "Pause guided walkthrough" : "Play guided walkthrough"}
+              aria-label={playbackLabel}
               aria-pressed={playing}
-              title={reducedMotion ? "Automatic walkthrough is disabled when reduced motion is preferred" : playing ? "Pause guided walkthrough" : "Play guided walkthrough"}
+              title={playbackLabel}
             >
               {playing ? <Pause size={16} fill="currentColor" aria-hidden="true" /> : <Play size={16} fill="currentColor" aria-hidden="true" />}
-              <span className="ml-1.5 hidden lg:inline">{playing ? "Pause" : "Play"}</span>
+              <span className="ml-1 text-[9px] sm:hidden">{playing ? "Pause" : finalStep ? "Replay" : "Auto"}</span>
+              <span className="ml-1.5 hidden sm:inline">{playing ? "Pause" : finalStep ? "Replay" : "Auto-play"}</span>
             </button>
             <button
               type="button"
@@ -324,12 +347,13 @@ export default function ExhibitShell({ slug }: { slug: string }) {
             </button>
             <button
               type="button"
-              disabled={step === exhibit.steps.length - 1}
+              disabled={finalStep}
+              aria-label={finalStep ? "Guided walkthrough complete" : undefined}
               onClick={() => { setPlaying(false); chooseStep(step + 1); }}
               className="inline-flex h-11 items-center justify-center border border-accent bg-accent px-4 text-sm font-medium text-on-accent transition-colors hover:border-accent-hover hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-35"
             >
-              Next
-              <ChevronRight className="ml-1" size={17} aria-hidden="true" />
+              {finalStep ? "Complete" : "Next"}
+              {finalStep ? null : <ChevronRight className="ml-1" size={17} aria-hidden="true" />}
             </button>
           </div>
           <span className="sr-only" aria-live="polite">{copied ? "Exhibit link copied to the clipboard." : ""}</span>
@@ -382,7 +406,9 @@ export default function ExhibitShell({ slug }: { slug: string }) {
                 )}
               </ul>
             </div>
-            {relatedExhibits.length > 0 ? (
+            {slug === "gradient-descent" && relatedExhibits.length > 0 ? (
+              <GradientDescentNextConcepts exhibits={relatedExhibits} />
+            ) : relatedExhibits.length > 0 ? (
               <div className="mt-8">
                 <p className="font-mono text-[10px] uppercase tracking-label text-on-surface-variant">Related ideas</p>
                 <ul className="mt-3 divide-y divide-outline border-y border-outline">
@@ -400,6 +426,13 @@ export default function ExhibitShell({ slug }: { slug: string }) {
                 </ul>
               </div>
             ) : null}
+            <Link href={`/concepts?focus=${slug}`} className="mt-7 flex min-h-12 items-center justify-between gap-4 border border-outline bg-background px-4 text-sm text-on-surface transition-colors hover:border-primary hover:text-primary">
+              <span>
+                <span className="font-medium">Locate this idea in the concept map</span>
+                <span className="mt-0.5 block text-xs text-on-surface-variant">Follow a question to a neighbouring exhibit.</span>
+              </span>
+              <Share2 size={17} className="shrink-0" aria-hidden="true" />
+            </Link>
             <button type="button" onClick={closeDetails} className="mt-7 inline-flex min-h-11 w-full items-center justify-center border border-primary bg-primary px-4 text-sm font-medium text-on-primary">Return to visualisation</button>
           </aside>
         </div>

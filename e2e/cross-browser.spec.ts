@@ -4,8 +4,14 @@ test("operates an SVG exhibit", async ({ page }) => {
   await page.goto("/visualisations/attention");
 
   await expect(page.getByRole("img", { name: /attention connections/i })).toBeVisible();
-  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page.getByRole("button", { name: "Auto-play guided steps" }).click();
   await expect(page.getByText("Step 2 of 3")).toBeVisible();
+  await page.getByRole("button", { name: "Pause guided walkthrough" }).click();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Guided walkthrough complete" })).toBeDisabled();
+  await page.getByRole("button", { name: "Replay guided walkthrough" }).click();
+  await expect(page.getByText("Step 1 of 3")).toBeVisible();
+  await page.getByRole("button", { name: "Pause guided walkthrough" }).click();
 });
 
 test("renders a nonblank WebGL scene or an explicit fallback", async ({ page }) => {
@@ -28,7 +34,8 @@ test("renders a nonblank WebGL scene or an explicit fallback", async ({ page }) 
     await expect(canvas).toBeVisible();
     await expect.poll(() => canvas.evaluate(async (element) => {
       await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-      const context = element.getContext("webgl2") ?? element.getContext("webgl");
+      const canvasElement = element as HTMLCanvasElement;
+      const context = canvasElement.getContext("webgl2") ?? canvasElement.getContext("webgl");
       if (!context) return 0;
       const { drawingBufferWidth: width, drawingBufferHeight: height } = context;
       const pixels = new Uint8Array(width * height * 4);
@@ -60,6 +67,16 @@ test("searches and filters the library", async ({ page }) => {
   await expect(page).toHaveURL(/q=language(?:\+|%20)model/);
 });
 
+test("follows an authored question through the concept constellation", async ({ page }) => {
+  await page.goto("/concepts?focus=attention");
+
+  await expect(page.getByRole("heading", { level: 2, name: "Self-attention weights" })).toBeVisible();
+  await page.getByRole("button", { name: /How is an attention weight different from a token probability/i }).click();
+  await expect(page.getByRole("heading", { level: 2, name: "Token sampling" })).toBeVisible();
+  await expect(page).toHaveURL(/focus=token-sampling/);
+  await expect(page.getByRole("link", { name: /Open visualisation/i })).toHaveAttribute("href", "/visualisations/token-sampling");
+});
+
 test("operates the Release 4 SVG exhibits", async ({ page }) => {
   await page.goto("/visualisations/regression-boundary");
   await expect(page.getByRole("img", { name: /Linear fit with slope/ })).toBeVisible();
@@ -70,4 +87,14 @@ test("operates the Release 4 SVG exhibits", async ({ page }) => {
   await expect(page.getByRole("img", { name: /Decision tree with depth/ })).toBeVisible();
   await page.getByRole("button", { name: "3", exact: true }).click();
   await expect(page.getByRole("img", { name: /depth 3, 5 leaves/ })).toBeVisible();
+});
+
+test("operates the Particle Swarm vector workbench", async ({ page }) => {
+  await page.goto("/visualisations/particle-swarm?step=1");
+
+  const field = page.getByTestId("particle-swarm-field");
+  await expect(field).toBeVisible();
+  await expect(field.getByLabel(/Head-to-tail force addition/)).toBeVisible();
+  await page.getByRole("button", { name: "Show same-origin vector comparison" }).click();
+  await expect(field.getByLabel(/Same-origin force comparison/)).toBeVisible();
 });

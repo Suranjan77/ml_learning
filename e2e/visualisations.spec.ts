@@ -29,16 +29,18 @@ test.describe("homepage proof", () => {
       await page.setViewportSize(viewport);
       await page.goto("/");
 
-      await expect(page.getByRole("heading", { level: 1, name: "Machine learning visualisations" })).toBeVisible();
+      await expect(page.getByRole("heading", { level: 1, name: "Does taking a bigger step always get you to the bottom faster?" })).toBeVisible();
       await expect(page.getByRole("slider", { name: "Homepage learning rate" })).toBeVisible();
 
       const layout = await page.evaluate(() => ({
         scrollWidth: document.documentElement.scrollWidth,
         viewportWidth: document.documentElement.clientWidth,
         nextSectionTop: document.querySelectorAll("main section")[1]?.getBoundingClientRect().top,
+        demoHeight: document.querySelector('[data-testid="homepage-gradient-chart"]')?.getBoundingClientRect().height,
       }));
       expect(layout.scrollWidth).toBeLessThanOrEqual(layout.viewportWidth);
       expect(layout.nextSectionTop).toBeLessThan(viewport.height);
+      expect(layout.demoHeight).toBeLessThanOrEqual(viewport.width < 640 ? 170 : viewport.width < 1024 ? 210 : 230);
     });
   }
 
@@ -47,10 +49,64 @@ test.describe("homepage proof", () => {
     await page.goto("/");
 
     const proof = page.getByRole("img", { name: /Top-down narrow loss valley/ });
+    await expect(proof).toHaveAttribute("aria-label", /current path at 0\.52 is converging/i);
+
+    await page.getByRole("slider", { name: "Homepage learning rate" }).fill("0.9");
     await expect(proof).toHaveAttribute("aria-label", /current path at 0\.90 is oscillating/i);
 
     await page.getByRole("slider", { name: "Homepage learning rate" }).fill("0.4");
     await expect(proof).toHaveAttribute("aria-label", /current path at 0\.40 is converging/i);
+  });
+
+  test("hydrates deterministic SVG previews without a mismatch", async ({ page }) => {
+    const hydrationErrors: string[] = [];
+    page.on("console", (message) => {
+      if (message.type() === "error" && /hydrat/i.test(message.text())) hydrationErrors.push(message.text());
+    });
+
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+    await page.goto("/visualisations");
+    await page.waitForLoadState("networkidle");
+
+    expect(hydrationErrors).toEqual([]);
+  });
+});
+
+test.describe("concept constellation", () => {
+  for (const viewport of viewports) {
+    test(`stays usable at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await page.goto("/concepts?focus=attention");
+
+      await expect(page.getByRole("heading", { level: 1, name: /Start anywhere/ })).toBeVisible();
+      await expect(page.getByRole("heading", { level: 2, name: "Self-attention weights" })).toBeVisible();
+      const dimensions = await page.evaluate(() => ({
+        scrollWidth: document.documentElement.scrollWidth,
+        viewportWidth: document.documentElement.clientWidth,
+      }));
+      expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
+
+      if (viewport.width >= 1024) {
+        const map = page.getByRole("group", { name: /Authored map of thirteen/ });
+        await expect(map).toBeVisible();
+        await expect(map.getByRole("button")).toHaveCount(routes.length);
+      } else {
+        await expect(page.getByText(/One-hop lens/)).toBeVisible();
+        await page.getByRole("button", { name: "Principal component analysis", exact: true }).click();
+        await expect(page.getByRole("heading", { level: 2, name: "Principal component analysis" })).toBeVisible();
+      }
+    });
+  }
+
+  test("moves through the desktop map with spatial arrow keys", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto("/concepts");
+
+    const gradient = page.getByRole("group", { name: /Authored map of thirteen/ }).getByRole("button", { name: /Gradient descent/ });
+    await gradient.focus();
+    await gradient.press("ArrowUp");
+    await expect(page.getByRole("heading", { level: 2, name: "Regression parameters" })).toBeVisible();
   });
 });
 
@@ -91,6 +147,25 @@ test.describe("visualisation workspace", () => {
 
     await expect(page.locator('a[href^="/visualisations/"]')).toHaveCount(routes.length);
     await expect(page.getByText(`${routes.length} of ${routes.length} visualisations`)).toBeVisible();
+  });
+
+  test("keeps the complete depth-three routing tree inside its SVG", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/visualisations/decision-tree?step=3");
+
+    const diagram = page.locator('[data-testid="visualisation-workspace"] svg').first();
+    const partitionPlot = page.getByTestId("decision-partition-plot");
+    const routingTree = page.getByTestId("decision-routing-tree");
+    await expect(diagram).toBeVisible();
+    await expect(partitionPlot).toBeVisible();
+    await expect(routingTree).toBeVisible();
+    const [diagramBox, partitionBox, routingBox] = await Promise.all([diagram.boundingBox(), partitionPlot.boundingBox(), routingTree.boundingBox()]);
+    expect(diagramBox).not.toBeNull();
+    expect(partitionBox).not.toBeNull();
+    expect(routingBox).not.toBeNull();
+    expect(routingBox!.x).toBeGreaterThanOrEqual(diagramBox!.x - 1);
+    expect(routingBox!.x + routingBox!.width).toBeLessThanOrEqual(diagramBox!.x + diagramBox!.width + 1);
+    expect(routingBox!.x).toBeGreaterThan(partitionBox!.x + partitionBox!.width);
   });
 
   test("searches the library and reflects the query in the URL", async ({ page }) => {
@@ -210,7 +285,7 @@ test.describe("visualisation workspace", () => {
   test("shares and restores a Gradient Descent start comparison", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto("/visualisations/gradient-descent?step=3");
-    await expect(page.getByText("Step 4 of 4")).toBeVisible();
+    await expect(page.getByText("Step 4 of 5")).toBeVisible();
 
     const landscape = page.getByTestId("loss-landscape");
     await landscape.focus();
@@ -230,15 +305,15 @@ test.describe("visualisation workspace", () => {
     await page.setViewportSize({ width: 1280, height: 720 });
 
     await page.goto("/visualisations/gradient-descent?step=1");
-    await expect(page.getByText("Step 2 of 4")).toBeVisible();
+    await expect(page.getByText("Step 2 of 5")).toBeVisible();
     await expect(page.getByText("Update 1", { exact: true })).toBeVisible();
 
     await page.goto("/visualisations/gradient-descent?step=2&lr=0.4");
     await expect(page.getByRole("slider", { name: "Learning rate" })).toHaveValue("0.4");
     await expect(page.getByText(/Current 0\.40 converging: after 14 steps, loss is .* lower/i)).toBeVisible();
 
-    await page.goto("/visualisations/gradient-descent?step=2");
-    await expect(page.getByText(/Overshoot: crossed the valley/)).toBeVisible();
+    await page.goto("/visualisations/gradient-descent?step=2&lr=0.9");
+    await expect(page.getByText(/valley-floor crossings/i)).toBeVisible();
     await expect(page.getByText(/0\.90 · oscillating/i)).toBeVisible();
 
     await page.goto("/visualisations/gradient-descent?step=2&lr=1.06");
@@ -247,6 +322,36 @@ test.describe("visualisation workspace", () => {
 
     await page.goto("/visualisations/gradient-descent?step=3&x=0.4&y=0.4&refX=-3.4&refY=1.9&refLr=0.24");
     await expect(page.getByText(/Starts reach different basins/)).toBeVisible();
+  });
+
+  test("operates the Particle Swarm microscope and restores its five signature states", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+
+    await page.goto("/visualisations/particle-swarm?step=0");
+    const field = page.getByTestId("particle-swarm-field");
+    await expect(field).toHaveAttribute("aria-label", /Iteration 0.*Swarm spread/);
+    await field.focus();
+    await page.keyboard.press("ArrowRight");
+    await expect(field.getByText("PARTICLE 1 MICROSCOPE")).toBeVisible();
+
+    await page.goto("/visualisations/particle-swarm?step=1");
+    await expect(field.getByText("PARTICLE 6 MICROSCOPE")).toBeVisible();
+    await page.getByRole("button", { name: "Show same-origin vector comparison" }).click();
+    await expect(page.getByRole("button", { name: "Show head-to-tail vector addition" })).toBeVisible();
+
+    await page.goto("/visualisations/particle-swarm?step=2");
+    await expect(page.getByText("NEW SHARED DISCOVERY")).toBeVisible();
+    await expect(page.getByText(/Every social target changed/)).toBeVisible();
+
+    await page.goto("/visualisations/particle-swarm?step=3");
+    await expect(page.getByText("PREMATURE COLLAPSE")).toBeVisible();
+    await expect(page.getByText(/Search stalled.*steps/)).toBeVisible();
+    await expect(field).toHaveAttribute("aria-label", /Swarm spread 0\.00/);
+    await expect(field.getByLabel(/particles occupy the same plotted location/)).toBeAttached();
+
+    await page.goto("/visualisations/particle-swarm?step=4");
+    await expect(page.getByText("EXPLORATION PRESERVED")).toBeVisible();
+    await expect(field).toHaveAttribute("aria-label", /Swarm spread 1\.01/);
   });
 
   test("offers a clean, keyboard-accessible embed view", async ({ page }) => {
@@ -282,6 +387,7 @@ test.describe("visualisation workspace", () => {
 
     const related = page.getByRole("link", { name: /attention/i });
     await expect(related).toBeVisible();
+    await expect(page.getByRole("link", { name: /Locate this idea in the concept map/i })).toHaveAttribute("href", "/concepts?focus=token-sampling");
     await related.click();
     await expect(page).toHaveURL(/\/visualisations\/attention/);
   });
@@ -308,7 +414,7 @@ test.describe("visualisation workspace", () => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto("/visualisations/attention");
 
-    const play = page.getByRole("button", { name: "Play guided walkthrough" });
+    const play = page.getByRole("button", { name: "Auto-play guided steps" });
     await play.click();
     await expect(page.getByText("Step 2 of 3")).toBeVisible({ timeout: 3_500 });
 

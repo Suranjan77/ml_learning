@@ -21,6 +21,29 @@ const PRESETS = [
 const sx = (x: number) => PLOT.left + x / 10 * PLOT.width;
 const sy = (y: number) => PLOT.top + (10 - y) / 10 * PLOT.height;
 
+function routeCoordinates(point: (typeof TREE_POINTS)[number], config: TreeConfig): [number, number][] {
+  const route: [number, number][] = [[195, 54]];
+  if (config.depth === 1) {
+    route.push(point.x < config.threshold ? [65, 141] : [265, 141]);
+    return route;
+  }
+  if (point.x < config.threshold) {
+    route.push([65, 141], point.y < 6 ? [40, 241] : [130, 241]);
+    return route;
+  }
+  route.push([265, 141]);
+  if (point.y < 4) {
+    route.push([230, 241]);
+    return route;
+  }
+  if (config.depth === 2) {
+    route.push([330, 241]);
+    return route;
+  }
+  route.push([335, 231], point.x < 7.2 ? [275, 331] : [360, 331]);
+  return route;
+}
+
 export default function DecisionTreeScene({ step, resetKey, playing = false }: ExhibitSceneProps) {
   const preset = PRESETS[Math.max(0, Math.min(PRESETS.length - 1, step))];
   const titleId = useId();
@@ -61,6 +84,15 @@ export default function DecisionTreeScene({ step, resetKey, playing = false }: E
   const changedPredictionCount = referenceConfig ? TREE_POINTS.filter((point) => (
     predictTree(point, referenceConfig) !== predictTree(point, config)
   )).length : 0;
+  const focusedPointIndex = referenceConfig
+    ? reroutedPointIndices.find((index) => predictTree(TREE_POINTS[index], referenceConfig) !== predictTree(TREE_POINTS[index], config))
+      ?? reroutedPointIndices[0]
+    : undefined;
+  const focusedPoint = focusedPointIndex === undefined ? null : TREE_POINTS[focusedPointIndex];
+  const focusedCurrentPrediction = focusedPoint ? predictTree(focusedPoint, config) : null;
+  const focusedReferencePrediction = focusedPoint && referenceConfig ? predictTree(focusedPoint, referenceConfig) : null;
+  const focusedRoute = focusedPoint ? routeCoordinates(focusedPoint, config) : [];
+  const focusedReferenceRoute = focusedPoint && referenceConfig ? routeCoordinates(focusedPoint, referenceConfig) : [];
   const grid = Array.from({ length: 20 * 20 }, (_, index) => {
     const column = index % 20; const row = Math.floor(index / 20);
     const point = { x: (column + 0.5) / 2, y: 10 - (row + 0.5) / 2 };
@@ -89,7 +121,7 @@ export default function DecisionTreeScene({ step, resetKey, playing = false }: E
   };
 
   return <section aria-label="Decision tree partition visualisation" className="grid h-full min-h-[22rem] grid-rows-[minmax(0,1fr)_auto] overflow-hidden border border-outline bg-surface">
-    <div role="img" aria-labelledby={titleId} className="min-h-0 overflow-hidden">
+    <div role="img" aria-labelledby={titleId} className="relative min-h-0 overflow-hidden">
       <span id={titleId} className="sr-only">{description}</span>
       <svg ref={svgRef} viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="h-full w-full" aria-hidden="true">
         <rect width={WIDTH} height={HEIGHT} fill={vizTokens.canvas} />
@@ -101,8 +133,8 @@ export default function DecisionTreeScene({ step, resetKey, playing = false }: E
         </> : null}
         <motion.line initial={false} animate={{ x1: sx(threshold), x2: sx(threshold) }} transition={transition} y1={PLOT.top} y2={PLOT.top + PLOT.height} stroke={vizTokens.selection} strokeWidth="4" />
         {depth >= 2 ? <motion.g key={`branches-${depth}`} initial={playing ? { opacity: 0 } : false} animate={{ opacity: 1 }} transition={transition}><line x1={PLOT.left} x2={sx(threshold)} y1={sy(6)} y2={sy(6)} stroke={vizTokens.path} strokeWidth="3" /><line x1={sx(threshold)} x2={PLOT.left + PLOT.width} y1={sy(4)} y2={sy(4)} stroke={vizTokens.path} strokeWidth="3" />{depth >= 3 ? <line x1={sx(7.2)} x2={sx(7.2)} y1={PLOT.top} y2={sy(4)} stroke={vizTokens.path} strokeWidth="3" /> : null}</motion.g> : null}
-        {TREE_POINTS.map((point, index) => <g key={index}>{reroutedPointSet.has(index) ? <circle cx={sx(point.x)} cy={sy(point.y)} r="12" fill="none" stroke={vizTokens.path} strokeWidth="2" strokeDasharray="3 2" /> : null}<circle cx={sx(point.x)} cy={sy(point.y)} r="7" fill={point.label === "A" ? vizTokens.classA : vizTokens.classB} stroke={predictTree(point, config) === point.label ? vizTokens.pointOutline : vizTokens.error} strokeWidth={predictTree(point, config) === point.label ? 2 : 4} /><text x={sx(point.x)} y={sy(point.y) + 3} textAnchor="middle" fontSize="8" fill={vizTokens.canvas}>{point.label}</text></g>)}
-        <rect x={PLOT.left} y={PLOT.top} width={PLOT.width} height={PLOT.height} fill="none" stroke={vizTokens.border} />
+        {TREE_POINTS.map((point, index) => <g key={index}>{reroutedPointSet.has(index) ? <circle cx={sx(point.x)} cy={sy(point.y)} r={index === focusedPointIndex ? 16 : 12} fill={index === focusedPointIndex ? vizTokens.selection : "none"} fillOpacity={index === focusedPointIndex ? 0.12 : 0} stroke={index === focusedPointIndex ? vizTokens.selection : vizTokens.path} strokeWidth={index === focusedPointIndex ? 3 : 2} strokeDasharray={index === focusedPointIndex ? undefined : "3 2"} /> : null}<circle cx={sx(point.x)} cy={sy(point.y)} r="7" fill={point.label === "A" ? vizTokens.classA : vizTokens.classB} stroke={predictTree(point, config) === point.label ? vizTokens.pointOutline : vizTokens.error} strokeWidth={predictTree(point, config) === point.label ? 2 : 4} /><text x={sx(point.x)} y={sy(point.y) + 3} textAnchor="middle" fontSize="8" fill={vizTokens.canvas}>{index === focusedPointIndex ? String(index + 1).padStart(2, "0") : point.label}</text>{index === focusedPointIndex ? <text x={sx(point.x) + 18} y={sy(point.y) - 13} fontFamily="var(--font-dm-mono)" fontSize="9" fill={vizTokens.selection}>TRACE THIS POINT</text> : null}</g>)}
+        <rect data-testid="decision-partition-plot" x={PLOT.left} y={PLOT.top} width={PLOT.width} height={PLOT.height} fill="none" stroke={vizTokens.border} />
         <text x={PLOT.left + 10} y={PLOT.top + 18} fontFamily="var(--font-dm-mono)" fontSize="10" fill={vizTokens.mutedInk}>BACKGROUND = LEAF PREDICTION · RED OUTLINE = MISTAKE</text>
         <line
           x1={sx(threshold)}
@@ -117,21 +149,37 @@ export default function DecisionTreeScene({ step, resetKey, playing = false }: E
           onPointerUp={(event) => event.currentTarget.releasePointerCapture(event.pointerId)}
         />
 
-        <g transform="translate(815 42)" fontFamily="var(--font-dm-mono)">
+        <line x1="760" x2="760" y1="28" y2="490" stroke={vizTokens.border} />
+        <g data-testid="decision-routing-tree" transform="translate(775 42)" fontFamily="var(--font-dm-mono)">
           <text fontSize="11" fill={vizTokens.mutedInk}>ROUTING RULES</text>
-          <rect x="65" y="30" width="200" height="48" fill={vizTokens.canvas} stroke={vizTokens.selection} strokeWidth="2" /><text x="165" y="59" textAnchor="middle" fontSize="12" fill={vizTokens.ink}>x &lt; {threshold.toFixed(1)}?</text>
-          {referenceThreshold !== null && referenceThreshold !== threshold ? <text x="275" y="58" fontSize="9" fill={vizTokens.mutedInk}>KEPT x &lt; {referenceThreshold.toFixed(1)}</text> : null}
-          <line x1="165" y1="78" x2="80" y2="120" stroke={vizTokens.border} strokeWidth="2" /><line x1="165" y1="78" x2="250" y2="120" stroke={vizTokens.border} strokeWidth="2" />
-          <text x="100" y="101" fontSize="9" fill={vizTokens.mutedInk}>YES</text><text x="223" y="101" fontSize="9" fill={vizTokens.mutedInk}>NO</text>
-          {depth === 1 ? <><Leaf x={25} y={120} label="A" /><Leaf x={195} y={120} label="B" /></> : <>
-            <Node x={5} y={120} label="y < 6?" /><Node x={205} y={120} label="y < 4?" />
-            <Leaf x={-5} y={220} label="A" /><Leaf x={95} y={220} label="B" /><Leaf x={195} y={220} label="B" />
-            {depth === 2 ? <Leaf x={295} y={220} label="A" /> : <><Node x={275} y={210} label="x < 7.2?" /><Leaf x={245} y={310} label="A" /><Leaf x={345} y={310} label="B" /></>}
+          {focusedReferenceRoute.length > 1 ? <polyline points={focusedReferenceRoute.map(([x, y]) => `${x},${y}`).join(" ")} fill="none" stroke={vizTokens.mutedInk} strokeWidth="7" strokeDasharray="4 4" strokeLinecap="round" strokeLinejoin="round" opacity="0.28" /> : null}
+          {focusedRoute.length > 1 ? <polyline points={focusedRoute.map(([x, y]) => `${x},${y}`).join(" ")} fill="none" stroke={vizTokens.selection} strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" opacity="0.24" /> : null}
+          <rect x="95" y="30" width="200" height="48" fill={vizTokens.canvas} stroke={vizTokens.selection} strokeWidth="2" /><text x="195" y="59" textAnchor="middle" fontSize="12" fill={vizTokens.ink}>x &lt; {threshold.toFixed(1)}?</text>
+          {referenceThreshold !== null && referenceThreshold !== threshold ? <text x="305" y="58" fontSize="9" fill={vizTokens.mutedInk}>KEPT x &lt; {referenceThreshold.toFixed(1)}</text> : null}
+          <line x1="195" y1="78" x2="65" y2="120" stroke={vizTokens.border} strokeWidth="2" /><line x1="195" y1="78" x2="265" y2="120" stroke={vizTokens.border} strokeWidth="2" />
+          <text x="84" y="101" fontSize="9" fill={vizTokens.mutedInk}>YES</text><text x="239" y="101" fontSize="9" fill={vizTokens.mutedInk}>NO</text>
+          {depth === 1 ? <><Leaf x={25} y={120} label="A" /><Leaf x={225} y={120} label="B" /></> : <>
+            <Node x={0} y={120} label="y < 6?" /><Node x={200} y={120} label="y < 4?" />
+            <Leaf x={0} y={220} label="A" /><Leaf x={90} y={220} label="B" /><Leaf x={190} y={220} label="B" />
+            {depth === 2 ? <Leaf x={290} y={220} label="A" /> : <><Node x={270} y={210} label="x < 7.2?" /><Leaf x={235} y={310} label="A" /><Leaf x={320} y={310} label="B" /></>}
           </>}
-          <text y="390" fontSize="12" fill={vizTokens.ink}>{leafCount(depth)} LEAVES</text><text x="330" y="390" textAnchor="end" fontSize="12" fill={accuracy === 1 ? vizTokens.classA : vizTokens.error}>{Math.round(accuracy * 100)}% ACCURACY</text>
-          {referenceThreshold !== null ? <><text y="414" fontSize="10" fill={vizTokens.path}>{reroutedPointIndices.length} REROUTED AT ROOT</text><text x="330" y="414" textAnchor="end" fontSize="10" fill={changedPredictionCount > 0 ? vizTokens.error : vizTokens.mutedInk}>{changedPredictionCount} PREDICTIONS CHANGED</text></> : null}
+          <text y="390" fontSize="12" fill={vizTokens.ink}>{leafCount(depth)} LEAVES</text><text x="390" y="390" textAnchor="end" fontSize="12" fill={accuracy === 1 ? vizTokens.classA : vizTokens.error}>{Math.round(accuracy * 100)}% ACCURACY</text>
+          {referenceThreshold !== null ? <><text y="414" fontSize="10" fill={vizTokens.path}>{reroutedPointIndices.length} REROUTED AT ROOT</text><text x="390" y="414" textAnchor="end" fontSize="10" fill={changedPredictionCount > 0 ? vizTokens.error : vizTokens.mutedInk}>{changedPredictionCount} PREDICTIONS CHANGED</text></> : null}
+          {focusedPoint && focusedReferencePrediction && focusedCurrentPrediction ? <>
+            <text y="438" fontSize="10" fill={vizTokens.mutedInk}>TRACE POINT {String((focusedPointIndex ?? 0) + 1).padStart(2, "0")}: KEPT {focusedReferencePrediction} → CURRENT {focusedCurrentPrediction}</text>
+            <text y="455" fontSize="10" fill={focusedReferencePrediction === focusedCurrentPrediction ? vizTokens.classA : vizTokens.error}>{focusedReferencePrediction === focusedCurrentPrediction ? "ROOT ROUTE CHANGED; PREDICTION HELD" : "ROOT ROUTE AND PREDICTION CHANGED"}</text>
+          </> : null}
         </g>
       </svg>
+      <div aria-hidden="true" className="absolute bottom-2 left-2 right-2 border border-outline bg-surface/95 p-2 sm:hidden">
+        <div className="flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.06em] text-on-surface-variant">
+          <span>Readable route summary</span><span className={accuracy === 1 ? "text-primary" : "text-error"}>{leafCount(depth)} leaves · {Math.round(accuracy * 100)}%</span>
+        </div>
+        <p className="mt-1 text-[11px] leading-4 text-on-surface">
+          Root: x &lt; {threshold.toFixed(1)}? {depth === 1 ? "Yes → A · No → B." : depth === 2 ? "Yes → test y < 6 · No → test y < 4." : "Then test y < 6 on the left; y < 4 and x < 7.2 on the right."}
+        </p>
+        {focusedPoint && focusedReferencePrediction && focusedCurrentPrediction ? <p className="mt-1 font-mono text-[9px] text-accent">Point {String((focusedPointIndex ?? 0) + 1).padStart(2, "0")}: kept {focusedReferencePrediction} → current {focusedCurrentPrediction}</p> : null}
+      </div>
       <p className="sr-only" aria-live="polite">{description}</p>
     </div>
     <div className="grid grid-cols-[auto_1fr] items-end gap-4 border-t border-outline bg-surface-container-low p-2 sm:px-3">

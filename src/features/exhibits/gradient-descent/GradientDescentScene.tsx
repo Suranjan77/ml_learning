@@ -10,6 +10,8 @@ import { vizTokens } from "@/lib/vizTokens";
 import { KeptComparisonButton } from "../KeptComparisonButton";
 import type { ExhibitSceneProps } from "../types";
 import { enumParam, numberParam, replaceSceneUrlState, useSceneUrlState } from "../sceneUrlState";
+import { GradientDescentGuide, type GradientPrediction } from "./GradientDescentGuide";
+import { GradientPathComparison } from "./GradientPathComparison";
 import {
   DEFAULT_LEARNING_RATE,
   DEFAULT_START,
@@ -21,12 +23,15 @@ import {
   clampToDomain,
   contourPoints,
   descentPath,
+  fromPrincipalCoordinates,
   gradientAt,
+  largestReducingRate,
   learningRegime,
   lossAt,
   multimodalMinima,
   principalCoordinates,
   type DescentState,
+  type PathAssessment,
   type Point,
   type SurfaceKind,
 } from "./model";
@@ -52,8 +57,9 @@ const BASIN_START = { x: 0.4, y: 0.4 };
 const STEP_PRESETS = [
   { surface: "bowl", learningRate: DEFAULT_LEARNING_RATE, visibleSteps: 0, start: DEFAULT_START, reference: null },
   { surface: "bowl", learningRate: DEFAULT_LEARNING_RATE, visibleSteps: 1, start: DEFAULT_START, reference: null },
-  { surface: "valley", learningRate: 0.9, visibleSteps: 3, start: DEFAULT_START, reference: { learningRate: 0.4, start: DEFAULT_START } },
+  { surface: "valley", learningRate: 0.52, visibleSteps: 3, start: DEFAULT_START, reference: { learningRate: 0.4, start: DEFAULT_START } },
   { surface: "multimodal", learningRate: 0.24, visibleSteps: 8, start: BASIN_START, reference: { learningRate: 0.24, start: DEFAULT_START } },
+  { surface: "valley", learningRate: 1.06, visibleSteps: DEFAULT_STEPS, start: DEFAULT_START, reference: { learningRate: 0.4, start: DEFAULT_START } },
 ] as const satisfies readonly StepPreset[];
 
 const HEIGHT_SCALE = 0.22;
@@ -231,6 +237,22 @@ function SurfaceContours({ surface }: { surface: SurfaceKind }) {
   );
 }
 
+function ValleyFloor() {
+  const points = useMemo(() => Array.from({ length: 101 }, (_, index) => {
+    const shallowCoordinate = -7 + index / 100 * 14;
+    const point = fromPrincipalCoordinates({ x: shallowCoordinate, y: 0 });
+    return inDomain(point) ? scenePoint({ ...point, loss: lossAt(point, "valley") }) : null;
+  }).filter((point): point is [number, number, number] => point !== null), []);
+  const labelPosition = points[Math.floor(points.length * 0.7)];
+
+  return <group>
+    <Line points={points} color={vizTokens.axis} lineWidth={2.2} dashed dashSize={0.1} gapSize={0.07} transparent opacity={0.65} />
+    {labelPosition ? <Html position={[labelPosition[0], labelPosition[1] + 0.18, labelPosition[2]]} center zIndexRange={[3, 0]}>
+      <span aria-hidden="true" className="pointer-events-none whitespace-nowrap bg-surface/92 px-1.5 py-0.5 font-mono text-[8px] uppercase text-on-surface-variant">Valley floor</span>
+    </Html> : null}
+  </group>;
+}
+
 function inDomain(point: Point) {
   return point.x >= DOMAIN.xMin && point.x <= DOMAIN.xMax && point.y >= DOMAIN.yMin && point.y <= DOMAIN.yMax;
 }
@@ -244,6 +266,25 @@ function drawablePath(path: DescentState[]) {
   return visible;
 }
 
+function valleyCrossings(path: DescentState[]) {
+  const crossings: DescentState[] = [];
+  for (let index = 1; index < path.length; index += 1) {
+    const before = path[index - 1];
+    const after = path[index];
+    if (!inDomain(before) || !inDomain(after)) break;
+    const beforePrincipal = principalCoordinates(before);
+    const afterPrincipal = principalCoordinates(after);
+    if (beforePrincipal.y * afterPrincipal.y >= 0) continue;
+    const amount = beforePrincipal.y / (beforePrincipal.y - afterPrincipal.y);
+    const point = {
+      x: before.x + (after.x - before.x) * amount,
+      y: before.y + (after.y - before.y) * amount,
+    };
+    crossings.push({ ...point, iteration: index, loss: lossAt(point, "valley") });
+  }
+  return crossings;
+}
+
 function DescentScene3D({
   surface,
   path,
@@ -255,6 +296,8 @@ function DescentScene3D({
   start,
   onChooseStart,
   reducedMotion,
+  currentAssessment,
+  referenceAssessment,
 }: {
   surface: SurfaceKind;
   path: DescentState[];
@@ -266,6 +309,8 @@ function DescentScene3D({
   start: Point;
   onChooseStart: (point: Point) => void;
   reducedMotion: boolean;
+  currentAssessment: PathAssessment;
+  referenceAssessment: PathAssessment | null;
 }) {
   const [dragging, setDragging] = useState(false);
   const trajectory = shown.map(scenePoint);
@@ -275,6 +320,9 @@ function DescentScene3D({
     ? reference[surface === "multimodal" ? 0 : Math.min(2, reference.length - 1)]
     : null;
   const showReferenceStart = referenceStart && Math.hypot(referenceStart.x - start.x, referenceStart.y - start.y) > 0.05;
+  const sameStart = referenceStart && !showReferenceStart;
+  const currentLabelPosition = (forecast.length > 1 ? forecast : trajectory).at(-1) ?? null;
+  const crossings = surface === "valley" ? valleyCrossings(path).slice(0, 8) : [];
   const currentPosition = scenePoint(current);
   const gradient = gradientAt(current, surface);
   const magnitude = Math.hypot(gradient.x, gradient.y);
@@ -309,28 +357,43 @@ function DescentScene3D({
       <SceneAxes />
       <LossSurface surface={surface} onChooseStart={onChooseStart} onDraggingChange={setDragging} />
       <SurfaceContours surface={surface} />
+      {surface === "valley" ? <ValleyFloor /> : null}
 
-      {reference.length > 1 ? <Line points={reference} color={vizTokens.mutedInk} lineWidth={2.4} transparent opacity={0.34} /> : null}
+      {reference.length > 1 ? <Line points={reference} color={vizTokens.classA} lineWidth={3.2} transparent opacity={0.72} /> : null}
       {referenceLabelPosition && referenceLearningRate !== null ? (
         <Html position={[referenceLabelPosition[0], referenceLabelPosition[1] + 0.24, referenceLabelPosition[2]]} center zIndexRange={[4, 0]}>
-          <span aria-hidden="true" className="pointer-events-none whitespace-nowrap border border-outline-dark bg-surface/95 px-1.5 py-0.5 font-mono text-[8px] uppercase text-on-surface-variant">
-            Kept path · {referenceLearningRate.toFixed(2)}
+          <span aria-hidden="true" className="pointer-events-none whitespace-nowrap border border-primary bg-surface/95 px-1.5 py-0.5 font-mono text-[8px] uppercase text-primary">
+            Stable reference · {referenceLearningRate.toFixed(2)} · {referenceAssessment?.behaviour ?? "kept"}
           </span>
         </Html>
       ) : null}
-      {forecast.length > 1 ? <Line points={forecast} color={vizTokens.path} lineWidth={2} dashed dashSize={0.12} gapSize={0.1} transparent opacity={0.34} /> : null}
-      {trajectory.length > 1 ? <Line points={trajectory} color={vizTokens.path} lineWidth={4} /> : null}
+      {forecast.length > 1 ? <Line points={forecast} color={vizTokens.target} lineWidth={2.8} dashed dashSize={0.12} gapSize={0.09} transparent opacity={0.62} /> : null}
+      {trajectory.length > 1 ? <Line points={trajectory} color={vizTokens.target} lineWidth={4.5} /> : null}
       {shown.slice(0, -1).map((point) => (
         <mesh key={point.iteration} position={scenePoint(point)}>
           <sphereGeometry args={[0.09, 16, 16]} />
-          <meshBasicMaterial color={vizTokens.path} />
+          <meshBasicMaterial color={vizTokens.target} />
         </mesh>
       ))}
+
+      {crossings.map((point) => <mesh key={`crossing-${point.iteration}`} position={scenePoint(point)} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.12, 0.2, 24]} />
+        <meshBasicMaterial color={vizTokens.target} side={THREE.DoubleSide} />
+      </mesh>)}
+
+      {currentLabelPosition && referenceLearningRate !== null ? <Html position={[currentLabelPosition[0], currentLabelPosition[1] + 0.28, currentLabelPosition[2]]} center zIndexRange={[5, 0]}>
+        <span aria-hidden="true" className={`pointer-events-none whitespace-nowrap border bg-surface/95 px-1.5 py-0.5 font-mono text-[8px] uppercase ${currentAssessment.behaviour === "diverging" ? "border-error text-error" : "border-accent text-accent"}`}>
+          Current · {currentAssessment.behaviour}
+        </span>
+      </Html> : null}
 
       <mesh position={scenePoint({ ...start, loss: lossAt(start, surface) })} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[0.16, 0.23, 28]} />
         <meshBasicMaterial color={vizTokens.path} side={THREE.DoubleSide} transparent opacity={0.78} />
       </mesh>
+      {sameStart ? <Html position={scenePoint({ ...start, loss: lossAt(start, surface) })} center zIndexRange={[3, 0]}>
+        <span aria-hidden="true" className="pointer-events-none translate-y-5 whitespace-nowrap bg-surface/92 px-1.5 py-0.5 font-mono text-[8px] uppercase text-on-surface">Same start</span>
+      </Html> : null}
       {showReferenceStart ? (
         <mesh position={scenePoint({ ...referenceStart, loss: lossAt(referenceStart, surface) })} rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[0.24, 0.3, 28]} />
@@ -397,6 +460,9 @@ export default function GradientDescentScene({ step, resetKey, playing = false }
   const [visibleSteps, setVisibleSteps] = useState<number>(initialPreset.visibleSteps);
   const [running, setRunning] = useState(false);
   const [reference, setReference] = useState<PathReference | null>(initialReference);
+  const [prediction, setPrediction] = useState<GradientPrediction | null>(null);
+  const [rateAdjusted, setRateAdjusted] = useState(false);
+  const [testedUnstable, setTestedUnstable] = useState(false);
 
   const syncControls = (nextSurface: SurfaceKind, nextRate: number, nextStart: Point, nextReference: PathReference | null = reference) => replaceSceneUrlState([
     { key: "surface", value: nextSurface, defaultValue: initialPreset.surface },
@@ -411,6 +477,7 @@ export default function GradientDescentScene({ step, resetKey, playing = false }
 
   const path = useMemo(() => descentPath(start, learningRate, surface, DEFAULT_STEPS), [learningRate, start, surface]);
   const pathAssessment = useMemo(() => assessPath(path, surface), [path, surface]);
+  const stabilityBoundary = useMemo(() => largestReducingRate(DEFAULT_START, "valley") ?? 1.04, []);
   const boundedStep = Math.min(visibleSteps, DEFAULT_STEPS);
   const shown = path.slice(0, boundedStep + 1);
   const current = shown[shown.length - 1];
@@ -430,7 +497,11 @@ export default function GradientDescentScene({ step, resetKey, playing = false }
     setVisibleSteps(preset.visibleSteps);
     setRunning(false);
     setReference(referenceForPreset(preset));
+    setRateAdjusted(false);
+    setTestedUnstable(false);
   }, [resetKey, step]);
+
+  useEffect(() => setPrediction(null), [resetKey]);
 
   useEffect(() => {
     if (!playing) return;
@@ -449,6 +520,7 @@ export default function GradientDescentScene({ step, resetKey, playing = false }
     setSurface(nextSurface);
     setLearningRate(nextRate);
     setStart(nextStart);
+    setRateAdjusted(restoredRate !== undefined && Math.abs(nextRate - initialPreset.learningRate) > 1e-8);
 
     const referenceX = numberParam(params, "refX", { min: DOMAIN.xMin, max: DOMAIN.xMax, step: 0.01 });
     const referenceY = numberParam(params, "refY", { min: DOMAIN.yMin, max: DOMAIN.yMax, step: 0.01 });
@@ -462,6 +534,12 @@ export default function GradientDescentScene({ step, resetKey, playing = false }
       setReference(referenceForPreset(initialPreset));
     }
   }, step);
+
+  useEffect(() => {
+    if (step === 2 && surface === "valley" && pathAssessment.relativeLossDelta >= 0) {
+      setTestedUnstable(true);
+    }
+  }, [pathAssessment.relativeLossDelta, step, surface]);
 
   useEffect(() => {
     if (!running || visibleSteps >= DEFAULT_STEPS) return;
@@ -589,8 +667,10 @@ export default function GradientDescentScene({ step, resetKey, playing = false }
     ? ` Kept path starts at x ${reference.start.x.toFixed(2)}, y ${reference.start.y.toFixed(2)}, with learning rate ${reference.learningRate.toFixed(2)}.`
     : "";
 
+  const showValleyComparison = surface === "valley" && reference && referencePathAssessment;
+
   return (
-    <section aria-label="Gradient descent visualisation" className="grid h-full min-h-[22rem] min-w-0 grid-rows-[minmax(0,1fr)_auto] overflow-hidden border border-outline bg-surface">
+    <section aria-label="Gradient descent visualisation" className="grid h-full min-h-[22rem] min-w-0 grid-rows-[minmax(0,1fr)_auto_auto] overflow-hidden border border-outline bg-surface">
       <div
         role="group"
         tabIndex={0}
@@ -600,33 +680,67 @@ export default function GradientDescentScene({ step, resetKey, playing = false }
         onKeyDown={nudgeStart}
         className="relative min-h-0 overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-primary"
       >
-        <DescentScene3D key={`${step}-${resetKey}`} surface={surface} path={path} referencePath={reference?.path ?? null} referenceStart={reference?.start ?? null} referenceLearningRate={reference?.learningRate ?? null} shown={shown} current={current} start={start} onChooseStart={chooseStart} reducedMotion={prefersReduced} />
+        <DescentScene3D key={`${step}-${resetKey}`} surface={surface} path={path} referencePath={reference?.path ?? null} referenceStart={reference?.start ?? null} referenceLearningRate={reference?.learningRate ?? null} shown={shown} current={current} start={start} onChooseStart={chooseStart} reducedMotion={prefersReduced} currentAssessment={pathAssessment} referenceAssessment={referencePathAssessment} />
+
+        {showValleyComparison ? <GradientPathComparison currentPath={path} referencePath={reference.path} currentRate={learningRate} referenceRate={reference.learningRate} currentAssessment={pathAssessment} referenceAssessment={referencePathAssessment} /> : null}
 
         <div className="pointer-events-none absolute left-3 top-3 hidden border border-outline bg-surface/90 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.08em] text-on-surface-variant backdrop-blur-sm sm:left-4 sm:top-4 sm:block">
           <span>parameters x₁, x₂</span><span className="px-2 text-outline-dark">→</span><span className="text-primary">height = loss</span>
         </div>
-        <div className="pointer-events-none absolute left-3 right-3 top-3 border border-outline bg-surface/94 px-3 py-2 backdrop-blur-sm sm:left-auto sm:right-4 sm:top-4 sm:w-72">
+        <div className="pointer-events-none absolute left-3 right-3 top-3 border border-outline-dark bg-surface/95 px-3 py-2 backdrop-blur-sm sm:left-auto sm:right-4 sm:top-4 sm:w-72">
           <div className="flex items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant">
-            <span>{boundedStep === 0 ? "Next update" : `Update ${boundedStep}`}</span>
+            <span>{showValleyComparison || basinComparison ? "Controlled comparison" : boundedStep === 0 ? "Next update" : `Update ${boundedStep}`}</span>
             <span className="text-primary">{surface === "bowl" ? "isotropic bowl" : surface === "valley" ? "narrow valley" : "many basins"}</span>
           </div>
-          <div className="mt-1 flex items-baseline gap-2 font-mono text-sm text-on-surface"><span>L {before.loss.toFixed(3)}</span><span className="text-on-surface-variant">→</span><span className={assessment.behaviour === "diverging" ? "text-error" : "text-primary"}>{after.loss.toFixed(3)}</span></div>
-          <div className="mt-1 grid grid-cols-[auto_1fr] gap-x-2 font-mono text-[9px] leading-4 text-on-surface-variant">
-            <span>{surface === "valley" ? "Local slope ∇L" : "Local slope ∇L x₁,x₂"}</span>
-            <span className="text-right text-on-surface">[{(surface === "valley" ? principalGradient.x : stepGradient.x).toFixed(2)}, {(surface === "valley" ? principalGradient.y : stepGradient.y).toFixed(2)}]</span>
-            <span>Δ parameters</span><span className="text-right text-on-surface">[{update.x.toFixed(2)}, {update.y.toFixed(2)}]</span>
-          </div>
-          <p className={`mt-1 font-mono text-[9px] uppercase ${assessment.behaviour === "diverging" ? "text-error" : assessment.behaviour === "overshoot" ? "text-warning" : "text-primary"}`}>{outcomeLabel(assessment)}</p>
-          <p className="mt-1 text-[10px] leading-snug text-on-surface-variant">{surfaceExplanation}</p>
-          {surface === "valley" ? <p className={`mt-1 border-t border-outline pt-1 font-mono text-[9px] uppercase ${regimeClass}`}>{stabilityOutcome}</p> : null}
-          {valleyReferenceOutcome ? <p className={`mt-1 font-mono text-[9px] uppercase ${referenceRegimeClass}`}>{valleyReferenceOutcome}</p> : null}
-          {basinComparison ? <p className={`mt-1 border-t border-outline pt-1 font-mono text-[9px] uppercase ${reachesDifferentBasin ? "text-warning" : "text-primary"}`}>{basinComparison}</p> : basinOutcome ? <p className={`mt-1 border-t border-outline pt-1 font-mono text-[9px] uppercase ${forecastEnd.loss < 0.02 ? "text-primary" : "text-warning"}`}>{basinOutcome}</p> : null}
+          {showValleyComparison ? <>
+            <div className="mt-2 grid grid-cols-[auto_1fr_auto] items-center gap-x-2 border-y border-outline py-1.5 font-mono text-[9px] uppercase">
+              <span className="h-1.5 w-4 bg-primary" aria-hidden="true" /><span className="text-on-surface-variant">Reference {reference.learningRate.toFixed(2)}</span><span className={referenceRegimeClass}>{referenceRegimeLabel}</span>
+              <span className="h-1.5 w-4 bg-accent" aria-hidden="true" /><span className="text-on-surface-variant">Current {learningRate.toFixed(2)}</span><span className={regimeClass}>{pathRegimeLabel}</span>
+            </div>
+            <p className={`mt-1 font-mono text-[9px] uppercase ${regimeClass}`}>{stabilityOutcome}</p>
+            <p className={`mt-1 font-mono text-[9px] uppercase ${referenceRegimeClass}`}>Reference loss is {referencePathChange.toFixed(0)}% {referencePathAssessment.behaviour === "diverging" ? "higher" : "lower"}</p>
+            <p className="mt-1 text-[10px] leading-snug text-on-surface-variant">{startChanged ? comparisonDescription : `Same start and surface · ${pathAssessment.crossings} valley-floor crossings`}</p>
+          </> : basinComparison ? <>
+            <p className={`mt-2 font-mono text-[10px] uppercase ${reachesDifferentBasin ? "text-warning" : "text-primary"}`}>{basinComparison}</p>
+            <p className="mt-1 text-[10px] leading-snug text-on-surface-variant">{comparisonDescription}</p>
+          </> : <>
+            <div className="mt-1 flex items-baseline gap-2 font-mono text-sm text-on-surface"><span>L {before.loss.toFixed(3)}</span><span className="text-on-surface-variant">→</span><span className={assessment.behaviour === "diverging" ? "text-error" : "text-primary"}>{after.loss.toFixed(3)}</span></div>
+            <div className="mt-1 hidden grid-cols-[auto_1fr] gap-x-2 font-mono text-[9px] leading-4 text-on-surface-variant sm:grid">
+              <span>{surface === "valley" ? "Local slope ∇L" : "Local slope ∇L x₁,x₂"}</span>
+              <span className="text-right text-on-surface">[{(surface === "valley" ? principalGradient.x : stepGradient.x).toFixed(2)}, {(surface === "valley" ? principalGradient.y : stepGradient.y).toFixed(2)}]</span>
+              <span>Δ parameters</span><span className="text-right text-on-surface">[{update.x.toFixed(2)}, {update.y.toFixed(2)}]</span>
+            </div>
+            <p className={`mt-1 font-mono text-[9px] uppercase ${assessment.behaviour === "diverging" ? "text-error" : assessment.behaviour === "overshoot" ? "text-warning" : "text-primary"}`}>{outcomeLabel(assessment)}</p>
+            <p className="mt-1 hidden text-[10px] leading-snug text-on-surface-variant sm:block">{surfaceExplanation}</p>
+            {basinOutcome ? <p className={`mt-1 border-t border-outline pt-1 font-mono text-[9px] uppercase ${forecastEnd.loss < 0.02 ? "text-primary" : "text-warning"}`}>{basinOutcome}</p> : null}
+          </>}
         </div>
-        <div className="pointer-events-none absolute bottom-3 left-3 border border-outline bg-surface/90 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.08em] text-on-surface-variant sm:left-4">
-          <span className="text-primary">Solid: completed</span><span className="px-2">·</span><span>Dashed: route forecast</span>{reference ? <><span className="px-2">·</span><span>Grey: kept path</span><span className="px-2">·</span><span className={startChanged && rateChanged ? "text-warning" : "text-primary"}>{comparisonLabel}</span></> : null}<span className="hidden px-2 sm:inline">·</span><span className="hidden sm:inline">Surface drag: move start · Background drag: rotate</span>
+        <div className={`pointer-events-none absolute bottom-3 right-3 hidden border border-outline bg-surface/90 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.08em] text-on-surface-variant sm:block ${showValleyComparison ? "lg:right-4" : "sm:left-4 sm:right-auto"}`}>
+          <span className="text-accent">Rust: current</span>{reference ? <><span className="px-2">·</span><span className="text-primary">Green: reference</span><span className="px-2">·</span><span className={startChanged && rateChanged ? "text-warning" : "text-primary"}>{comparisonLabel}</span></> : null}<span className="px-2">·</span><span>Solid: completed · dashed: forecast</span><span className="hidden px-2 xl:inline">·</span><span className="hidden xl:inline">Surface drag: move start · background: rotate</span>
         </div>
         <p className="sr-only" aria-live="polite" aria-label={statusDescription}>{statusText}</p>
       </div>
+
+      <GradientDescentGuide
+        step={step}
+        boundedStep={boundedStep}
+        surface={surface}
+        learningRate={learningRate}
+        beforeLoss={before.loss}
+        afterLoss={after.loss}
+        pathAssessment={pathAssessment}
+        referenceRate={reference?.learningRate ?? null}
+        rateAdjusted={rateAdjusted}
+        prediction={prediction}
+        onPredict={setPrediction}
+        stabilityBoundary={stabilityBoundary}
+        testedUnstable={testedUnstable}
+        startChanged={startChanged}
+        rateChanged={rateChanged}
+        reachesDifferentBasin={reachesDifferentBasin}
+        forecastLoss={forecastEnd.loss}
+        referenceLoss={referenceEnd?.loss ?? null}
+      />
 
       <div className="grid shrink-0 grid-cols-[auto_minmax(8rem,1fr)] gap-x-3 gap-y-2 border-t border-outline bg-surface-container-low p-2 sm:flex sm:items-end sm:gap-4 sm:px-3 sm:py-2">
         <fieldset className="min-w-0">
@@ -640,7 +754,7 @@ export default function GradientDescentScene({ step, resetKey, playing = false }
 
         <label className="min-w-0 flex-1 sm:max-w-sm">
           <span className="mb-1 flex items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant"><span>Learning rate</span><span className={regimeClass}>{learningRate.toFixed(2)} · {regimeLabel}</span></span>
-          <input aria-label="Learning rate" type="range" min={LEARNING_RATE_RANGE.min} max={LEARNING_RATE_RANGE.max} step={LEARNING_RATE_RANGE.step} value={learningRate} onChange={(event) => { const next = Number(event.target.value); setLearningRate(next); syncControls(surface, next, start); restartPath(); }} className="block min-h-9" />
+          <input aria-label="Learning rate" type="range" min={LEARNING_RATE_RANGE.min} max={LEARNING_RATE_RANGE.max} step={LEARNING_RATE_RANGE.step} value={learningRate} onChange={(event) => { const next = Number(event.target.value); setLearningRate(next); setRateAdjusted(true); syncControls(surface, next, start); restartPath(); }} className="block min-h-9" />
           <KeptComparisonButton
             active={reference !== null}
             activeLabel={`Clear kept path at ${reference?.learningRate.toFixed(2) ?? learningRate.toFixed(2)}`}

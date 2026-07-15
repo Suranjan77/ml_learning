@@ -113,6 +113,10 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
     () => softmaxWithTemperature(CANDIDATES.map((candidate) => candidate.logit), temperature),
     [temperature],
   );
+  const baselineProbabilities = useMemo(
+    () => softmaxWithTemperature(CANDIDATES.map((candidate) => candidate.logit), DEFAULT_TEMPERATURE),
+    [],
+  );
   const truncationResult = useMemo(
     () => applyTruncation(fullProbabilities, truncation, topK, topP),
     [fullProbabilities, truncation, topK, topP],
@@ -127,9 +131,11 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
         token: candidate.token,
         index,
         probability: fullProbabilities[index],
+        samplingProbability: truncationResult.probabilities[index],
+        baselineProbability: baselineProbabilities[index],
         surviving: survivorSet.has(index),
       })).sort((a, b) => b.probability - a.probability),
-    [fullProbabilities, survivorSet],
+    [baselineProbabilities, fullProbabilities, survivorSet, truncationResult.probabilities],
   );
 
   const favourite = ranked[0];
@@ -150,6 +156,10 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
   const nucleusCumulative = truncation === "top-p"
     ? ranked.slice(0, nucleusBoundaryRow + 1).reduce((sum, entry) => sum + entry.probability, 0)
     : 0;
+  const removedRawMass = ranked.reduce(
+    (sum, entry) => sum + (entry.surviving ? 0 : entry.probability),
+    0,
+  );
 
   function drawSample() {
     const draw = SAMPLE_DRAWS[drawCount % SAMPLE_DRAWS.length];
@@ -189,7 +199,7 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
     }
   }
 
-  const statusDescription = `Temperature ${temperature.toFixed(2)}, ${regime}. ${truncationSummary(truncation, topK, topP, truncationResult.survivingIndices.length, CANDIDATES.length)}. Most likely: ${favourite.token} at ${formatPercent(favourite.probability)}. Sampled: ${lastSample ?? "none yet"}.`;
+  const statusDescription = `Temperature ${temperature.toFixed(2)}, ${regime}. ${truncationSummary(truncation, topK, topP, truncationResult.survivingIndices.length, CANDIDATES.length)}. Most likely after truncation: ${favourite.token} at ${formatPercent(favourite.samplingProbability)}. Sampled: ${lastSample ?? "none yet"}.`;
 
   return (
     <section
@@ -225,12 +235,22 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
             {lastDraw !== null ? <g><line x1={lastDraw * 480} x2={lastDraw * 480} y1="-2" y2="24" stroke={vizTokens.selection} strokeWidth="3" /><path d={`M${lastDraw * 480 - 5} -2 h10 l-5 7 z`} fill={vizTokens.selection} /></g> : null}
           </g>
           <line x1={LABEL_LEFT} x2={WIDTH - LABEL_LEFT} y1={PROMPT_BAND_HEIGHT} y2={PROMPT_BAND_HEIGHT} stroke={vizTokens.border} strokeWidth={vizStroke.grid} />
+          <text x={LABEL_LEFT} y={CHART_TOP - 7} fill={vizTokens.mutedInk} fontSize="9" fontFamily="var(--font-dm-mono)">TOKEN</text>
+          <text x={BAR_LEFT} y={CHART_TOP - 7} fill={vizTokens.mutedInk} fontSize="9" fontFamily="var(--font-dm-mono)">OUTLINE = DEFAULT T 0.80 · FILL = PROBABILITY USED TO SAMPLE NOW</text>
+          <text x={FIGURE_LEFT} y={CHART_TOP - 7} fill={vizTokens.mutedInk} fontSize="9" fontFamily="var(--font-dm-mono)">NOW · Δ FROM DEFAULT</text>
 
           {ranked.map((entry, row) => {
             const rowY = CHART_TOP + row * ROW_HEIGHT;
-            const barWidth = Math.max(2, widthScale(entry.probability));
+            const barWidth = Math.max(0, widthScale(entry.samplingProbability));
+            const baselineWidth = Math.max(2, widthScale(entry.baselineProbability));
+            const deltaPoints = (entry.samplingProbability - entry.baselineProbability) * 100;
+            const deltaLabel = !entry.surviving && entry.baselineProbability > 0 && Math.abs(deltaPoints) < 0.05
+              ? "−<0.1 pp"
+              : Math.abs(deltaPoints) < 0.05
+                ? "baseline"
+                : `${deltaPoints > 0 ? "+" : ""}${deltaPoints.toFixed(1)} pp`;
             const sampled = entry.token === lastSample;
-            const barColour = entry.surviving ? vizTokens.classA : vizTokens.border;
+            const barColour = entry.surviving ? vizTokens.classA : vizTokens.path;
             const textColour = entry.surviving ? vizTokens.ink : vizTokens.mutedInk;
 
             // Each row springs to its ranked position, so re-ranking on a
@@ -243,18 +263,34 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
                 transition={reduced(playing ? vizMotion.cinematic : vizMotion.markerSpring, prefersReduced)}
               >
                 <text x={LABEL_LEFT} y={BAR_HEIGHT * 0.72} fill={textColour} fontSize="14" fontFamily="var(--font-dm-mono)">{entry.token}</text>
+                <rect
+                  x={BAR_LEFT}
+                  y={0}
+                  width={baselineWidth}
+                  height={BAR_HEIGHT}
+                  fill="none"
+                  stroke={vizTokens.mutedInk}
+                  strokeWidth={vizStroke.guide}
+                  strokeDasharray="4 3"
+                  opacity="0.52"
+                />
                 <motion.rect
                   x={BAR_LEFT}
                   y={0}
                   height={BAR_HEIGHT}
-                  fill={entry.surviving ? barColour : "none"}
-                  stroke={barColour}
-                  strokeWidth={entry.surviving ? 0 : vizStroke.guide}
-                  fillOpacity={entry.surviving ? 0.88 : 1}
+                  fill={barColour}
+                  stroke="none"
+                  fillOpacity={0.88}
                   initial={false}
                   animate={{ width: barWidth }}
                   transition={reduced(vizMotion.fade, prefersReduced)}
                 />
+                {!entry.surviving && (
+                  <g transform={`translate(${BAR_LEFT + 8} ${BAR_HEIGHT / 2})`}>
+                    <path d="M -5 -5 L 5 5 M 5 -5 L -5 5" stroke={vizTokens.path} strokeWidth={vizStroke.marker} />
+                    <text x="13" y="4" fill={vizTokens.path} fontSize="10" fontFamily="var(--font-dm-mono)">EXCLUDED BEFORE THE DRAW</text>
+                  </g>
+                )}
                 <AnimatePresence>
                   {sampled && (
                     <motion.rect
@@ -274,7 +310,10 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
                     />
                   )}
                 </AnimatePresence>
-                <text x={FIGURE_LEFT} y={BAR_HEIGHT * 0.72} fill={textColour} fontSize="13" fontFamily="var(--font-dm-mono)">{formatPercent(entry.probability)}</text>
+                <text x={FIGURE_LEFT} y={BAR_HEIGHT * 0.72} fill={textColour} fontSize="13" fontFamily="var(--font-dm-mono)">{formatPercent(entry.samplingProbability)}</text>
+                <text x={FIGURE_LEFT + 45} y={BAR_HEIGHT * 0.72} fill={!entry.surviving ? vizTokens.path : Math.abs(deltaPoints) < 0.05 ? vizTokens.mutedInk : deltaPoints > 0 ? vizTokens.classA : vizTokens.path} fontSize="11" fontFamily="var(--font-dm-mono)">
+                  {deltaLabel}
+                </text>
               </motion.g>
             );
           })}
@@ -305,7 +344,7 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
                   fontSize="11"
                   fontFamily="var(--font-dm-mono)"
                 >
-                  nucleus closes at {formatPercent(nucleusCumulative)}
+                  nucleus closes at {formatPercent(nucleusCumulative)} · {formatPercent(removedRawMass)} raw mass excluded, survivors renormalised
                 </text>
               </motion.g>
             )}
@@ -328,6 +367,11 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
           <span className="text-on-surface-variant">{PROMPT}</span>
           {samples.length > 0 && <span className="text-primary"> {samples.join(" · ")}</span>}
         </p>
+        {truncation !== "none" ? (
+          <p className="mt-1 text-[11px] leading-4 text-on-surface-variant sm:hidden">
+            {truncation === "top-p" ? `Top-p ${topP.toFixed(2)}` : `Top-k ${topK}`} excludes {formatPercent(removedRawMass)} of the raw probability mass; {truncationResult.survivingIndices.length} tokens remain, then renormalise to 100%.
+          </p>
+        ) : null}
       </div>
 
       <div className="grid shrink-0 grid-cols-[auto_minmax(8rem,1fr)] gap-x-3 gap-y-2 border-t border-outline bg-surface-container-low p-2 sm:flex sm:flex-wrap sm:items-end sm:gap-4 sm:px-3 sm:py-2">

@@ -25,7 +25,7 @@ export const kernelTrickExhibit: ExhibitDefinition = {
     { title: "Original space", instruction: "Compare possible straight boundaries with the class arrangement.", observation: "The outer class encloses the inner class, so a straight line cannot separate them." },
     { title: "Explicit feature map", instruction: "Move toward the feature-space view, then orbit the surface.", observation: "The map sends outer points higher because its third coordinate is squared radial distance." },
     { title: "Flat separation", instruction: "Orbit around the solid plane and compare it with the dashed margins.", observation: "For this radial example, the midpoint between the closest lifted samples gives a horizontal separator." },
-    { title: "Same boundary", instruction: "Inspect the top-down view and the highlighted circle.", observation: "Every point on that circle maps to the plane height, so the flat threshold becomes a circular input-space boundary." },
+    { title: "Same boundary", instruction: "Hold the lifted plane and input-space inset together; trace the shared threshold in both views.", observation: "Every point on the inset circle maps to the plane height, so one flat feature-space threshold is the same circular input-space boundary." },
   ],
   challenges: [
     "Orbit the feature-space view until the plane and its matching lifted contour are both visible.",

@@ -119,8 +119,8 @@ function KernelPreview() {
       {ring.map(([cx, cy], index) => (
         <circle
           key={index}
-          cx={cx}
-          cy={cy - 28}
+          cx={cx.toFixed(3)}
+          cy={(cy - 28).toFixed(3)}
           r="5"
           fill="var(--color-error)"
           stroke="var(--color-surface)"

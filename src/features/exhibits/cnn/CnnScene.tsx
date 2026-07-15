@@ -120,6 +120,9 @@ export default function CnnScene({ step, resetKey, playing = false }: ExhibitSce
   const activated = useMemo(() => relu(raw), [raw]);
   const pooled = useMemo(() => maxPool(activated), [activated]);
   const patch = patchAt(INPUT, selected.row, selected.column);
+  const products = patch.map((row, rowIndex) =>
+    row.map((value, columnIndex) => value * kernel[rowIndex][columnIndex]),
+  );
   const response = dotProduct(patch, kernel);
   const shownOutput = activeStep >= 2 ? activated : raw;
   const stageLabel = activeStep === 0 ? "INPUT" : activeStep === 1 ? "RAW FEATURE MAP" : activeStep === 2 ? "AFTER ReLU" : "POOLED MAP";
@@ -134,15 +137,43 @@ export default function CnnScene({ step, resetKey, playing = false }: ExhibitSce
           <MatrixGrid matrix={INPUT} x={38} y={78} size={45} selected={{ ...selected, span: 3 }} label="8×8 INPUT IMAGE" />
           <path d="M408 240 H466" stroke={vizTokens.axis} strokeWidth="2" /><path d="M466 240 l-9 -5 v10 z" fill={vizTokens.axis} />
           <MatrixGrid matrix={kernel} x={485} y={116} size={52} label={`${filter.toUpperCase()} 3×3 FILTER`} />
-          <text x="563" y="302" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.mutedInk}>SLIDE + DOT PRODUCT</text>
-          <path d="M654 240 H712" stroke={vizTokens.axis} strokeWidth="2" /><path d="M712 240 l-9 -5 v10 z" fill={vizTokens.axis} />
-          {activeStep < 3 ? <MatrixGrid matrix={shownOutput} x={733} y={92} size={48} selected={selected} onSelect={chooseCell} label={`6×6 ${stageLabel}`} /> : <MatrixGrid matrix={pooled} x={785} y={140} size={72} label={`3×3 ${stageLabel}`} />}
+          <text x="563" y="292" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>THE SAME NINE WEIGHTS SLIDE</text>
+          {activeStep < 3 ? (
+            <>
+              <MatrixGrid matrix={products} x={498} y={326} size={43} label="SELECTED PATCH × FILTER" />
+              <path d="M488 318 H637" stroke={vizTokens.path} strokeWidth="1" strokeDasharray="4 4" />
+              <text x="563" y="476" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.path}>Σ NINE PRODUCTS = {response}</text>
+            </>
+          ) : null}
+          <path d={activeStep < 3 ? "M654 240 H712" : "M654 240 H684"} stroke={vizTokens.axis} strokeWidth="2" /><path d={activeStep < 3 ? "M712 240 l-9 -5 v10 z" : "M684 240 l-9 -5 v10 z"} fill={vizTokens.axis} />
+          {activeStep < 3 ? (
+            <MatrixGrid matrix={shownOutput} x={733} y={92} size={48} selected={selected} onSelect={chooseCell} label={`6×6 ${stageLabel}`} />
+          ) : (
+            <>
+              <MatrixGrid matrix={activated} x={700} y={116} size={39} label="6×6 AFTER ReLU" />
+              {Array.from({ length: 9 }, (_, index) => {
+                const row = Math.floor(index / 3);
+                const column = index % 3;
+                return (
+                  <g key={`pool-source-${index}`}>
+                    <rect x={700 + column * 78 - 2} y={116 + row * 78 - 2} width="78" height="78" fill="none" stroke={vizTokens.path} strokeWidth="2" strokeDasharray="5 3" />
+                    <text x={706 + column * 78} y={130 + row * 78} fontFamily="var(--font-mono)" fontSize="9" fill={vizTokens.path}>{index + 1}</text>
+                  </g>
+                );
+              })}
+              <path d="M941 234 H962" stroke={vizTokens.axis} strokeWidth="2" />
+              <path d="M962 234 l-8 -5 v10 z" fill={vizTokens.axis} />
+              <text x="951" y="219" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="9" fill={vizTokens.mutedInk}>MAX</text>
+              <MatrixGrid matrix={pooled} x={974} y={145} size={60} label="3×3 POOLED MAP" />
+              <text x="817" y="372" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.path}>NINE OUTLINED 2×2 BLOCKS</text>
+              <text x="1064" y="350" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.path}>ONE MAX FROM EACH BLOCK</text>
+            </>
+          )}
 
           <g transform="translate(38 460)">
             <text fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>SELECTED CELL [{selected.row}, {selected.column}]</text>
-            <text x="258" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.ink}>Σ patch × filter = {response}</text>
-            {activeStep >= 2 ? <text x="485" fontFamily="var(--font-mono)" fontSize="10" fill={response < 0 ? vizTokens.error : vizTokens.classA}>ReLU({response}) = {Math.max(0, response)}</text> : null}
-            {activeStep === 3 ? <text x="735" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.path}>2×2 max → one value</text> : null}
+            {activeStep >= 2 && activeStep < 3 ? <text x="695" fontFamily="var(--font-mono)" fontSize="10" fill={response < 0 ? vizTokens.error : vizTokens.classA}>RAW {response} → ReLU → {Math.max(0, response)}</text> : null}
+            {activeStep === 3 ? <text x="447" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.path}>SAME ACTIVATION MAP → LESS POSITION DETAIL</text> : null}
           </g>
         </svg>
       </div>

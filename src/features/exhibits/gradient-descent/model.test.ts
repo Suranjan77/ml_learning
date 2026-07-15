@@ -8,6 +8,7 @@ import {
   descentPath,
   gradientAt,
   initialState,
+  largestReducingRate,
   learningRegime,
   lossAt,
   multimodalMinima,
@@ -61,6 +62,12 @@ describe("gradient descent model", () => {
     expect(stable.crossings).toBeGreaterThan(0);
     expect(unstable.behaviour).toBe("diverging");
     expect(unstable.lossDelta).toBeGreaterThan(0);
+  });
+
+  it("derives the last reducing slider rate instead of hard-coding the boundary", () => {
+    expect(largestReducingRate(DEFAULT_START, "valley")).toBe(1.04);
+    expect(assessPath(descentPath(DEFAULT_START, 1.04, "valley"), "valley").lossDelta).toBeLessThan(0);
+    expect(assessPath(descentPath(DEFAULT_START, 1.06, "valley"), "valley").lossDelta).toBeGreaterThan(0);
   });
 
   it("draws contours whose points have the requested loss", () => {

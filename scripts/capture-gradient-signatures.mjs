@@ -7,9 +7,10 @@ const outputDirectory = resolve("docs/visual-baselines/gradient-descent");
 const states = [
   ["01-local-step.png", "?step=1"],
   ["02-stable-convergence.png", "?step=2&lr=0.4"],
-  ["03-ravine-oscillation.png", "?step=2"],
+  ["03-ravine-oscillation.png", "?step=2&lr=0.9"],
   ["04-divergence.png", "?step=2&lr=1.06"],
   ["05-different-basins.png", "?step=3"],
+  ["06-memory-comparison.png", "?step=4"],
 ];
 
 await mkdir(outputDirectory, { recursive: true });

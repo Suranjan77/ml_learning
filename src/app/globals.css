@@ -161,6 +161,21 @@
     text-rendering: geometricPrecision;
 }
 
+@keyframes pso-discovery {
+    from { r: 16px; opacity: 0.75; }
+    to { r: 44px; opacity: 0; }
+}
+
+.pso-discovery-pulse {
+    animation: pso-discovery 1.35s var(--ease-decelerate) infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pso-discovery-pulse { animation: none; }
+}
+
 .crop-marks::before,
 .crop-marks::after {
     content: "";

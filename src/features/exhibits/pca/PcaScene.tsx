@@ -85,7 +85,7 @@ export default function PcaScene({ step, resetKey, playing = false }: ExhibitSce
   };
 
   return <section aria-label="Principal component analysis visualisation" className="grid h-full min-h-[22rem] grid-rows-[minmax(0,1fr)_auto] overflow-hidden border border-outline bg-surface">
-    <div role="img" aria-labelledby={titleId} className="min-h-0 overflow-hidden">
+    <div role="img" aria-labelledby={titleId} className="relative min-h-0 overflow-hidden">
       <span id={titleId} className="sr-only">Points projected onto a rotatable one-dimensional PCA axis</span>
       <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="h-full w-full" aria-hidden="true">
         <rect width={WIDTH} height={HEIGHT} fill={vizTokens.canvas} />
@@ -133,8 +133,32 @@ export default function PcaScene({ step, resetKey, playing = false }: ExhibitSce
           <text y="287" fontFamily="var(--font-mono)" fontSize="12" fill={vizTokens.ink}>maximises spread</text>
           <text y="309" fontFamily="var(--font-mono)" fontSize="12" fill={vizTokens.ink}>and minimises lost distance.</text>
           <text y="355" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>BEST POSSIBLE ERROR</text><text x="250" y="355" textAnchor="end" fontFamily="var(--font-mono)" fontSize="14" fill={vizTokens.classA}>{optimalStats.reconstructionError.toFixed(2)}</text>
+          <text y="385" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.path}>THE ACTUAL 1D REPRESENTATION</text>
+          <line x1="0" x2="250" y1="410" y2="410" stroke={vizTokens.axis} strokeWidth="1.5" />
+          {stats.projections.map((projection, index) => {
+            const x = Math.max(0, Math.min(250, (projection.score + 5) / 10 * 250));
+            return <motion.line key={`score-${index}`} initial={false} animate={{ x1: x, x2: x }} transition={reduced(playing ? vizMotion.cinematic : vizMotion.markerSpring, prefersReduced)} y1={index % 2 === 0 ? 400 : 404} y2={index % 2 === 0 ? 420 : 416} stroke={vizTokens.path} strokeWidth="2" opacity="0.78" />;
+          })}
+          <text y="435" fontFamily="var(--font-mono)" fontSize="8" fill={vizTokens.mutedInk}>−5</text>
+          <text x="125" y="435" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="8" fill={vizTokens.mutedInk}>30 scalar scores · no second spatial coordinate</text>
+          <text x="250" y="435" textAnchor="end" fontFamily="var(--font-mono)" fontSize="8" fill={vizTokens.mutedInk}>+5</text>
         </g>
       </svg>
+      <div aria-hidden="true" className="absolute bottom-2 left-2 right-2 border border-outline bg-surface/95 p-2 sm:hidden">
+        <div className="grid grid-cols-3 gap-2 font-mono text-[9px] uppercase tracking-[0.06em] text-on-surface-variant">
+          <span>Angle <strong className="block text-on-surface">{angleDegrees}°</strong></span>
+          <span>Variance <strong className="block text-primary">{stats.variance.toFixed(2)}</strong></span>
+          <span>Error <strong className="block text-error">{stats.reconstructionError.toFixed(2)}</strong></span>
+        </div>
+        <p className="mt-1 font-mono text-[8px] uppercase tracking-[0.06em] text-warning">Actual 1D output · 30 scalar scores</p>
+        <svg viewBox="0 0 330 26" className="mt-0.5 h-6 w-full">
+          <line x1="4" x2="326" y1="13" y2="13" stroke={vizTokens.axis} />
+          {stats.projections.map((projection, index) => {
+            const x = 4 + Math.max(0, Math.min(1, (projection.score + 5) / 10)) * 322;
+            return <line key={`mobile-score-${index}`} x1={x} x2={x} y1={index % 2 === 0 ? 5 : 9} y2={index % 2 === 0 ? 21 : 17} stroke={vizTokens.path} strokeWidth="2" opacity="0.82" />;
+          })}
+        </svg>
+      </div>
       <p className="sr-only" aria-live="polite">Axis angle {angleDegrees} degrees. Variance {stats.variance.toFixed(2)}. Reconstruction error {stats.reconstructionError.toFixed(2)}.</p>
     </div>
     <div className="flex items-end gap-3 border-t border-outline bg-surface-container-low px-3 py-2"><label className="min-w-0 flex-1"><span className="flex justify-between font-mono text-[9px] uppercase tracking-label text-on-surface-variant"><span>Projection angle</span><span className="text-primary">{angleDegrees}°</span></span><input aria-label="Projection angle" type="range" min={-90} max={90} value={angleDegrees} onChange={(event) => changeAngle(Number(event.target.value))} /></label><button type="button" onClick={() => changeAngle(OPTIMAL * 180 / Math.PI)} className="min-h-9 shrink-0 border border-primary bg-primary px-3 text-xs text-on-primary">Align principal axis</button></div>

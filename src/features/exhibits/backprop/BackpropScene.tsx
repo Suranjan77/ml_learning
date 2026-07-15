@@ -59,6 +59,13 @@ export default function BackpropScene({ step, resetKey, playing = false }: Exhib
   const pass = useMemo(() => forward(input, target, weights), [input, target, weights]);
   const gradient = useMemo(() => gradients(input, target, weights), [input, target, weights]);
   const preview = useMemo(() => forward(input, target, applyGradients(weights, gradient, learningRate)), [gradient, input, learningRate, target, weights]);
+  const tracedChain = {
+    outputError: pass.output - target,
+    downstreamWeight: weights.hiddenOutput[0],
+    hiddenSlope: pass.hidden[0] * (1 - pass.hidden[0]),
+    inputValue: input[0],
+    gradient: gradient.inputHidden[0][0],
+  };
   const showActivations = activeStep >= 1;
   const showLoss = activeStep >= 2;
   const showGradients = activeStep >= 3;
@@ -94,10 +101,37 @@ export default function BackpropScene({ step, resetKey, playing = false }: Exhib
           {HIDDEN_POS.map(([x1,y1], i) => <circle key={`back-b-${i}`} r="6" fill={vizTokens.error}><animateMotion path={`M${OUTPUT_POS[0]-34} ${OUTPUT_POS[1]} L${x1+34} ${y1}`} dur="1.45s" begin={`${i*0.22}s`} repeatCount="indefinite" /></circle>)}
           {INPUT_POS.flatMap(([x1,y1], i) => HIDDEN_POS.map(([x2,y2], j) => <circle key={`back-a-${i}-${j}`} r="5" fill={vizTokens.error}><animateMotion path={`M${x2-34} ${y2} L${x1+34} ${y1}`} dur="1.8s" begin={`${0.5+(i*2+j)*0.14}s`} repeatCount="indefinite" /></circle>))}
         </g> : null}
+        {showGradients ? <g>
+          <path d="M751 260 L508 145 M436 145 L164 170" fill="none" stroke={vizTokens.selection} strokeWidth="8" opacity="0.26" />
+          <path d="M751 260 L508 145 M436 145 L164 170" fill="none" stroke={vizTokens.selection} strokeWidth="2" strokeDasharray="7 5" />
+          <circle cx="785" cy="260" r="53" fill="none" stroke={vizTokens.selection} strokeWidth="2" />
+          <circle cx="470" cy="145" r="45" fill="none" stroke={vizTokens.selection} strokeWidth="2" />
+          <circle cx="130" cy="170" r="42" fill="none" stroke={vizTokens.selection} strokeWidth="2" />
+          <text x="297" y="130" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.selection}>TRACE ∂L/∂w(x₁→h₁)</text>
+        </g> : null}
         {INPUT_POS.map(([x,y], index) => <g key={index}><circle cx={x} cy={y} r="35" fill={vizTokens.canvas} stroke={vizTokens.classA} strokeWidth="3" /><text x={x} y={y+6} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="16" fill={vizTokens.ink}>{input[index].toFixed(2)}</text><text x={x} y={y+58} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>x{index+1}</text></g>)}
         {HIDDEN_POS.map(([x,y], index) => <g key={index}><circle cx={x} cy={y} r="38" fill={showActivations ? vizTokens.classA : vizTokens.canvas} fillOpacity={showActivations ? 0.25 + pass.hidden[index]*0.65 : 1} stroke={vizTokens.classA} strokeWidth="3" /><text x={x} y={y+6} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="16" fill={vizTokens.ink}>{showActivations ? pass.hidden[index].toFixed(2) : "?"}</text><text x={x} y={y+61} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>sigmoid</text></g>)}
         <circle cx={OUTPUT_POS[0]} cy={OUTPUT_POS[1]} r="46" fill={showActivations ? vizTokens.selection : vizTokens.canvas} fillOpacity={showActivations ? 0.25 + pass.output*0.6 : 1} stroke={vizTokens.selection} strokeWidth="3" /><text x={OUTPUT_POS[0]} y={OUTPUT_POS[1]+6} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="18" fill={vizTokens.ink}>{showActivations ? pass.output.toFixed(3) : "?"}</text>
-        {showLoss ? <g transform="translate(900 110)"><rect width="235" height="255" fill={vizTokens.grid} opacity="0.55" /><text x="16" y="27" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>ERROR SIGNAL</text><text x="16" y="67" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.mutedInk}>TARGET</text><text x="215" y="67" textAnchor="end" fontFamily="var(--font-mono)" fontSize="20" fill={vizTokens.ink}>{target}</text><text x="16" y="103" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.mutedInk}>PREDICTION</text><text x="215" y="103" textAnchor="end" fontFamily="var(--font-mono)" fontSize="20" fill={vizTokens.selection}>{pass.output.toFixed(3)}</text><text x="16" y="139" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.mutedInk}>CROSS-ENTROPY</text><text x="215" y="139" textAnchor="end" fontFamily="var(--font-mono)" fontSize="20" fill={vizTokens.error}>{pass.loss.toFixed(3)}</text><line x1="16" x2="219" y1="160" y2="160" stroke={vizTokens.border} /><text x="16" y="191" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>AFTER ONE UPDATE</text><text x="16" y="224" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.classA}>loss {pass.loss.toFixed(3)} → {preview.loss.toFixed(3)}</text></g> : null}
+        {showLoss ? <g transform={`translate(900 ${showGradients ? 58 : 110})`}>
+          <rect width="235" height={showGradients ? 404 : 255} fill={vizTokens.grid} opacity="0.72" />
+          <text x="16" y="27" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>ERROR SIGNAL</text>
+          <text x="16" y="67" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.mutedInk}>TARGET</text><text x="215" y="67" textAnchor="end" fontFamily="var(--font-mono)" fontSize="20" fill={vizTokens.ink}>{target}</text>
+          <text x="16" y="103" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.mutedInk}>PREDICTION</text><text x="215" y="103" textAnchor="end" fontFamily="var(--font-mono)" fontSize="20" fill={vizTokens.selection}>{pass.output.toFixed(3)}</text>
+          <text x="16" y="139" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.mutedInk}>CROSS-ENTROPY</text><text x="215" y="139" textAnchor="end" fontFamily="var(--font-mono)" fontSize="20" fill={vizTokens.error}>{pass.loss.toFixed(3)}</text>
+          <line x1="16" x2="219" y1="160" y2="160" stroke={vizTokens.border} />
+          <text x="16" y="186" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>AFTER ONE UPDATE</text>
+          <text x="16" y="214" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.classA}>loss {pass.loss.toFixed(3)} → {preview.loss.toFixed(3)}</text>
+          {showGradients ? <g transform="translate(16 236)">
+            <line x1="0" x2="203" y1="0" y2="0" stroke={vizTokens.border} />
+            <text y="25" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.selection}>EXPAND THE HIGHLIGHTED GRADIENT</text>
+            <text y="51" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.ink}>∂L/∂w(x₁→h₁)</text>
+            <text y="74" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>(ŷ−y) × w(h₁→ŷ)</text>
+            <text y="94" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>× h₁(1−h₁) × x₁</text>
+            <text y="119" fontFamily="var(--font-mono)" fontSize="9" fill={vizTokens.ink}>{tracedChain.outputError.toFixed(3)} × {tracedChain.downstreamWeight.toFixed(3)}</text>
+            <text y="137" fontFamily="var(--font-mono)" fontSize="9" fill={vizTokens.ink}>× {tracedChain.hiddenSlope.toFixed(3)} × {tracedChain.inputValue.toFixed(2)}</text>
+            <text y="158" fontFamily="var(--font-mono)" fontSize="12" fill={tone(tracedChain.gradient)}>= {tracedChain.gradient.toFixed(4)}</text>
+          </g> : null}
+        </g> : null}
         {showGradients ? <><path d="M850 430 H205" stroke={vizTokens.error} strokeWidth="3" strokeDasharray="8 6" /><path d="M205 430 l12-6v12z" fill={vizTokens.error} /><text x="530" y="455" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.error}>BACKWARD: chain rule assigns each weight responsibility for the error</text></> : null}
       </svg>
       <p className="sr-only" aria-live="polite">Prediction {pass.output.toFixed(3)}, target {target}, loss {pass.loss.toFixed(3)}. {updates} updates applied.</p>

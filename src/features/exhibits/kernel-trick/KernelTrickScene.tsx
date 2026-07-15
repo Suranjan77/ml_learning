@@ -20,7 +20,7 @@ import {
   type KernelPoint,
 } from "./model";
 
-const STEP_LIFT = [0, 0.72, 1, 0] as const;
+const STEP_LIFT = [0, 0.72, 1, 1] as const;
 const LIFT_SCALE = 4.2;
 const INPUT_CAMERA = new THREE.Vector3(0.01, 11.8, 0.01);
 const INPUT_TARGET = new THREE.Vector3(0, 0, 0);
@@ -157,6 +157,26 @@ function FeatureMapSurface({ lift }: { lift: number }) {
   </group>;
 }
 
+function InputSpaceInset({ points }: { points: readonly KernelPoint[] }) {
+  const size = 200;
+  const centre = size / 2;
+  const scale = 76 / MAX_RADIUS;
+  return (
+    <div className="pointer-events-none absolute bottom-4 left-4 hidden w-[220px] border border-outline-dark bg-surface/95 p-2 backdrop-blur-sm lg:block" aria-hidden="true">
+      <p className="font-mono text-[8px] uppercase tracking-[0.08em] text-on-surface-variant">Input space · same threshold</p>
+      <svg viewBox={`0 0 ${size} ${size - 22}`} className="mt-1 block w-full">
+        <rect width={size} height={size - 22} fill={vizTokens.canvas} />
+        {[40, 70, 100, 130, 160].map((value) => <g key={value}><line x1={value} x2={value} y1="10" y2="170" stroke={vizTokens.grid} /><line x1="20" x2="180" y1={value - 10} y2={value - 10} stroke={vizTokens.grid} /></g>)}
+        <line x1="20" x2="180" y1={centre - 10} y2={centre - 10} stroke={vizTokens.axis} />
+        <line x1={centre} x2={centre} y1="10" y2="170" stroke={vizTokens.axis} />
+        <circle cx={centre} cy={centre - 10} r={BOUNDARY_RADIUS * scale} fill="none" stroke={vizTokens.path} strokeWidth="3" />
+        {points.map((point) => <circle key={point.id} cx={centre + point.x * scale} cy={centre - 10 - point.y * scale} r="4" fill={point.label === 1 ? vizTokens.classB : vizTokens.classA} stroke={vizTokens.canvas} strokeWidth="1.5" />)}
+        <text x={centre} y="176" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="8" fill={vizTokens.path}>circle r = {BOUNDARY_RADIUS.toFixed(2)}</text>
+      </svg>
+    </div>
+  );
+}
+
 function KernelScene3D({ points, lift, showPlane, showBoundary, reducedMotion, flatView, cameraResetKey }: {
   points: KernelPoint[];
   lift: number;
@@ -220,16 +240,16 @@ export default function KernelTrickScene({ step, resetKey }: ExhibitSceneProps) 
     setLift(numberParam(params, "lift", { min: 0, max: 1, step: 0.01 }) ?? defaultLift);
   }, `${activeStep}-${resetKey}`);
 
-  const showPlane = activeStep === 2;
+  const showPlane = activeStep >= 2;
   const showBoundary = activeStep === 3;
-  const flatView = activeStep === 0 || activeStep === 3;
+  const flatView = activeStep === 0;
   const description = activeStep === 0
     ? "An inner group is surrounded by an outer ring, so no straight line separates the groups."
     : activeStep === 1
       ? "Squared distance from the centre becomes a third feature. Ring points rise above the central group."
       : activeStep === 2
         ? "The horizontal separator sits halfway between the closest lifted samples; dashed planes mark the two margins."
-        : "The highlighted input-space circle is the set of points that maps to the flat separator height.";
+        : "The 3D plane and 2D circle are now held together. Every point on the circle maps to the same separator height.";
 
   const changeLift = (nextLift: number) => {
     setLift(nextLift);
@@ -250,16 +270,17 @@ export default function KernelTrickScene({ step, resetKey }: ExhibitSceneProps) 
           flatView={flatView}
           cameraResetKey={`${activeStep}-${resetKey}`}
         />
+        {activeStep === 3 ? <InputSpaceInset points={points} /> : null}
 
         <div className="pointer-events-none absolute left-3 top-3 hidden border border-outline bg-surface/92 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.08em] text-on-surface-variant backdrop-blur-sm sm:left-4 sm:top-4 sm:block">
           <span className="text-primary">2D inputs</span><span className="px-2 text-outline-dark">→</span><span className={lift > 0.08 ? "text-primary" : ""}>3D feature space</span><span className="px-2 text-outline-dark">→</span><span className={showBoundary ? "text-primary" : ""}>2D boundary</span>
         </div>
         <div className="pointer-events-none absolute left-3 right-3 top-3 border border-outline bg-surface/92 px-3 py-2 backdrop-blur-sm sm:left-auto sm:right-4 sm:top-4 sm:max-w-64">
-          <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-primary">{showPlane ? "Flat threshold ↔ circular boundary" : showBoundary ? "Same threshold, input space" : "Explicit map: φ(x,y) = (x,y,(r/R)²)"}</p>
+          <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-primary">{showBoundary ? "Same threshold · two simultaneous views" : showPlane ? "Flat threshold ↔ circular boundary" : "Explicit map: φ(x,y) = (x,y,(r/R)²)"}</p>
           <p className="mt-1 text-[11px] leading-snug text-on-surface-variant">{description}</p>
           {showPlane || showBoundary ? <p className="mt-1 font-mono text-[9px] leading-snug text-on-surface-variant">z = {SEPARATING_HEIGHT.toFixed(2)} ↔ r = {BOUNDARY_RADIUS.toFixed(2)}</p> : null}
         </div>
-        <div className="pointer-events-none absolute bottom-3 left-3 border border-outline bg-surface/88 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.08em] text-on-surface-variant sm:left-4">Drag to orbit · scroll to zoom</div>
+        <div className={`pointer-events-none absolute bottom-3 border border-outline bg-surface/88 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.08em] text-on-surface-variant ${activeStep === 3 ? "right-3 sm:right-4" : "left-3 sm:left-4"}`}>Drag to orbit · scroll to zoom</div>
       </div>
 
       <div className="grid grid-cols-[auto_minmax(100px,1fr)_auto] items-center gap-x-3 gap-y-1 border-t border-outline bg-surface-container-low px-3 py-2 sm:px-4">
