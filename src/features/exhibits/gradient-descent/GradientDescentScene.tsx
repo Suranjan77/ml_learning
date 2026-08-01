@@ -248,7 +248,7 @@ function ValleyFloor() {
   return <group>
     <Line points={points} color={vizTokens.axis} lineWidth={2.2} dashed dashSize={0.1} gapSize={0.07} transparent opacity={0.65} />
     {labelPosition ? <Html position={[labelPosition[0], labelPosition[1] + 0.18, labelPosition[2]]} center zIndexRange={[3, 0]}>
-      <span aria-hidden="true" className="pointer-events-none whitespace-nowrap bg-surface/92 px-1.5 py-0.5 font-mono text-[8px] uppercase text-on-surface-variant">Valley floor</span>
+      <span aria-hidden="true" className="pointer-events-none whitespace-nowrap bg-surface/92 px-1.5 py-0.5 font-mono viz-micro uppercase text-on-surface-variant">Valley floor</span>
     </Html> : null}
   </group>;
 }
@@ -362,7 +362,7 @@ function DescentScene3D({
       {reference.length > 1 ? <Line points={reference} color={vizTokens.classA} lineWidth={3.2} transparent opacity={0.72} /> : null}
       {referenceLabelPosition && referenceLearningRate !== null ? (
         <Html position={[referenceLabelPosition[0], referenceLabelPosition[1] + 0.24, referenceLabelPosition[2]]} center zIndexRange={[4, 0]}>
-          <span aria-hidden="true" className="pointer-events-none whitespace-nowrap border border-primary bg-surface/95 px-1.5 py-0.5 font-mono text-[8px] uppercase text-primary">
+          <span aria-hidden="true" className="pointer-events-none whitespace-nowrap border border-primary bg-surface/95 px-1.5 py-0.5 font-mono viz-micro uppercase text-primary">
             Stable reference · {referenceLearningRate.toFixed(2)} · {referenceAssessment?.behaviour ?? "kept"}
           </span>
         </Html>
@@ -382,7 +382,7 @@ function DescentScene3D({
       </mesh>)}
 
       {currentLabelPosition && referenceLearningRate !== null ? <Html position={[currentLabelPosition[0], currentLabelPosition[1] + 0.28, currentLabelPosition[2]]} center zIndexRange={[5, 0]}>
-        <span aria-hidden="true" className={`pointer-events-none whitespace-nowrap border bg-surface/95 px-1.5 py-0.5 font-mono text-[8px] uppercase ${currentAssessment.behaviour === "diverging" ? "border-error text-error" : "border-accent text-accent"}`}>
+        <span aria-hidden="true" className={`pointer-events-none whitespace-nowrap border bg-surface/95 px-1.5 py-0.5 font-mono viz-micro uppercase ${currentAssessment.behaviour === "diverging" ? "border-error text-error" : "border-accent text-accent"}`}>
           Current · {currentAssessment.behaviour}
         </span>
       </Html> : null}
@@ -392,7 +392,7 @@ function DescentScene3D({
         <meshBasicMaterial color={vizTokens.path} side={THREE.DoubleSide} transparent opacity={0.78} />
       </mesh>
       {sameStart ? <Html position={scenePoint({ ...start, loss: lossAt(start, surface) })} center zIndexRange={[3, 0]}>
-        <span aria-hidden="true" className="pointer-events-none translate-y-5 whitespace-nowrap bg-surface/92 px-1.5 py-0.5 font-mono text-[8px] uppercase text-on-surface">Same start</span>
+        <span aria-hidden="true" className="pointer-events-none translate-y-5 whitespace-nowrap bg-surface/92 px-1.5 py-0.5 font-mono viz-micro uppercase text-on-surface">Same start</span>
       </Html> : null}
       {showReferenceStart ? (
         <mesh position={scenePoint({ ...referenceStart, loss: lossAt(referenceStart, surface) })} rotation={[-Math.PI / 2, 0, 0]}>
@@ -406,7 +406,7 @@ function DescentScene3D({
       </mesh>
       {surface === "multimodal" ? (
         <Html position={[0, 0.42, 0]} center zIndexRange={[3, 0]}>
-          <span aria-hidden="true" className="pointer-events-none whitespace-nowrap border border-primary bg-surface/95 px-1.5 py-0.5 font-mono text-[8px] uppercase text-primary">
+          <span aria-hidden="true" className="pointer-events-none whitespace-nowrap border border-primary bg-surface/95 px-1.5 py-0.5 font-mono viz-micro uppercase text-primary">
             Global minimum
           </span>
         </Html>
@@ -684,38 +684,38 @@ export default function GradientDescentScene({ step, resetKey, playing = false }
 
         {showValleyComparison ? <GradientPathComparison currentPath={path} referencePath={reference.path} currentRate={learningRate} referenceRate={reference.learningRate} currentAssessment={pathAssessment} referenceAssessment={referencePathAssessment} /> : null}
 
-        <div className="pointer-events-none absolute left-3 top-3 hidden border border-outline bg-surface/90 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.08em] text-on-surface-variant backdrop-blur-sm sm:left-4 sm:top-4 sm:block">
+        <div className="pointer-events-none absolute left-3 top-3 hidden border border-outline bg-surface/90 px-3 py-2 font-mono viz-label-strong uppercase tracking-[0.08em] text-on-surface-variant backdrop-blur-sm sm:left-4 sm:top-4 sm:block">
           <span>parameters x₁, x₂</span><span className="px-2 text-outline-dark">→</span><span className="text-primary">height = loss</span>
         </div>
         <div className="pointer-events-none absolute left-3 right-3 top-3 border border-outline-dark bg-surface/95 px-3 py-2 backdrop-blur-sm sm:left-auto sm:right-4 sm:top-4 sm:w-72">
-          <div className="flex items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant">
+          <div className="flex items-center justify-between gap-3 font-mono viz-label uppercase tracking-[0.1em] text-on-surface-variant">
             <span>{showValleyComparison || basinComparison ? "Controlled comparison" : boundedStep === 0 ? "Next update" : `Update ${boundedStep}`}</span>
             <span className="text-primary">{surface === "bowl" ? "isotropic bowl" : surface === "valley" ? "narrow valley" : "many basins"}</span>
           </div>
           {showValleyComparison ? <>
-            <div className="mt-2 grid grid-cols-[auto_1fr_auto] items-center gap-x-2 border-y border-outline py-1.5 font-mono text-[9px] uppercase">
+            <div className="mt-2 grid grid-cols-[auto_1fr_auto] items-center gap-x-2 border-y border-outline py-1.5 font-mono viz-label uppercase">
               <span className="h-1.5 w-4 bg-primary" aria-hidden="true" /><span className="text-on-surface-variant">Reference {reference.learningRate.toFixed(2)}</span><span className={referenceRegimeClass}>{referenceRegimeLabel}</span>
               <span className="h-1.5 w-4 bg-accent" aria-hidden="true" /><span className="text-on-surface-variant">Current {learningRate.toFixed(2)}</span><span className={regimeClass}>{pathRegimeLabel}</span>
             </div>
-            <p className={`mt-1 font-mono text-[9px] uppercase ${regimeClass}`}>{stabilityOutcome}</p>
-            <p className={`mt-1 font-mono text-[9px] uppercase ${referenceRegimeClass}`}>Reference loss is {referencePathChange.toFixed(0)}% {referencePathAssessment.behaviour === "diverging" ? "higher" : "lower"}</p>
-            <p className="mt-1 text-[10px] leading-snug text-on-surface-variant">{startChanged ? comparisonDescription : `Same start and surface · ${pathAssessment.crossings} valley-floor crossings`}</p>
+            <p className={`mt-1 font-mono viz-label uppercase ${regimeClass}`}>{stabilityOutcome}</p>
+            <p className={`mt-1 font-mono viz-label uppercase ${referenceRegimeClass}`}>Reference loss is {referencePathChange.toFixed(0)}% {referencePathAssessment.behaviour === "diverging" ? "higher" : "lower"}</p>
+            <p className="mt-1 viz-label-strong leading-snug text-on-surface-variant">{startChanged ? comparisonDescription : `Same start and surface · ${pathAssessment.crossings} valley-floor crossings`}</p>
           </> : basinComparison ? <>
-            <p className={`mt-2 font-mono text-[10px] uppercase ${reachesDifferentBasin ? "text-warning" : "text-primary"}`}>{basinComparison}</p>
-            <p className="mt-1 text-[10px] leading-snug text-on-surface-variant">{comparisonDescription}</p>
+            <p className={`mt-2 font-mono viz-label-strong uppercase ${reachesDifferentBasin ? "text-warning" : "text-primary"}`}>{basinComparison}</p>
+            <p className="mt-1 viz-label-strong leading-snug text-on-surface-variant">{comparisonDescription}</p>
           </> : <>
             <div className="mt-1 flex items-baseline gap-2 font-mono text-sm text-on-surface"><span>L {before.loss.toFixed(3)}</span><span className="text-on-surface-variant">→</span><span className={assessment.behaviour === "diverging" ? "text-error" : "text-primary"}>{after.loss.toFixed(3)}</span></div>
-            <div className="mt-1 hidden grid-cols-[auto_1fr] gap-x-2 font-mono text-[9px] leading-4 text-on-surface-variant sm:grid">
+            <div className="mt-1 hidden grid-cols-[auto_1fr] gap-x-2 font-mono viz-label leading-4 text-on-surface-variant sm:grid">
               <span>{surface === "valley" ? "Local slope ∇L" : "Local slope ∇L x₁,x₂"}</span>
               <span className="text-right text-on-surface">[{(surface === "valley" ? principalGradient.x : stepGradient.x).toFixed(2)}, {(surface === "valley" ? principalGradient.y : stepGradient.y).toFixed(2)}]</span>
               <span>Δ parameters</span><span className="text-right text-on-surface">[{update.x.toFixed(2)}, {update.y.toFixed(2)}]</span>
             </div>
-            <p className={`mt-1 font-mono text-[9px] uppercase ${assessment.behaviour === "diverging" ? "text-error" : assessment.behaviour === "overshoot" ? "text-warning" : "text-primary"}`}>{outcomeLabel(assessment)}</p>
-            <p className="mt-1 hidden text-[10px] leading-snug text-on-surface-variant sm:block">{surfaceExplanation}</p>
-            {basinOutcome ? <p className={`mt-1 border-t border-outline pt-1 font-mono text-[9px] uppercase ${forecastEnd.loss < 0.02 ? "text-primary" : "text-warning"}`}>{basinOutcome}</p> : null}
+            <p className={`mt-1 font-mono viz-label uppercase ${assessment.behaviour === "diverging" ? "text-error" : assessment.behaviour === "overshoot" ? "text-warning" : "text-primary"}`}>{outcomeLabel(assessment)}</p>
+            <p className="mt-1 hidden viz-label-strong leading-snug text-on-surface-variant sm:block">{surfaceExplanation}</p>
+            {basinOutcome ? <p className={`mt-1 border-t border-outline pt-1 font-mono viz-label uppercase ${forecastEnd.loss < 0.02 ? "text-primary" : "text-warning"}`}>{basinOutcome}</p> : null}
           </>}
         </div>
-        <div className={`pointer-events-none absolute bottom-3 right-3 hidden border border-outline bg-surface/90 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.08em] text-on-surface-variant sm:block ${showValleyComparison ? "lg:right-4" : "sm:left-4 sm:right-auto"}`}>
+        <div className={`pointer-events-none absolute bottom-3 right-3 hidden border border-outline bg-surface/90 px-2 py-1 font-mono viz-label uppercase tracking-[0.08em] text-on-surface-variant sm:block ${showValleyComparison ? "lg:right-4" : "sm:left-4 sm:right-auto"}`}>
           <span className="text-accent">Rust: current</span>{reference ? <><span className="px-2">·</span><span className="text-primary">Green: reference</span><span className="px-2">·</span><span className={startChanged && rateChanged ? "text-warning" : "text-primary"}>{comparisonLabel}</span></> : null}<span className="px-2">·</span><span>Solid: completed · dashed: forecast</span><span className="hidden px-2 xl:inline">·</span><span className="hidden xl:inline">Surface drag: move start · background: rotate</span>
         </div>
         <p className="sr-only" aria-live="polite" aria-label={statusDescription}>{statusText}</p>
@@ -744,7 +744,7 @@ export default function GradientDescentScene({ step, resetKey, playing = false }
 
       <div className="grid shrink-0 grid-cols-[auto_minmax(8rem,1fr)] gap-x-3 gap-y-2 border-t border-outline bg-surface-container-low p-2 sm:flex sm:items-end sm:gap-4 sm:px-3 sm:py-2">
         <fieldset className="min-w-0">
-          <legend className="mb-1 font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant">Surface</legend>
+          <legend className="mb-1 font-mono viz-label uppercase tracking-[0.1em] text-on-surface-variant">Surface</legend>
           <div className="grid grid-cols-3">
             {(["bowl", "valley", "multimodal"] as const).map((kind, index) => (
               <button key={kind} type="button" aria-pressed={surface === kind} onClick={() => { setSurface(kind); setReference(null); syncControls(kind, learningRate, start, null); restartPath(); }} className={`min-h-9 border px-2 text-xs capitalize transition-colors ${index > 0 ? "-ml-px" : ""} ${surface === kind ? "relative z-10 border-primary bg-primary text-on-primary" : "border-outline bg-surface text-on-surface-variant hover:border-primary"}`}>{kind === "multimodal" ? "Many minima" : kind}</button>
@@ -753,7 +753,7 @@ export default function GradientDescentScene({ step, resetKey, playing = false }
         </fieldset>
 
         <label className="min-w-0 flex-1 sm:max-w-sm">
-          <span className="mb-1 flex items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant"><span>Learning rate</span><span className={regimeClass}>{learningRate.toFixed(2)} · {regimeLabel}</span></span>
+          <span className="mb-1 flex items-center justify-between gap-3 font-mono viz-label uppercase tracking-[0.1em] text-on-surface-variant"><span>Learning rate</span><span className={regimeClass}>{learningRate.toFixed(2)} · {regimeLabel}</span></span>
           <input aria-label="Learning rate" type="range" min={LEARNING_RATE_RANGE.min} max={LEARNING_RATE_RANGE.max} step={LEARNING_RATE_RANGE.step} value={learningRate} onChange={(event) => { const next = Number(event.target.value); setLearningRate(next); setRateAdjusted(true); syncControls(surface, next, start); restartPath(); }} className="block min-h-9" />
           <KeptComparisonButton
             active={reference !== null}

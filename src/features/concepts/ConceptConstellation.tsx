@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { ArrowRight, LocateFixed } from "lucide-react";
 import {
+  conceptCountWord,
   conceptNodes,
   conceptRelations,
   conceptSlugs,
@@ -121,7 +122,7 @@ export function ConceptConstellation({ exhibits }: { exhibits: readonly ConceptM
           </div>
           <div
             role="group"
-            aria-label="Authored map of thirteen machine-learning concepts. Select a concept to inspect the questions connecting it to its neighbours."
+            aria-label={`Authored map of ${conceptCountWord} machine-learning concepts. Select a concept to inspect the questions connecting it to its neighbours.`}
             className="relative aspect-[5/3] min-h-[32rem] overflow-hidden border border-outline-dark bg-surface"
           >
             <svg viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`} className="absolute inset-0 h-full w-full" aria-hidden="true">
@@ -209,7 +210,7 @@ export function ConceptConstellation({ exhibits }: { exhibits: readonly ConceptM
           compact
         />
         <div className="mt-5 border border-outline bg-surface p-4">
-          <p className="font-mono text-[9px] uppercase tracking-label text-on-surface-variant">All thirteen concepts</p>
+          <p className="font-mono text-[9px] uppercase tracking-label text-on-surface-variant">All {conceptCountWord} concepts</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {conceptNodes.map((node) => (
               <button

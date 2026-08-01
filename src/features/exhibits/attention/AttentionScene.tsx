@@ -208,7 +208,7 @@ export default function AttentionScene({ resetKey = 0, step = 0, playing = false
     >
       <header className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2 border-b border-outline px-3 py-2.5">
         <div className="flex min-w-0 items-center gap-2" role="group" aria-label="Sentence ending">
-          <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-on-surface-variant">
+          <span className="font-mono viz-label-strong uppercase tracking-[0.1em] text-on-surface-variant">
             Ending
           </span>
           <div className="flex border border-outline bg-surface-container-low p-0.5">
@@ -222,7 +222,7 @@ export default function AttentionScene({ resetKey = 0, step = 0, playing = false
                   aria-label={`Use sentence ending in ${ending}`}
                   aria-pressed={active}
                   onClick={() => chooseExample(index)}
-                  className={`min-h-8 px-2.5 font-mono text-[11px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                  className={`min-h-8 px-2.5 font-mono viz-caption transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                     active
                       ? "bg-primary text-on-primary"
                       : "text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface"
@@ -247,7 +247,7 @@ export default function AttentionScene({ resetKey = 0, step = 0, playing = false
         </div>
 
         <div className="flex min-w-0 items-center gap-2" role="group" aria-label="Attention pattern">
-          <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-on-surface-variant">
+          <span className="font-mono viz-label-strong uppercase tracking-[0.1em] text-on-surface-variant">
             Pattern
           </span>
           <div className="flex border border-outline bg-surface-container-low p-0.5">
@@ -261,7 +261,7 @@ export default function AttentionScene({ resetKey = 0, step = 0, playing = false
                   aria-pressed={active}
                   title={item.description}
                   onClick={() => chooseHead(index)}
-                  className={`min-h-8 px-2.5 font-mono text-[11px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                  className={`min-h-8 px-2.5 font-mono viz-caption transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                     active
                       ? "bg-primary text-on-primary"
                       : "text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface"
@@ -283,10 +283,10 @@ export default function AttentionScene({ resetKey = 0, step = 0, playing = false
 
         <div>
           <div className="mb-1.5 flex items-center justify-between gap-3">
-            <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant sm:text-[10px]">
+            <p className="font-mono viz-label uppercase tracking-[0.1em] text-on-surface-variant sm:viz-label-strong">
               Query token
             </p>
-            <p className="hidden font-mono text-[9px] text-on-surface-variant sm:block">
+            <p className="hidden font-mono viz-label text-on-surface-variant sm:block">
               Hover, focus or use ← →
             </p>
           </div>
@@ -315,7 +315,7 @@ export default function AttentionScene({ resetKey = 0, step = 0, playing = false
                   }}
                   onFocus={() => chooseQuery(index)}
                   onKeyDown={(event) => handleQueryKeyDown(event, index)}
-                  className={`relative min-h-10 min-w-0 border px-0.5 font-mono text-[9px] transition-colors focus-visible:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:min-h-11 sm:text-xs ${
+                  className={`relative min-h-10 min-w-0 border px-0.5 font-mono viz-label transition-colors focus-visible:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:min-h-11 sm:text-xs ${
                     selected
                       ? "border-primary bg-primary font-medium text-on-primary"
                       : "border-outline bg-surface text-on-surface hover:border-outline-dark"
@@ -380,10 +380,10 @@ export default function AttentionScene({ resetKey = 0, step = 0, playing = false
 
         <div>
           <div className="mb-1.5 flex items-center justify-between gap-3">
-            <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant sm:text-[10px]">
+            <p className="font-mono viz-label uppercase tracking-[0.1em] text-on-surface-variant sm:viz-label-strong">
               Context tokens
             </p>
-            <p className="font-mono text-[9px] text-on-surface-variant sm:text-[10px]">
+            <p className="font-mono viz-label text-on-surface-variant sm:viz-label-strong">
               Width = weight
             </p>
           </div>
@@ -407,15 +407,15 @@ export default function AttentionScene({ resetKey = 0, step = 0, playing = false
                     rank === 1 ? "border-t-2 border-accent" : rank ? "border-primary" : "border-outline"
                   }`}
                 >
-                  <span className="block truncate text-[9px] text-on-surface sm:text-xs">{token}</span>
-                  <span className="mt-0.5 flex items-center justify-center gap-1 text-[8px] text-on-surface-variant sm:text-[10px]">
+                  <span className="block truncate viz-label text-on-surface sm:text-xs">{token}</span>
+                  <span className="mt-0.5 flex items-center justify-center gap-1 viz-micro text-on-surface-variant sm:viz-label-strong">
                     {formatWeight(weight)}
                     {rank ? <strong className="font-medium text-primary">#{rank}</strong> : null}
                   </span>
-                  <span className="mt-0.5 hidden text-[8px] text-on-surface-variant md:block">score {score.toFixed(2)}</span>
+                  <span className="mt-0.5 hidden viz-micro text-on-surface-variant md:block">score {score.toFixed(2)}</span>
                   {referenceWeights ? (
                     <>
-                      <span className={`mt-0.5 text-[8px] ${weight - referenceWeights[index] > 0.005 ? "text-accent" : weight - referenceWeights[index] < -0.005 ? "text-error" : "text-on-surface-variant"}`}>
+                      <span className={`mt-0.5 viz-micro ${weight - referenceWeights[index] > 0.005 ? "text-accent" : weight - referenceWeights[index] < -0.005 ? "text-error" : "text-on-surface-variant"}`}>
                         {(weight - referenceWeights[index]) >= 0 ? "+" : ""}{Math.round((weight - referenceWeights[index]) * 100)} pts vs kept
                       </span>
                       <span
@@ -439,10 +439,10 @@ export default function AttentionScene({ resetKey = 0, step = 0, playing = false
           <p aria-live="polite" className="text-on-surface-variant">
           <span className="font-medium text-on-surface">{comparisonSummary ?? description}</span>
           </p>
-          <p title={ATTENTION_DATA_DISCLOSURE} className="font-mono text-[8px] uppercase tracking-[0.08em] text-on-surface-variant sm:text-[9px]">QKᵀ / √{head.vectorDimension} → softmax · vectors authored<span className="sr-only">. {ATTENTION_DATA_DISCLOSURE}</span></p>
+          <p title={ATTENTION_DATA_DISCLOSURE} className="font-mono viz-micro uppercase tracking-[0.08em] text-on-surface-variant sm:viz-label">QKᵀ / √{head.vectorDimension} → softmax · vectors authored<span className="sr-only">. {ATTENTION_DATA_DISCLOSURE}</span></p>
         </div>
         {strongestTarget !== undefined && strongestScore !== null && strongestWeight !== null && softmaxNumerator !== null ? (
-          <div className="border-l-2 border-accent pl-3 font-mono text-[9px] leading-4 text-on-surface-variant" aria-label={`${example.tokens[sourceIndex]} to ${example.tokens[strongestTarget]} score ${strongestScore.toFixed(2)} becomes attention weight ${formatWeight(strongestWeight)}`}>
+          <div className="border-l-2 border-accent pl-3 font-mono viz-label leading-4 text-on-surface-variant" aria-label={`${example.tokens[sourceIndex]} to ${example.tokens[strongestTarget]} score ${strongestScore.toFixed(2)} becomes attention weight ${formatWeight(strongestWeight)}`}>
             <p className="uppercase text-accent">Trace the strongest arc · {example.tokens[sourceIndex]} → {example.tokens[strongestTarget]}</p>
             <p><span className="text-on-surface">score {strongestScore.toFixed(2)}</span> → exp(score − max) {softmaxNumerator.toFixed(2)} / Σ {softmaxDenominator.toFixed(2)} → <strong className="font-medium text-accent">weight {formatWeight(strongestWeight)}</strong></p>
           </div>

@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
-import { Check, ChevronLeft, ChevronRight, Copy, ExternalLink, Lightbulb, Pause, Play, RotateCcw, Share2, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Copy, ExternalLink, Lightbulb, Pause, Play, Presentation, RotateCcw, Share2, X } from "lucide-react";
 import { getExhibit } from "./registry";
 import { ExhibitScene } from "./sceneRegistry";
 import { SCENE_URL_KEYS } from "./sceneUrlState";
+import { PresentModeProvider } from "./presentMode";
 import { GradientDescentNextConcepts } from "./gradient-descent/GradientDescentNextConcepts";
 
 // Keep guided playback close to the duration of the scene transitions. A long
@@ -24,6 +25,7 @@ export default function ExhibitShell({ slug }: { slug: string }) {
   const [reducedMotion, setReducedMotion] = useState(false);
   const [copied, setCopied] = useState(false);
   const [embedMode, setEmbedMode] = useState(false);
+  const [presenting, setPresenting] = useState(false);
   const dialogRef = useRef<HTMLElement>(null);
   const sceneId = useId();
   const current = exhibit.steps[step];
@@ -35,6 +37,7 @@ export default function ExhibitShell({ slug }: { slug: string }) {
     const requested = raw === null ? 0 : Number(raw);
 
     setEmbedMode(params.get("embed") === "1");
+    setPresenting(params.get("present") === "1");
 
     if (
       Number.isInteger(requested) &&
@@ -85,6 +88,39 @@ export default function ExhibitShell({ slug }: { slug: string }) {
     );
     return () => window.clearTimeout(timer);
   }, [chooseStep, exhibit.steps.length, playing, reducedMotion, step]);
+
+  // Present mode is route-level state like `step` and `embed`, so it survives
+  // stepping through the walkthrough and travels with a copied or embedded link.
+  // The address-bar write stays outside the state updater: React may call an
+  // updater during render, and touching history there updates the Router while
+  // this component is still rendering.
+  const togglePresenting = useCallback(() => {
+    const next = !presenting;
+    setPresenting(next);
+
+    const url = new URL(window.location.href);
+    if (next) {
+      url.searchParams.set("present", "1");
+    } else {
+      url.searchParams.delete("present");
+    }
+    window.history.replaceState({}, "", url);
+  }, [presenting]);
+
+  // "P" toggles from the lectern without hunting for the control mid-sentence.
+  useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      if (event.key !== "p" && event.key !== "P") return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
+      event.preventDefault();
+      togglePresenting();
+    };
+
+    document.addEventListener("keydown", handleShortcut);
+    return () => document.removeEventListener("keydown", handleShortcut);
+  }, [togglePresenting]);
 
   const closeDetails = useCallback(() => setDetailsOpen(false), []);
 
@@ -197,44 +233,75 @@ export default function ExhibitShell({ slug }: { slug: string }) {
 
   const fullViewHref = `/visualisations/${slug}`;
 
+  // Presenting trades supporting chrome for scene area and larger type: the
+  // room needs the question, the drawing, and the current instruction, and
+  // nothing else competing with them.
+  const shellRows = presenting
+    ? "grid-rows-[68px_minmax(0,1fr)_136px]"
+    : "grid-rows-[76px_minmax(0,1fr)_172px] sm:grid-rows-[72px_minmax(0,1fr)_104px]";
+  const contentMax = presenting ? "max-w-none" : "max-w-[1600px]";
+
   return (
+    <PresentModeProvider value={presenting}>
     <article
       data-testid="visualisation-workspace"
       data-embed={embedMode ? "true" : undefined}
+      data-present={presenting ? "true" : undefined}
       data-guided-step={step}
-      className="relative grid h-full min-h-0 grid-rows-[76px_minmax(0,1fr)_172px] overflow-hidden sm:grid-rows-[72px_minmax(0,1fr)_104px]"
+      className={`relative grid h-full min-h-0 overflow-hidden ${shellRows}`}
     >
       <header inert={detailsOpen ? true : undefined} className="border-b border-outline bg-surface px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto grid h-full max-w-[1600px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+        <div className={`mx-auto grid h-full grid-cols-[minmax(0,1fr)_auto] items-center gap-4 ${contentMax}`}>
           <div className="min-w-0">
-            <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-label text-on-surface-variant sm:text-[11px]">
-              <Link
-                href="/visualisations"
-                className="shrink-0 text-primary hover:underline"
-              >
-                All visualisations
-              </Link>
-              <span aria-hidden="true">/</span>
-              <span className="truncate">{exhibit.topic}</span>
-            </div>
+            {presenting ? null : (
+              <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-label text-on-surface-variant sm:text-[11px]">
+                <Link
+                  href="/visualisations"
+                  className="shrink-0 text-primary hover:underline"
+                >
+                  All visualisations
+                </Link>
+                <span aria-hidden="true">/</span>
+                <span className="truncate">{exhibit.topic}</span>
+              </div>
+            )}
             <h1
               id={`${sceneId}-title`}
-              className="mt-1 line-clamp-2 font-headline text-lg font-medium leading-tight text-on-surface sm:text-xl lg:text-2xl"
+              className={
+                presenting
+                  ? "line-clamp-2 font-headline text-2xl font-medium leading-tight text-on-surface lg:text-[2rem]"
+                  : "mt-1 line-clamp-2 font-headline text-lg font-medium leading-tight text-on-surface sm:text-xl lg:text-2xl"
+              }
             >
               {exhibit.question}
             </h1>
           </div>
 
-          <dl className="hidden shrink-0 items-center divide-x divide-outline border border-outline bg-background font-mono text-[10px] uppercase tracking-label text-on-surface-variant md:flex">
-            <div className="px-3 py-2">
-              <dt className="sr-only">Difficulty</dt>
-              <dd>{exhibit.difficulty}</dd>
-            </div>
-            <div className="px-3 py-2">
-              <dt className="sr-only">Estimated time</dt>
-              <dd>{exhibit.duration} min</dd>
-            </div>
-          </dl>
+          <div className="flex shrink-0 items-center gap-2">
+            {presenting ? null : (
+              <dl className="hidden items-center divide-x divide-outline border border-outline bg-background font-mono text-[10px] uppercase tracking-label text-on-surface-variant md:flex">
+                <div className="px-3 py-2">
+                  <dt className="sr-only">Difficulty</dt>
+                  <dd>{exhibit.difficulty}</dd>
+                </div>
+                <div className="px-3 py-2">
+                  <dt className="sr-only">Estimated time</dt>
+                  <dd>{exhibit.duration} min</dd>
+                </div>
+              </dl>
+            )}
+            <button
+              type="button"
+              onClick={togglePresenting}
+              aria-pressed={presenting}
+              data-testid="present-toggle"
+              title={presenting ? "Leave present mode (P)" : "Enlarge for projection (P)"}
+              className={`inline-flex items-center gap-1.5 border font-mono uppercase tracking-label transition-colors ${presenting ? "h-11 border-primary bg-primary px-4 text-sm text-on-primary" : "h-9 border-outline bg-background px-3 text-[10px] text-on-surface-variant hover:border-primary hover:text-primary"}`}
+            >
+              <Presentation size={presenting ? 17 : 14} aria-hidden="true" />
+              Present
+            </button>
+          </div>
           {embedMode ? (
             <Link
               href={fullViewHref}
@@ -250,10 +317,10 @@ export default function ExhibitShell({ slug }: { slug: string }) {
       <section
         aria-labelledby={`${sceneId}-title`}
         inert={detailsOpen ? true : undefined}
-        className="min-h-0 overflow-hidden bg-surface-container-low p-2 sm:p-3 lg:p-4"
+        className={`min-h-0 overflow-hidden bg-surface-container-low ${presenting ? "p-1" : "p-2 sm:p-3 lg:p-4"}`}
       >
         <div
-          className="relative mx-auto h-full min-h-0 max-w-[1600px] overflow-hidden [&>section]:h-full [&>section]:min-h-0"
+          className={`relative mx-auto h-full min-h-0 overflow-hidden [&>section]:h-full [&>section]:min-h-0 ${contentMax}`}
           data-guided-playback={playing ? "true" : undefined}
         >
           <ExhibitScene slug={slug} step={step} resetKey={resetKey} playing={playing} />
@@ -262,13 +329,13 @@ export default function ExhibitShell({ slug }: { slug: string }) {
       </section>
 
       <footer inert={detailsOpen ? true : undefined} className="border-t border-outline bg-surface px-3 py-3 sm:px-6 lg:px-8">
-        <div className="mx-auto flex h-full max-w-[1600px] min-w-0 flex-col justify-between gap-2 sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-6">
+        <div className={`mx-auto flex h-full min-w-0 flex-col justify-between gap-2 sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-6 ${contentMax}`}>
           <div className="min-w-0" aria-live="polite">
             <p className="flex min-w-0 items-center gap-2">
-              <span className="shrink-0 font-mono text-[10px] uppercase tracking-label text-primary">
+              <span className={`shrink-0 font-mono uppercase tracking-label text-primary ${presenting ? "text-sm" : "text-[10px]"}`}>
                 Step {step + 1} of {exhibit.steps.length}
               </span>
-              <span data-testid="guided-step-title" className="truncate text-sm font-medium text-on-surface">
+              <span data-testid="guided-step-title" className={`truncate font-medium text-on-surface ${presenting ? "text-xl" : "text-sm"}`}>
                 {current.title}
               </span>
               {playing ? <span className="hidden shrink-0 font-mono text-[9px] uppercase tracking-label text-primary lg:inline">Auto-playing</span> : null}
@@ -285,15 +352,15 @@ export default function ExhibitShell({ slug }: { slug: string }) {
                 ))}
               </span>
             </p>
-            <p className="mt-1 line-clamp-2 text-sm leading-5 text-on-surface sm:line-clamp-1">
+            <p className={`mt-1 line-clamp-2 text-on-surface sm:line-clamp-1 ${presenting ? "text-lg leading-7" : "text-sm leading-5"}`}>
               {current.instruction}
             </p>
-            <p className="mt-0.5 line-clamp-2 text-xs leading-4 text-on-surface-variant sm:line-clamp-1">
+            <p className={`mt-0.5 line-clamp-2 text-on-surface-variant sm:line-clamp-1 ${presenting ? "text-base leading-6" : "text-xs leading-4"}`}>
               {current.observation}
             </p>
           </div>
 
-          <div className="grid shrink-0 grid-cols-[40px_64px_40px_40px_40px_minmax(80px,1fr)] gap-1.5 sm:flex sm:items-center sm:gap-2">
+          <div data-exhibit-controls className="grid shrink-0 grid-cols-[40px_64px_40px_40px_40px_minmax(80px,1fr)] gap-1.5 sm:flex sm:items-center sm:gap-2">
             <button
               type="button"
               disabled={step === 0}
@@ -438,5 +505,6 @@ export default function ExhibitShell({ slug }: { slug: string }) {
         </div>
       ) : null}
     </article>
+    </PresentModeProvider>
   );
 }

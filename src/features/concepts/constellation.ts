@@ -12,9 +12,26 @@ export const conceptSlugs = [
   "overfitting",
   "genetic-algorithm",
   "particle-swarm",
+  "classification-threshold",
+  "bayesian-updating",
+  "bagging-and-boosting",
 ] as const;
 
 export type ConceptSlug = (typeof conceptSlugs)[number];
+
+const NUMBER_WORDS = [
+  "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+  "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen",
+  "seventeen", "eighteen", "nineteen", "twenty",
+] as const;
+
+/**
+ * The map's prose names its own size. Spelled out rather than numeric because
+ * it reads inside a sentence — and derived rather than written down, so adding
+ * a concept cannot leave the label claiming the wrong count.
+ */
+export const conceptCountWord: string =
+  NUMBER_WORDS[conceptSlugs.length] ?? String(conceptSlugs.length);
 
 export type ConceptRelationKind =
   | "builds-on"
@@ -70,6 +87,9 @@ export const conceptNodes: readonly ConceptNode[] = [
   { slug: "overfitting", x: 1010, y: 505 },
   { slug: "genetic-algorithm", x: 405, y: 655 },
   { slug: "particle-swarm", x: 765, y: 655 },
+  { slug: "classification-threshold", x: 1050, y: 648 },
+  { slug: "bayesian-updating", x: 700, y: 200 },
+  { slug: "bagging-and-boosting", x: 1055, y: 415 },
 ] as const;
 
 /**
@@ -204,6 +224,52 @@ export const conceptRelations: readonly ConceptRelation[] = [
     kind: "contrasts-with",
     question: "Local receptive fields or content-dependent mixing?",
     explanation: "A convolution reuses a local filter at every position; self-attention recomputes connections from the current query-key content.",
+  },
+  {
+    from: "decision-tree",
+    to: "bagging-and-boosting",
+    kind: "builds-on",
+    question: "What can many trees express that one cannot?",
+    explanation: "A single axis-aligned rule cannot describe a diagonal. A weighted vote over many of them approximates one as a staircase — the same cuts, combined rather than chosen between.",
+  },
+  {
+    from: "bagging-and-boosting",
+    to: "overfitting",
+    kind: "another-failure-mode",
+    question: "Does combining more learners ever stop helping?",
+    explanation: "Ensemble accuracy here is measured on the training data, where it can only improve. Whether that improvement transfers is the question held-out error answers.",
+    bend: 30,
+  },
+  {
+    from: "bayesian-updating",
+    to: "classification-threshold",
+    kind: "explains",
+    question: "What is precision, in probability terms?",
+    explanation: "Precision is the posterior probability that an alert is real. The base rate that ruins it is the prior; the detector's score distributions are the likelihood.",
+    bend: 54,
+  },
+  {
+    from: "bayesian-updating",
+    to: "overfitting",
+    kind: "contrasts-with",
+    question: "Can a belief be held too tightly, or too loosely?",
+    explanation: "A weak prior lets a small sample dictate the answer, much as a flexible model lets noise dictate its fit. A strong prior is a form of regularisation.",
+    bend: -46,
+  },
+  {
+    from: "regression-boundary",
+    to: "classification-threshold",
+    kind: "builds-on",
+    question: "Where does a boundary turn into a decision?",
+    explanation: "A linear model outputs a score, not a verdict. The threshold that converts that score into an alert is a separate choice, and it is the one that decides which errors you make.",
+    bend: 30,
+  },
+  {
+    from: "overfitting",
+    to: "classification-threshold",
+    kind: "another-failure-mode",
+    question: "Can a model that generalises well still be unusable?",
+    explanation: "Overfitting is a failure to generalise. A well-generalising detector can still be worthless if the positive class is rare enough that almost every alert is false — a failure of the operating point, not the fit.",
   },
   {
     from: "attention",

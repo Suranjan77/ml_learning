@@ -12,6 +12,9 @@ import { pcaExhibit } from "./pca/exhibit";
 import { backpropExhibit } from "./backprop/exhibit";
 import { regressionExhibit } from "./regression/exhibit";
 import { decisionTreeExhibit } from "./decision-tree/exhibit";
+import { classificationThresholdExhibit } from "./classification-threshold/exhibit";
+import { bayesianUpdatingExhibit } from "./bayesian-updating/exhibit";
+import { ensemblesExhibit } from "./ensembles/exhibit";
 
 export const exhibits: readonly ExhibitDefinition[] = [
   gradientDescentExhibit,
@@ -27,6 +30,9 @@ export const exhibits: readonly ExhibitDefinition[] = [
   backpropExhibit,
   regressionExhibit,
   decisionTreeExhibit,
+  classificationThresholdExhibit,
+  bayesianUpdatingExhibit,
+  ensemblesExhibit,
 ];
 
 export function getExhibit(slug: string) {

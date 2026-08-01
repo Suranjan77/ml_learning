@@ -475,3 +475,54 @@ button,
         transition-duration: 0.01ms !important;
     }
 }
+
+/* --- Present mode -------------------------------------------------------
+   Exhibits are authored for reading distance. Projected to a room, the same
+   labels are read from several metres away. Present mode enlarges scene type
+   and linework together so the hierarchy an exhibit was drawn with survives
+   the change of scale.
+
+   SVG label sizes live in `vizType` (src/lib/vizTokens.ts) and are scaled in
+   JavaScript, because SVG font sizes are user units inside a viewBox. The DOM
+   chrome scenes draw alongside their SVG uses the utilities below, so both
+   halves of a scene move together from one toggle. */
+
+:root {
+    --viz-text-micro: 8px;
+    --viz-text-label: 9px;
+    --viz-text-label-strong: 10px;
+    --viz-text-caption: 11px;
+    --viz-text-body: 12px;
+}
+
+/* An SVG label is authored in viewBox units and scaled again by the viewport,
+   so it lands near 29px when presenting. DOM chrome is not free to grow that
+   far: legends and slider captions sit in strips laid out for 9px text, and
+   doubling them costs more than it buys. These sizes are the compromise —
+   roughly 1.9x, which clears reading distance without reflowing dense chrome
+   on top of the scene it is describing. */
+[data-present="true"] {
+    --viz-text-micro: 15px;
+    --viz-text-label: 17px;
+    --viz-text-label-strong: 19px;
+    --viz-text-caption: 21px;
+    --viz-text-body: 22px;
+}
+
+@utility viz-micro { font-size: var(--viz-text-micro); }
+@utility viz-label { font-size: var(--viz-text-label); }
+@utility viz-label-strong { font-size: var(--viz-text-label-strong); }
+@utility viz-caption { font-size: var(--viz-text-caption); }
+@utility viz-body { font-size: var(--viz-text-body); }
+
+/* Controls grow with the room: a button you have to hit mid-sentence, from
+   standing, is a different target than one you click while seated. Scoped to
+   the control cluster so the thin step-progress markers stay thin. */
+[data-present="true"] [data-exhibit-controls] button {
+    min-height: 3.25rem;
+    font-size: 1rem;
+}
+
+[data-present="true"] input[type="range"] {
+    height: 1.75rem;
+}

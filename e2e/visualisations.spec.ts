@@ -14,6 +14,9 @@ const routes = [
   "/visualisations/backpropagation",
   "/visualisations/regression-boundary",
   "/visualisations/decision-tree",
+  "/visualisations/classification-threshold",
+  "/visualisations/bayesian-updating",
+  "/visualisations/bagging-and-boosting",
 ];
 
 const viewports = [
@@ -88,7 +91,7 @@ test.describe("concept constellation", () => {
       expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
 
       if (viewport.width >= 1024) {
-        const map = page.getByRole("group", { name: /Authored map of thirteen/ });
+        const map = page.getByRole("group", { name: /Authored map of/ });
         await expect(map).toBeVisible();
         await expect(map.getByRole("button")).toHaveCount(routes.length);
       } else {
@@ -103,7 +106,7 @@ test.describe("concept constellation", () => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto("/concepts");
 
-    const gradient = page.getByRole("group", { name: /Authored map of thirteen/ }).getByRole("button", { name: /Gradient descent/ });
+    const gradient = page.getByRole("group", { name: /Authored map of/ }).getByRole("button", { name: /Gradient descent/ });
     await gradient.focus();
     await gradient.press("ArrowUp");
     await expect(page.getByRole("heading", { level: 2, name: "Regression parameters" })).toBeVisible();
@@ -153,7 +156,7 @@ test.describe("visualisation workspace", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/visualisations/decision-tree?step=3");
 
-    const diagram = page.locator('[data-testid="visualisation-workspace"] svg').first();
+    const diagram = page.locator('[data-testid="visualisation-workspace"] section svg').first();
     const partitionPlot = page.getByTestId("decision-partition-plot");
     const routingTree = page.getByTestId("decision-routing-tree");
     await expect(diagram).toBeVisible();

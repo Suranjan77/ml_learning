@@ -3,6 +3,7 @@
 import { useEffect, useId, useMemo, useState, type KeyboardEvent } from "react";
 import { useReducedMotion } from "motion/react";
 import { vizTokens } from "@/lib/vizTokens";
+import { useVizType } from "../presentMode";
 import type { ExhibitSceneProps } from "../types";
 import {
   COLLAPSE_PARAMETERS,
@@ -163,6 +164,7 @@ function VectorArrow({
   dashed?: boolean;
   label?: string;
 }) {
+  const type = useVizType();
   if (Math.hypot(to.x - from.x, to.y - from.y) < 2) return null;
   return (
     <g aria-hidden="true">
@@ -195,7 +197,7 @@ function VectorArrow({
           stroke={vizTokens.canvas}
           strokeWidth={3}
           paintOrder="stroke"
-          fontSize={10}
+          fontSize={type.labelStrong}
           fontFamily="var(--font-mono)"
         >
           {label}
@@ -216,6 +218,7 @@ function VectorWorkbench({
   vectorLayout: VectorLayout;
   markerIds: Record<"inertia" | "cognitive" | "social" | "combined" | "forecast", string>;
 }) {
+  const type = useVizType();
   const boxWidth = PANEL.width - 36;
   const boxTop = 9;
   const boxHeight = 80;
@@ -256,8 +259,8 @@ function VectorWorkbench({
 
   return (
     <g aria-label={`${vectorLayout === "origin" ? "Same-origin force comparison" : "Head-to-tail force addition"}. Momentum ${vectorText(forces.inertia)}. Personal memory ${vectorText(forces.cognitive)}. Shared knowledge ${vectorText(forces.social)}. Combined velocity ${vectorText(forces.velocity)}.`}>
-      <text fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={9} letterSpacing={0.7}>VECTOR WORKBENCH</text>
-      <text x={boxWidth} textAnchor="end" fill={vizTokens.selection} fontFamily="var(--font-mono)" fontSize={9}>{vectorLayout === "origin" ? "SAME ORIGIN" : "HEAD TO TAIL"}</text>
+      <text fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={type.label} letterSpacing={0.7}>VECTOR WORKBENCH</text>
+      <text x={boxWidth} textAnchor="end" fill={vizTokens.selection} fontFamily="var(--font-mono)" fontSize={type.label}>{vectorLayout === "origin" ? "SAME ORIGIN" : "HEAD TO TAIL"}</text>
       <rect x={0} y={boxTop} width={boxWidth} height={boxHeight} fill="#F5F2EC" stroke={vizTokens.grid} />
       <line x1={12} y1={origin.y} x2={boxWidth - 12} y2={origin.y} stroke={vizTokens.grid} strokeDasharray="2 5" />
       <line x1={origin.x} y1={boxTop + 8} x2={origin.x} y2={boxTop + boxHeight - 8} stroke={vizTokens.grid} strokeDasharray="2 5" />
@@ -266,8 +269,8 @@ function VectorWorkbench({
         <VectorArrow key={key} from={mapPoint(from)} to={mapPoint(to)} {...arrow} />
       ))}
       <circle cx={origin.x} cy={origin.y} r={3.5} fill={vizTokens.ink} stroke={vizTokens.canvas} strokeWidth={1.5} />
-      <text y={104} fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={8.5}>M momentum · P personal · S shared</text>
-      <text x={boxWidth} y={104} textAnchor="end" fill={forces.velocityClipped ? vizTokens.error : vizTokens.selection} fontFamily="var(--font-mono)" fontSize={8.5}>Σ {vectorText(forces.velocity)}{forces.velocityClipped ? " · clipped" : ""}</text>
+      <text y={104} fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={type.micro}>M momentum · P personal · S shared</text>
+      <text x={boxWidth} y={104} textAnchor="end" fill={forces.velocityClipped ? vizTokens.error : vizTokens.selection} fontFamily="var(--font-mono)" fontSize={type.micro}>Σ {vectorText(forces.velocity)}{forces.velocityClipped ? " · clipped" : ""}</text>
     </g>
   );
 }
@@ -295,6 +298,7 @@ function SwarmField({
   markerIds: Record<"inertia" | "cognitive" | "social" | "combined" | "forecast", string>;
   guidedStep: number;
 }) {
+  const type = useVizType();
   const selected = selectedId === null ? null : state.particles.find((particle) => particle.id === selectedId) ?? null;
   const forces = selected ? particleForces(state, selected, parameters) : null;
   const preview = selected && forces ? {
@@ -451,7 +455,7 @@ function SwarmField({
               <circle cx={point.x} cy={point.y} r={16} fill="transparent" />
               {selectedParticle ? <circle cx={point.x} cy={point.y} r={11} fill={vizTokens.canvas} stroke={vizTokens.selection} strokeWidth={2.5} /> : null}
               <circle cx={point.x} cy={point.y} r={selectedParticle ? 5.5 : 4.5} fill={vizTokens.ink} stroke={vizTokens.canvas} strokeWidth={1.6} />
-              {selectedParticle ? <text x={point.x + 10} y={point.y + 17} fill={vizTokens.ink} fontFamily="var(--font-mono)" fontSize={10}>P{particle.id + 1}</text> : null}
+              {selectedParticle ? <text x={point.x + 10} y={point.y + 17} fill={vizTokens.ink} fontFamily="var(--font-mono)" fontSize={type.labelStrong}>P{particle.id + 1}</text> : null}
             </g>
           );
         })}
@@ -484,14 +488,14 @@ function SwarmField({
           return (
             <g aria-label={positionsOverlap ? `${state.particles.length} particles occupy the same plotted location.` : `Magnified collapsed cluster, ${collapseInset.magnification.toFixed(0)} times the full-domain scale.`}>
               <rect x={inset.left} y={inset.top} width={inset.width} height={inset.height} fill={vizTokens.canvas} fillOpacity={0.96} stroke={vizTokens.error} />
-              <text x={inset.left + 10} y={inset.top + 17} fill={vizTokens.error} fontFamily="var(--font-mono)" fontSize={9}>{positionsOverlap ? "OCCUPANCY LENS · ZERO SPREAD" : `COLLAPSED CLUSTER ×${collapseInset.magnification.toFixed(0)}`}</text>
+              <text x={inset.left + 10} y={inset.top + 17} fill={vizTokens.error} fontFamily="var(--font-mono)" fontSize={type.label}>{positionsOverlap ? "OCCUPANCY LENS · ZERO SPREAD" : `COLLAPSED CLUSTER ×${collapseInset.magnification.toFixed(0)}`}</text>
               <rect x={inner.left} y={inner.top} width={inner.width} height={inner.height} fill="#F5F2EC" stroke={vizTokens.grid} />
               {positionsOverlap ? (
                 <g>
                   <circle cx={inner.left + 30} cy={inner.top + 39} r="13" fill={vizTokens.canvas} stroke={vizTokens.path} strokeWidth="2" />
                   <circle cx={inner.left + 30} cy={inner.top + 39} r="6" fill="none" stroke={vizTokens.path} strokeWidth="1.5" />
-                  <text x={inner.left + 52} y={inner.top + 35} fill={vizTokens.ink} fontFamily="var(--font-mono)" fontSize={12}>{state.particles.length}×</text>
-                  <text x={inner.left + 52} y={inner.top + 49} fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={8}>PARTICLES</text>
+                  <text x={inner.left + 52} y={inner.top + 35} fill={vizTokens.ink} fontFamily="var(--font-mono)" fontSize={type.body}>{state.particles.length}×</text>
+                  <text x={inner.left + 52} y={inner.top + 49} fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={type.micro}>PARTICLES</text>
                   {state.particles.map((particle) => <circle key={`occupancy-${particle.id}`} cx={inner.left + 101 + (particle.id % 6) * 6} cy={inner.top + 28 + Math.floor(particle.id / 6) * 11} r="2" fill={particle.id % 2 === 0 ? vizTokens.classA : vizTokens.classB} />)}
                 </g>
               ) : (
@@ -506,78 +510,78 @@ function SwarmField({
                   <circle cx={zoomX(state.globalBest.x)} cy={zoomY(state.globalBest.y)} r="3.5" fill="none" stroke={vizTokens.path} strokeWidth="1.3" />
                 </>
               )}
-              <text x={inset.left + 10} y={inset.top + 122} fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={8}>{positionsOverlap ? `${state.particles.length} IDS → ONE PLOTTED LOCATION` : `AUTO-SCALED · ${state.particles.length} POSITIONS`}</text>
+              <text x={inset.left + 10} y={inset.top + 122} fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={type.micro}>{positionsOverlap ? `${state.particles.length} IDS → ONE PLOTTED LOCATION` : `AUTO-SCALED · ${state.particles.length} POSITIONS`}</text>
             </g>
           );
         })() : null}
       </g>
 
-      <text x={PLOT.left} y={16} fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={10} letterSpacing={1.2}>OBJECTIVE CONTOURS · NO GRADIENT COMPUTED</text>
-      <text x={PLOT.left} y={505} fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={9}>solid = current · hollow = personal memory · double ring = shared best · dashed = forecast</text>
+      <text x={PLOT.left} y={16} fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={type.labelStrong} letterSpacing={1.2}>OBJECTIVE CONTOURS · NO GRADIENT COMPUTED</text>
+      <text x={PLOT.left} y={505} fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={type.label}>solid = current · hollow = personal memory · double ring = shared best · dashed = forecast</text>
 
       {discovered ? (
         <g transform={`translate(${PLOT.left + 18} ${PLOT.top + 18})`}>
           <rect width={345} height={58} fill={vizTokens.canvas} stroke={vizTokens.path} />
-          <text x={14} y={21} fill={vizTokens.path} fontFamily="var(--font-mono)" fontSize={10} letterSpacing={0.7}>NEW SHARED DISCOVERY</text>
-          <text x={14} y={42} fill={vizTokens.ink} fontFamily="var(--font-body)" fontSize={13}>Particle {(state.globalBestUpdatedBy ?? 0) + 1} lowered the cost. Every social target changed.</text>
+          <text x={14} y={21} fill={vizTokens.path} fontFamily="var(--font-mono)" fontSize={type.labelStrong} letterSpacing={0.7}>NEW SHARED DISCOVERY</text>
+          <text x={14} y={42} fill={vizTokens.ink} fontFamily="var(--font-body)" fontSize={type.body}>Particle {(state.globalBestUpdatedBy ?? 0) + 1} lowered the cost. Every social target changed.</text>
         </g>
       ) : guidedStep === 3 ? (
         <g transform={`translate(${PLOT.left + 18} ${PLOT.top + 18})`}>
           <rect width={324} height={58} fill={vizTokens.canvas} stroke={vizTokens.error} />
-          <text x={14} y={21} fill={vizTokens.error} fontFamily="var(--font-mono)" fontSize={10} letterSpacing={0.7}>PREMATURE COLLAPSE</text>
-          <text x={14} y={42} fill={vizTokens.ink} fontFamily="var(--font-body)" fontSize={13}>Strong agreement compressed the search too early.</text>
+          <text x={14} y={21} fill={vizTokens.error} fontFamily="var(--font-mono)" fontSize={type.labelStrong} letterSpacing={0.7}>PREMATURE COLLAPSE</text>
+          <text x={14} y={42} fill={vizTokens.ink} fontFamily="var(--font-body)" fontSize={type.body}>Strong agreement compressed the search too early.</text>
         </g>
       ) : guidedStep === 4 ? (
         <g transform={`translate(${PLOT.left + 18} ${PLOT.top + 18})`}>
           <rect width={324} height={58} fill={vizTokens.canvas} stroke={vizTokens.classA} />
-          <text x={14} y={21} fill={vizTokens.classA} fontFamily="var(--font-mono)" fontSize={10} letterSpacing={0.7}>EXPLORATION PRESERVED</text>
-          <text x={14} y={42} fill={vizTokens.ink} fontFamily="var(--font-body)" fontSize={13}>Less social pull keeps more search regions alive.</text>
+          <text x={14} y={21} fill={vizTokens.classA} fontFamily="var(--font-mono)" fontSize={type.labelStrong} letterSpacing={0.7}>EXPLORATION PRESERVED</text>
+          <text x={14} y={42} fill={vizTokens.ink} fontFamily="var(--font-body)" fontSize={type.body}>Less social pull keeps more search regions alive.</text>
         </g>
       ) : null}
 
       <g transform={`translate(${PANEL.left} ${PANEL.top})`}>
         <rect width={PANEL.width} height={PANEL.height} fill={vizTokens.canvas} stroke={vizTokens.border} />
-        <text x={18} y={24} fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={10} letterSpacing={1.1}>SWARM STATE · ITERATION {state.iteration}</text>
+        <text x={18} y={24} fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={type.labelStrong} letterSpacing={1.1}>SWARM STATE · ITERATION {state.iteration}</text>
         <line x1={18} y1={36} x2={PANEL.width - 18} y2={36} stroke={vizTokens.grid} />
-        <text x={18} y={57} fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={10}>BEST OBJECTIVE</text>
-        <text x={PANEL.width - 18} y={58} textAnchor="end" fill={vizTokens.path} fontFamily="var(--font-mono)" fontSize={17}>{state.globalBestScore.toFixed(3)}</text>
-        <text x={18} y={78} fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={10}>SWARM SPREAD</text>
-        <text x={PANEL.width - 18} y={78} textAnchor="end" fill={guidedStep === 3 ? vizTokens.error : vizTokens.classA} fontFamily="var(--font-mono)" fontSize={13}>{spread.toFixed(2)}</text>
-        <text x={18} y={98} fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={10}>STEPS SINCE BETTER FIND</text>
-        <text x={PANEL.width - 18} y={98} textAnchor="end" fill={stalled ? vizTokens.error : vizTokens.ink} fontFamily="var(--font-mono)" fontSize={13}>{iterationsSinceImprovement(state)}</text>
-        {stalled ? <text x={18} y={117} fill={vizTokens.error} fontFamily="var(--font-body)" fontSize={11}>Search stalled · no better discovery for {iterationsSinceImprovement(state)} steps</text> : null}
+        <text x={18} y={57} fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={type.labelStrong}>BEST OBJECTIVE</text>
+        <text x={PANEL.width - 18} y={58} textAnchor="end" fill={vizTokens.path} fontFamily="var(--font-mono)" fontSize={type.value}>{state.globalBestScore.toFixed(3)}</text>
+        <text x={18} y={78} fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={type.labelStrong}>SWARM SPREAD</text>
+        <text x={PANEL.width - 18} y={78} textAnchor="end" fill={guidedStep === 3 ? vizTokens.error : vizTokens.classA} fontFamily="var(--font-mono)" fontSize={type.body}>{spread.toFixed(2)}</text>
+        <text x={18} y={98} fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={type.labelStrong}>STEPS SINCE BETTER FIND</text>
+        <text x={PANEL.width - 18} y={98} textAnchor="end" fill={stalled ? vizTokens.error : vizTokens.ink} fontFamily="var(--font-mono)" fontSize={type.body}>{iterationsSinceImprovement(state)}</text>
+        {stalled ? <text x={18} y={117} fill={vizTokens.error} fontFamily="var(--font-body)" fontSize={type.caption}>Search stalled · no better discovery for {iterationsSinceImprovement(state)} steps</text> : null}
 
         <line x1={18} y1={130} x2={PANEL.width - 18} y2={130} stroke={vizTokens.grid} />
         {selected && forces ? (
           <g transform="translate(18 151)">
-            <text fill={vizTokens.selection} fontFamily="var(--font-mono)" fontSize={11} letterSpacing={0.8}>PARTICLE {selected.id + 1} MICROSCOPE</text>
-            <text y={22} fill={vizTokens.ink} fontFamily="var(--font-body)" fontSize={12}>Position {vectorText(selected)} · cost {objective(selected).toFixed(2)}</text>
-            <text y={41} fill={vizTokens.classA} fontFamily="var(--font-body)" fontSize={12}>Personal best {vectorText(selected.best)} · {selected.bestScore.toFixed(2)}</text>
-            <text y={60} fill={vizTokens.path} fontFamily="var(--font-body)" fontSize={12}>Shared best {vectorText(state.globalBest)} · {state.globalBestScore.toFixed(2)}</text>
+            <text fill={vizTokens.selection} fontFamily="var(--font-mono)" fontSize={type.caption} letterSpacing={0.8}>PARTICLE {selected.id + 1} MICROSCOPE</text>
+            <text y={22} fill={vizTokens.ink} fontFamily="var(--font-body)" fontSize={type.body}>Position {vectorText(selected)} · cost {objective(selected).toFixed(2)}</text>
+            <text y={41} fill={vizTokens.classA} fontFamily="var(--font-body)" fontSize={type.body}>Personal best {vectorText(selected.best)} · {selected.bestScore.toFixed(2)}</text>
+            <text y={60} fill={vizTokens.path} fontFamily="var(--font-body)" fontSize={type.body}>Shared best {vectorText(state.globalBest)} · {state.globalBestScore.toFixed(2)}</text>
             <line x1={0} y1={72} x2={PANEL.width - 36} y2={72} stroke={vizTokens.grid} />
             <g transform="translate(0 88)">
               <VectorWorkbench forces={forces} visibleForces={visibleForces} vectorLayout={vectorLayout} markerIds={markerIds} />
             </g>
-            {forces.velocityClipped ? <text y={211} fill={vizTokens.error} fontFamily="var(--font-body)" fontSize={9}>Component sum exceeds the per-coordinate velocity limit.</text> : null}
+            {forces.velocityClipped ? <text y={211} fill={vizTokens.error} fontFamily="var(--font-body)" fontSize={type.label}>Component sum exceeds the per-coordinate velocity limit.</text> : null}
           </g>
         ) : (
           <g transform="translate(18 154)">
-            <text fill={vizTokens.ink} fontFamily="var(--font-headline)" fontSize={21}>Select a particle</text>
-            <text y={27} fill={vizTokens.mutedInk} fontFamily="var(--font-body)" fontSize={12}>Click a solid mark, or use the arrow keys.</text>
-            <text y={61} fill={vizTokens.ink} fontFamily="var(--font-body)" fontSize={13}>Its next move combines:</text>
-            <text y={86} fill={vizTokens.mutedInk} fontFamily="var(--font-body)" fontSize={12}>1 · where it was already going</text>
-            <text y={108} fill={vizTokens.classA} fontFamily="var(--font-body)" fontSize={12}>2 · what it personally discovered</text>
-            <text y={130} fill={vizTokens.path} fontFamily="var(--font-body)" fontSize={12}>3 · what the swarm collectively knows</text>
+            <text fill={vizTokens.ink} fontFamily="var(--font-headline)" fontSize={type.valueStrong}>Select a particle</text>
+            <text y={27} fill={vizTokens.mutedInk} fontFamily="var(--font-body)" fontSize={type.body}>Click a solid mark, or use the arrow keys.</text>
+            <text y={61} fill={vizTokens.ink} fontFamily="var(--font-body)" fontSize={type.body}>Its next move combines:</text>
+            <text y={86} fill={vizTokens.mutedInk} fontFamily="var(--font-body)" fontSize={type.body}>1 · where it was already going</text>
+            <text y={108} fill={vizTokens.classA} fontFamily="var(--font-body)" fontSize={type.body}>2 · what it personally discovered</text>
+            <text y={130} fill={vizTokens.path} fontFamily="var(--font-body)" fontSize={type.body}>3 · what the swarm collectively knows</text>
           </g>
         )}
 
         <g transform="translate(18 372)">
-          <text fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={9} letterSpacing={0.8}>BEST OBJECTIVE</text>
+          <text fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={type.label} letterSpacing={0.8}>BEST OBJECTIVE</text>
           <path d={historyPath(state.history.map((item) => item.bestScore), 0, 9, 132, 28)} fill="none" stroke={vizTokens.path} strokeWidth={2} />
-          <text x={151} fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={9} letterSpacing={0.8}>SWARM SPREAD</text>
+          <text x={151} fill={vizTokens.mutedInk} fontFamily="var(--font-mono)" fontSize={type.label} letterSpacing={0.8}>SWARM SPREAD</text>
           <path d={historyPath(state.history.map((item) => item.spread), 151, 9, 132, 28)} fill="none" stroke={guidedStep === 3 ? vizTokens.error : vizTokens.classA} strokeWidth={2} />
           <line x1={0} y1={42} x2={PANEL.width - 36} y2={42} stroke={vizTokens.grid} />
-          <text y={59} fill={vizTokens.mutedInk} fontFamily="var(--font-body)" fontSize={10}>Objective can improve while diversity disappears.</text>
+          <text y={59} fill={vizTokens.mutedInk} fontFamily="var(--font-body)" fontSize={type.labelStrong}>Objective can improve while diversity disappears.</text>
         </g>
       </g>
     </svg>
@@ -585,6 +589,7 @@ function SwarmField({
 }
 
 export default function ParticleSwarmScene({ step, resetKey, playing = false }: ExhibitSceneProps) {
+  const type = useVizType();
   const initialPreset = presetFor(step);
   const reducedMotion = Boolean(useReducedMotion());
   const markerBase = useId().replaceAll(":", "");
@@ -672,9 +677,9 @@ export default function ParticleSwarmScene({ step, resetKey, playing = false }: 
         <div aria-hidden="true" className="flex min-h-0 flex-1 flex-col justify-center border-t border-outline bg-surface px-3 py-2 sm:hidden">
           {selected && forces ? (
             <>
-              <p className="font-mono text-[9px] uppercase tracking-label text-accent">Particle {selected.id + 1} microscope</p>
+              <p className="font-mono viz-label uppercase tracking-label text-accent">Particle {selected.id + 1} microscope</p>
               <p className="mt-1 text-xs text-on-surface">Position {vectorText(selected)} · cost {objective(selected).toFixed(2)}</p>
-              <div className="mt-2 grid gap-1 font-mono text-[9px] text-on-surface-variant">
+              <div className="mt-2 grid gap-1 font-mono viz-label text-on-surface-variant">
                 <p className="flex justify-between"><span>Momentum</span><span>{vectorText(forces.inertia)}</span></p>
                 <p className="flex justify-between text-primary"><span>Personal memory</span><span>{vectorText(forces.cognitive)}</span></p>
                 <p className="flex justify-between text-warning"><span>Shared knowledge</span><span>{vectorText(forces.social)}</span></p>
@@ -706,7 +711,7 @@ export default function ParticleSwarmScene({ step, resetKey, playing = false }: 
                   type="button"
                   aria-pressed={visibleForces[key]}
                   onClick={() => setVisibleForces((current) => ({ ...current, [key]: !current[key] }))}
-                  className={`min-h-9 border px-2 text-[10px] ${visibleForces[key] ? "border-primary bg-primary-container text-on-primary-container" : "border-outline bg-surface text-on-surface-variant"}`}
+                  className={`min-h-9 border px-2 viz-label-strong ${visibleForces[key] ? "border-primary bg-primary-container text-on-primary-container" : "border-outline bg-surface text-on-surface-variant"}`}
                 >
                   {FORCE_LABELS[key]}
                 </button>
@@ -714,7 +719,7 @@ export default function ParticleSwarmScene({ step, resetKey, playing = false }: 
               <button
                 type="button"
                 onClick={() => setVectorLayout((current) => current === "origin" ? "addition" : "origin")}
-                className="min-h-9 border border-outline bg-surface px-2 text-[10px] hover:border-primary"
+                className="min-h-9 border border-outline bg-surface px-2 viz-label-strong hover:border-primary"
                 aria-label={vectorLayout === "origin" ? "Show head-to-tail vector addition" : "Show same-origin vector comparison"}
               >
                 {vectorLayout === "origin" ? "Add head-to-tail" : "Compare from origin"}
@@ -726,7 +731,7 @@ export default function ParticleSwarmScene({ step, resetKey, playing = false }: 
         <div className="grid min-w-0 grid-cols-3 gap-2">
           {parameterControls.map(({ key, label, consequence }) => (
             <label key={key} className="min-w-0" title={`${label}: ${consequence}`}>
-              <span className="flex justify-between gap-1 font-mono text-[8px] uppercase tracking-[0.06em] text-on-surface-variant sm:text-[9px]"><span>{label}</span><span className="text-primary">{parameters[key].toFixed(2)}</span></span>
+              <span className="flex justify-between gap-1 font-mono viz-micro uppercase tracking-[0.06em] text-on-surface-variant sm:viz-label"><span>{label}</span><span className="text-primary">{parameters[key].toFixed(2)}</span></span>
               <input
                 aria-label={label}
                 aria-describedby={`pso-${key}-description`}
@@ -738,7 +743,7 @@ export default function ParticleSwarmScene({ step, resetKey, playing = false }: 
                 onChange={(event) => setParameters((current) => ({ ...current, [key]: Number(event.target.value) }))}
               />
               <span id={`pso-${key}-description`} className="sr-only">{consequence}</span>
-              <span aria-hidden="true" className="hidden truncate text-[9px] text-on-surface-variant xl:block">{consequence}</span>
+              <span aria-hidden="true" className="hidden truncate viz-label text-on-surface-variant xl:block">{consequence}</span>
             </label>
           ))}
         </div>

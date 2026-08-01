@@ -36,3 +36,32 @@ export const vizStroke = Object.freeze({
 } as const);
 
 export type VizStroke = keyof typeof vizStroke;
+
+/**
+ * Shared label sizes (SVG user units at the 1180×520 authoring viewBox), named
+ * by the job the text does rather than by its size. Centralised for the same
+ * reason as `vizStroke`, and because Present mode has to enlarge every label in
+ * the catalogue together — which is only possible if no scene hardcodes its own.
+ *
+ * Read these through `useVizType()` so the values respond to Present mode.
+ */
+export const vizType = Object.freeze({
+  /** Dense supporting detail: axis ticks, units, per-point annotations. */
+  micro: 8,
+  /** Standard uppercase caption on an axis, series, or region. */
+  label: 9,
+  /** A caption naming the thing currently being manipulated. */
+  labelStrong: 10,
+  /** Column and panel headings inside the scene. */
+  caption: 11,
+  /** Running prose inside the scene, where a scene uses any. */
+  body: 12,
+  /** A supporting computed number: a reference, bound, or previous value. */
+  valueSoft: 14,
+  /** A computed number the learner is being asked to watch. */
+  value: 17,
+  /** The single headline number that carries the argument. */
+  valueStrong: 21,
+} as const);
+
+export type VizType = keyof typeof vizType;

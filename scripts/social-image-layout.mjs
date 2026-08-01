@@ -15,6 +15,9 @@ export const socialCards = [
   { name: "backpropagation", topic: "Deep learning", question: "How does error travel backward through a neural network?" },
   { name: "regression-boundary", topic: "Classical machine learning", question: "How do model parameters move a fit or decision boundary?" },
   { name: "decision-tree", topic: "Classical machine learning", question: "How does a decision tree carve up feature space?" },
+  { name: "classification-threshold", topic: "Evaluation", question: "Why can a 99%-accurate detector catch almost nothing?" },
+  { name: "bayesian-updating", topic: "Probabilistic inference", question: "When does the data overrule what you already believed?" },
+  { name: "bagging-and-boosting", topic: "Classical machine learning", question: "How do many bad rules add up to a good one?" },
 ];
 
 const colours = {
@@ -180,6 +183,60 @@ function regressionMotif() {
     ${points.map(([x,y])=>`<line x1="${x}" y1="${y}" x2="${x}" y2="${154-(x-22)*.391}" stroke="${colours.error}" stroke-dasharray="3 3"/><circle cx="${x}" cy="${y}" r="6" fill="${colours.primary}"/>`).join("")}`;
 }
 
+/** Two overlapping score curves split by a threshold: the rare class is the sliver. */
+function thresholdMotif() {
+  const bell = (centre, scale) => Array.from({ length: 49 }, (_, index) => {
+    const x = 12 + (index / 48) * 258;
+    const t = (x - centre) / 46;
+    const y = 150 - Math.exp(-t * t / 2) * 118 * scale;
+    return `${index === 0 ? "M" : "L"}${x.toFixed(1)} ${(y + 15).toFixed(1)}`;
+  }).join(" ");
+  const cut = 214;
+  return `<rect x="${cut}" y="15" width="${282 - cut}" height="150" fill="${colours.accentSoft}" opacity=".6"/>
+    <path d="${bell(104, 1)} L270 165 L12 165 Z" fill="${colours.primarySoft}" stroke="${colours.primary}" stroke-width="3"/>
+    <path d="${bell(186, 1)} L270 165 L12 165 Z" fill="${colours.accentSoft}" stroke="${colours.error}" stroke-width="3" fill-opacity=".8"/>
+    <line x1="${cut}" y1="15" x2="${cut}" y2="165" stroke="${colours.accent}" stroke-width="5"/>
+    <g fill="${colours.surface}" stroke="${colours.outlineDark}" stroke-width="2">
+      <rect x="291" y="34" width="69" height="42"/><rect x="291" y="80" width="69" height="42"/>
+    </g>
+    <text x="325" y="60" text-anchor="middle" font-family="monospace" font-size="19" fill="${colours.primary}">193</text>
+    <text x="325" y="106" text-anchor="middle" font-family="monospace" font-size="19" fill="${colours.error}">807</text>
+    <text x="360" y="140" text-anchor="end" font-family="monospace" font-size="12" fill="${colours.muted}">caught / missed</text>`;
+}
+
+/** A wide prior, a narrow likelihood, and the posterior pulled between them. */
+function posteriorMotif() {
+  const bell = (centre, spread, height) => Array.from({ length: 49 }, (_, index) => {
+    const x = 12 + (index / 48) * 348;
+    const t = (x - centre) / spread;
+    const y = 165 - Math.exp(-t * t / 2) * height;
+    return `${index === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`;
+  }).join(" ");
+  return `<path d="${bell(110, 62, 88)} L360 165 L12 165 Z" fill="${colours.outline}" fill-opacity=".5" stroke="${colours.outlineDark}" stroke-width="3" stroke-dasharray="7 5"/>
+    <path d="${bell(268, 26, 132)}" fill="none" stroke="${colours.primary}" stroke-width="3" stroke-dasharray="4 5"/>
+    <path d="${bell(228, 30, 124)} L360 165 L12 165 Z" fill="${colours.accentSoft}" fill-opacity=".85" stroke="${colours.accent}" stroke-width="4"/>
+    <line x1="12" y1="165" x2="360" y2="165" stroke="${colours.outlineDark}" stroke-width="2"/>
+    <text x="110" y="33" text-anchor="middle" font-family="monospace" font-size="12" fill="${colours.muted}">prior</text>
+    <text x="252" y="20" text-anchor="middle" font-family="monospace" font-size="12" fill="${colours.accent}">posterior</text>`;
+}
+
+/** A staircase of axis-aligned cuts approximating a diagonal it cannot draw. */
+function ensembleMotif() {
+  const steps = [[12,150],[52,150],[52,124],[96,124],[96,100],[140,100],[140,76],[188,76],[188,52],[236,52],[236,30],[286,30]];
+  const path = steps.map(([x,y],i)=>`${i===0?"M":"L"}${x} ${y}`).join(" ");
+  const dots = [[36,44,colours.primary],[74,58,colours.primary],[112,40,colours.primary],[158,34,colours.primary],[210,26,colours.primary],[64,126,colours.error],[118,142,colours.error],[176,120,colours.error],[228,132,colours.error],[268,104,colours.error]];
+  return `<path d="${path} L286 165 L12 165 Z" fill="${colours.accentSoft}" fill-opacity=".55"/>
+    <path d="${path}" fill="none" stroke="${colours.accent}" stroke-width="4"/>
+    <line x1="12" y1="162" x2="292" y2="22" stroke="${colours.ink}" stroke-width="3" stroke-dasharray="8 6" opacity=".55"/>
+    ${dots.map(([x,y,fill])=>`<circle cx="${x}" cy="${y}" r="6" fill="${fill}" stroke="${colours.surface}" stroke-width="2"/>`).join("")}
+    <g stroke="${colours.primary}" stroke-width="2" opacity=".45">
+      <line x1="52" y1="15" x2="52" y2="165"/><line x1="140" y1="15" x2="140" y2="165"/>
+      <line x1="12" y1="100" x2="292" y2="100"/><line x1="12" y1="52" x2="292" y2="52"/>
+    </g>
+    <text x="325" y="80" text-anchor="middle" font-family="monospace" font-size="15" fill="${colours.muted}">30</text>
+    <text x="325" y="102" text-anchor="middle" font-family="monospace" font-size="12" fill="${colours.muted}">stumps</text>`;
+}
+
 function treeMotif() {
   const points=[[31,36,colours.primary],[65,56,colours.primary],[95,30,colours.primary],[110,96,colours.primary],[47,136,colours.primary],[164,45,colours.error],[205,69,colours.error],[238,34,colours.error],[260,116,colours.error],[188,139,colours.error]];
   return `<rect x="12" y="15" width="258" height="150" fill="${colours.primarySoft}"/><rect x="142" y="15" width="128" height="150" fill="${colours.accentSoft}"/><rect x="12" y="111" width="130" height="54" fill="${colours.accentSoft}" opacity=".72"/>
@@ -206,6 +263,9 @@ export function motifFor(name) {
     backpropagation: backpropMotif,
     "regression-boundary": regressionMotif,
     "decision-tree": treeMotif,
+    "classification-threshold": thresholdMotif,
+    "bayesian-updating": posteriorMotif,
+    "bagging-and-boosting": ensembleMotif,
   };
   const render = motifs[name];
   if (!render) throw new Error(`No social motif for ${name}`);

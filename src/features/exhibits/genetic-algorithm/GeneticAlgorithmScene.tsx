@@ -3,6 +3,7 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import type { ExhibitSceneProps } from "../types";
 import { vizTokens } from "@/lib/vizTokens";
+import { useVizType } from "../presentMode";
 import { DEFAULT_MUTATION_RATE, evolvePopulation, fitnessAt, initialPopulation, nextGeneration, type GeneticState } from "./model";
 
 const WIDTH = 1_180;
@@ -53,16 +54,17 @@ function GenomeRow({ label, genome, y, sourceSplit, tone, mutations = [] }: {
   tone?: string;
   mutations?: readonly number[];
 }) {
+  const type = useVizType();
   return (
     <g transform={`translate(0 ${y})`}>
-      <text y="14" fontFamily="var(--font-mono)" fontSize="8" fill={vizTokens.mutedInk}>{label}</text>
+      <text y="14" fontFamily="var(--font-mono)" fontSize={type.micro} fill={vizTokens.mutedInk}>{label}</text>
       {[...genome].map((bit, index) => {
         const mutated = mutations.includes(index);
         const sourceTone = tone ?? (index < (sourceSplit ?? genome.length) ? vizTokens.classA : vizTokens.classB);
         return (
           <g key={index} transform={`translate(${82 + index * 16} 0)`}>
             <rect width="14" height="19" fill={sourceTone} fillOpacity="0.18" stroke={mutated ? vizTokens.error : sourceTone} strokeWidth={mutated ? 2.5 : 1} />
-            <text x="7" y="14" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="10" fontWeight={mutated ? 700 : 400} fill={mutated ? vizTokens.error : vizTokens.ink}>{bit}</text>
+            <text x="7" y="14" textAnchor="middle" fontFamily="var(--font-mono)" fontSize={type.labelStrong} fontWeight={mutated ? 700 : 400} fill={mutated ? vizTokens.error : vizTokens.ink}>{bit}</text>
             {mutated ? <path d="M3 -3 H11" stroke={vizTokens.error} strokeWidth="2" /> : null}
           </g>
         );
@@ -72,6 +74,7 @@ function GenomeRow({ label, genome, y, sourceSplit, tone, mutations = [] }: {
 }
 
 export default function GeneticAlgorithmScene({ step, resetKey, playing = false }: ExhibitSceneProps) {
+  const type = useVizType();
   const initialGeneration = STEP_GENERATIONS[Math.max(0, Math.min(STEP_GENERATIONS.length - 1, step))];
   const titleId = useId();
   const [mutationRate, setMutationRate] = useState(DEFAULT_MUTATION_RATE);
@@ -136,72 +139,72 @@ export default function GeneticAlgorithmScene({ step, resetKey, playing = false 
         <span id={titleId} className="sr-only">A binary population evolving toward the highest-fitness region</span>
         <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="h-full w-full min-w-[850px] lg:min-w-0" aria-hidden="true">
           <rect width={WIDTH} height={HEIGHT} fill={vizTokens.canvas} />
-          <text x={X0} y="27" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>FITNESS LANDSCAPE · TWO PEAKS, ONE GLOBAL BEST</text>
+          <text x={X0} y="27" fontFamily="var(--font-mono)" fontSize={type.labelStrong} fill={vizTokens.mutedInk}>FITNESS LANDSCAPE · TWO PEAKS, ONE GLOBAL BEST</text>
           <line x1={X0} y1={Y_BASE} x2={X1} y2={Y_BASE} stroke={vizTokens.axis} />
           <path d={curvePath()} fill="none" stroke={vizTokens.classA} strokeWidth="3" />
           {state.population.map((individual, index) => <g key={`${individual.genome}-${index}`}>
             <line x1={sx(individual.x)} y1={Y_BASE} x2={sx(individual.x)} y2={sy(individual.fitness)} stroke={vizTokens.path} opacity="0.22" />
             <circle cx={sx(individual.x)} cy={sy(individual.fitness)} r={individual.genome === best.genome ? 8 : 5} fill={individual.genome === best.genome ? vizTokens.selection : vizTokens.path} stroke={vizTokens.pointOutline} strokeWidth="2" />
           </g>)}
-          <text x={sx(-2.05)} y={sy(fitnessAt(-2.05)) - 12} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="9" fill={vizTokens.mutedInk}>LOCAL PEAK</text>
-          <text x={sx(1.45)} y={sy(fitnessAt(1.45)) - 12} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="9" fill={vizTokens.classA}>GLOBAL PEAK</text>
+          <text x={sx(-2.05)} y={sy(fitnessAt(-2.05)) - 12} textAnchor="middle" fontFamily="var(--font-mono)" fontSize={type.label} fill={vizTokens.mutedInk}>LOCAL PEAK</text>
+          <text x={sx(1.45)} y={sy(fitnessAt(1.45)) - 12} textAnchor="middle" fontFamily="var(--font-mono)" fontSize={type.label} fill={vizTokens.classA}>GLOBAL PEAK</text>
 
           <g transform="translate(44 248)">
-            <text fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>RANKED POPULATION</text>
+            <text fontFamily="var(--font-mono)" fontSize={type.labelStrong} fill={vizTokens.mutedInk}>RANKED POPULATION</text>
             {ranked.slice(0, 8).map((individual, index) => <g key={`${individual.genome}-${index}`} transform={`translate(0 ${24 + index * 28})`}>
-              <text y="11" fontFamily="var(--font-mono)" fontSize="11" fill={index === 0 ? vizTokens.selection : vizTokens.ink}>{individual.genome}</text>
+              <text y="11" fontFamily="var(--font-mono)" fontSize={type.caption} fill={index === 0 ? vizTokens.selection : vizTokens.ink}>{individual.genome}</text>
               <rect x="120" width={individual.fitness * 190} height="14" fill={index === 0 ? vizTokens.selection : vizTokens.classA} opacity={index === 0 ? 1 : 0.54} />
-              <text x="350" y="11" textAnchor="end" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>{individual.fitness.toFixed(3)}</text>
+              <text x="350" y="11" textAnchor="end" fontFamily="var(--font-mono)" fontSize={type.labelStrong} fill={vizTokens.mutedInk}>{individual.fitness.toFixed(3)}</text>
             </g>)}
           </g>
 
           <g>
-            <text x="430" y="259" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>SEARCH HISTORY · SAME RUN</text>
+            <text x="430" y="259" fontFamily="var(--font-mono)" fontSize={type.labelStrong} fill={vizTokens.mutedInk}>SEARCH HISTORY · SAME RUN</text>
             <rect x="430" y="274" width="330" height="76" fill={vizTokens.grid} opacity="0.36" />
             <line x1="430" x2="760" y1="344" y2="344" stroke={vizTokens.border} />
-            <text x="438" y="290" fontFamily="var(--font-mono)" fontSize="9" fill={vizTokens.classA}>BEST FITNESS ↑</text>
+            <text x="438" y="290" fontFamily="var(--font-mono)" fontSize={type.label} fill={vizTokens.classA}>BEST FITNESS ↑</text>
             <path d={fitnessHistoryPath} fill="none" stroke={vizTokens.classA} strokeWidth="3" />
             <circle cx={historyX(state.generation)} cy={historyFitnessY(best.fitness)} r="5" fill={vizTokens.classA} stroke={vizTokens.pointOutline} strokeWidth="1.5" />
-            <text x="752" y="290" textAnchor="end" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.classA}>{best.fitness.toFixed(3)}</text>
+            <text x="752" y="290" textAnchor="end" fontFamily="var(--font-mono)" fontSize={type.labelStrong} fill={vizTokens.classA}>{best.fitness.toFixed(3)}</text>
 
             <rect x="430" y="378" width="330" height="80" fill={vizTokens.grid} opacity="0.36" />
             <line x1="430" x2="760" y1="452" y2="452" stroke={vizTokens.border} />
-            <text x="438" y="394" fontFamily="var(--font-mono)" fontSize="9" fill={vizTokens.path}>UNIQUE GENOMES ↓</text>
+            <text x="438" y="394" fontFamily="var(--font-mono)" fontSize={type.label} fill={vizTokens.path}>UNIQUE GENOMES ↓</text>
             <path d={diversityHistoryPath} fill="none" stroke={vizTokens.path} strokeWidth="3" />
             <circle cx={historyX(state.generation)} cy={historyDiversityY(diversity)} r="5" fill={vizTokens.path} stroke={vizTokens.pointOutline} strokeWidth="1.5" />
-            <text x="752" y="394" textAnchor="end" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.path}>{diversity}/12</text>
-            <text x="430" y="478" fontFamily="var(--font-mono)" fontSize="9" fill={vizTokens.mutedInk}>GEN 0</text>
-            <text x="760" y="478" textAnchor="end" fontFamily="var(--font-mono)" fontSize="9" fill={vizTokens.mutedInk}>GEN {historyMaxGeneration}</text>
+            <text x="752" y="394" textAnchor="end" fontFamily="var(--font-mono)" fontSize={type.labelStrong} fill={vizTokens.path}>{diversity}/12</text>
+            <text x="430" y="478" fontFamily="var(--font-mono)" fontSize={type.label} fill={vizTokens.mutedInk}>GEN 0</text>
+            <text x="760" y="478" textAnchor="end" fontFamily="var(--font-mono)" fontSize={type.label} fill={vizTokens.mutedInk}>GEN {historyMaxGeneration}</text>
           </g>
 
           <g transform="translate(820 45)">
-            <text fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>EVOLUTION STATE</text>
-            <text y="42" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.mutedInk}>GENERATION</text><text x="300" y="42" textAnchor="end" fontFamily="var(--font-mono)" fontSize="22" fill={vizTokens.ink}>{state.generation}</text>
-            <text y="78" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.mutedInk}>BEST FITNESS</text><text x="300" y="78" textAnchor="end" fontFamily="var(--font-mono)" fontSize="17" fill={vizTokens.classA}>{best.fitness.toFixed(3)}</text>
-            <text y="108" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.mutedInk}>UNIQUE GENOMES</text><text x="300" y="108" textAnchor="end" fontFamily="var(--font-mono)" fontSize="17" fill={vizTokens.path}>{diversity}/12</text>
+            <text fontFamily="var(--font-mono)" fontSize={type.labelStrong} fill={vizTokens.mutedInk}>EVOLUTION STATE</text>
+            <text y="42" fontFamily="var(--font-mono)" fontSize={type.caption} fill={vizTokens.mutedInk}>GENERATION</text><text x="300" y="42" textAnchor="end" fontFamily="var(--font-mono)" fontSize={type.valueStrong} fill={vizTokens.ink}>{state.generation}</text>
+            <text y="78" fontFamily="var(--font-mono)" fontSize={type.caption} fill={vizTokens.mutedInk}>BEST FITNESS</text><text x="300" y="78" textAnchor="end" fontFamily="var(--font-mono)" fontSize={type.value} fill={vizTokens.classA}>{best.fitness.toFixed(3)}</text>
+            <text y="108" fontFamily="var(--font-mono)" fontSize={type.caption} fill={vizTokens.mutedInk}>UNIQUE GENOMES</text><text x="300" y="108" textAnchor="end" fontFamily="var(--font-mono)" fontSize={type.value} fill={vizTokens.path}>{diversity}/12</text>
             <line y1="130" x2="300" y2="130" stroke={vizTokens.grid} />
-            <text y="158" fontFamily="var(--font-mono)" fontSize="9" fill={vizTokens.mutedInk}>ONE REPRODUCTION EXAMPLE</text>
+            <text y="158" fontFamily="var(--font-mono)" fontSize={type.label} fill={vizTokens.mutedInk}>ONE REPRODUCTION EXAMPLE</text>
             {state.reproduction ? <>
               <GenomeRow label="PARENT A" genome={state.reproduction.parents[0]} y={169} tone={vizTokens.classA} />
               <GenomeRow label="PARENT B" genome={state.reproduction.parents[1]} y={194} tone={vizTokens.classB} />
               <GenomeRow label="CROSSED" genome={state.reproduction.beforeMutation} y={223} sourceSplit={state.reproduction.crossoverPoint} />
               <GenomeRow label="CHILD" genome={state.reproduction.afterMutation} y={252} sourceSplit={state.reproduction.crossoverPoint} mutations={state.reproduction.mutatedBits} />
               <line x1={82 + state.reproduction.crossoverPoint * 16 - 1} y1="218" x2={82 + state.reproduction.crossoverPoint * 16 - 1} y2="276" stroke={vizTokens.selection} strokeWidth="2" />
-              <text x={82 + state.reproduction.crossoverPoint * 16 - 5} y="215" textAnchor="end" fontFamily="var(--font-mono)" fontSize="8" fill={vizTokens.selection}>CUT</text>
-              <text y="296" fontFamily="var(--font-mono)" fontSize="9" fill={vizTokens.path}>{state.mutationCount} CHANGED BITS ACROSS THE POPULATION · RED = FLIP</text>
-            </> : <text y="190" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.mutedInk}>Take a step to select parents.</text>}
+              <text x={82 + state.reproduction.crossoverPoint * 16 - 5} y="215" textAnchor="end" fontFamily="var(--font-mono)" fontSize={type.micro} fill={vizTokens.selection}>CUT</text>
+              <text y="296" fontFamily="var(--font-mono)" fontSize={type.label} fill={vizTokens.path}>{state.mutationCount} CHANGED BITS ACROSS THE POPULATION · RED = FLIP</text>
+            </> : <text y="190" fontFamily="var(--font-mono)" fontSize={type.caption} fill={vizTokens.mutedInk}>Take a step to select parents.</text>}
             <rect y="310" width="300" height="84" fill={vizTokens.grid} opacity="0.55" />
-            <text x="12" y="333" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.ink}>SELECTION exploits fitness</text>
-            <text x="12" y="356" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.ink}>CROSSOVER recombines evidence</text>
-            <text x="12" y="379" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.ink}>MUTATION restores variation</text>
+            <text x="12" y="333" fontFamily="var(--font-mono)" fontSize={type.labelStrong} fill={vizTokens.ink}>SELECTION exploits fitness</text>
+            <text x="12" y="356" fontFamily="var(--font-mono)" fontSize={type.labelStrong} fill={vizTokens.ink}>CROSSOVER recombines evidence</text>
+            <text x="12" y="379" fontFamily="var(--font-mono)" fontSize={type.labelStrong} fill={vizTokens.ink}>MUTATION restores variation</text>
           </g>
         </svg>
         <p className="sr-only" aria-live="polite">Generation {state.generation}. Best fitness {best.fitness.toFixed(3)}. {diversity} unique genomes remain. {reproductionSummary}</p>
       </div>
 
       <div className="flex flex-wrap items-end gap-3 border-t border-outline bg-surface-container-low px-3 py-2">
-        <p className="w-full font-mono text-[9px] uppercase tracking-label text-on-surface-variant lg:hidden">Swipe landscape → history → bit ancestry</p>
-        <label className="min-w-48 flex-1 sm:max-w-sm"><span className="flex justify-between font-mono text-[9px] uppercase tracking-label text-on-surface-variant"><span>Mutation probability</span><span className="text-primary">{(mutationRate * 100).toFixed(1)}%</span></span><input aria-label="Mutation probability" type="range" min="0" max="0.2" step="0.005" value={mutationRate} onChange={(event) => setMutationRate(Number(event.target.value))} /></label>
+        <p className="w-full font-mono viz-label uppercase tracking-label text-on-surface-variant lg:hidden">Swipe landscape → history → bit ancestry</p>
+        <label className="min-w-48 flex-1 sm:max-w-sm"><span className="flex justify-between font-mono viz-label uppercase tracking-label text-on-surface-variant"><span>Mutation probability</span><span className="text-primary">{(mutationRate * 100).toFixed(1)}%</span></span><input aria-label="Mutation probability" type="range" min="0" max="0.2" step="0.005" value={mutationRate} onChange={(event) => setMutationRate(Number(event.target.value))} /></label>
         <div className="ml-auto flex gap-2"><button type="button" onClick={() => { setRunning(false); evolveOnce(); }} className="min-h-9 border border-primary bg-primary px-3 text-xs text-on-primary">Evolve once</button><button type="button" onClick={() => setRunning((value) => !value)} className="min-h-9 border border-outline bg-surface px-3 text-xs">{running ? "Pause" : "Run"}</button><button type="button" onClick={restart} className="min-h-9 border border-outline bg-surface px-3 text-xs">Restart</button></div>
       </div>
     </section>

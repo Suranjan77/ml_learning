@@ -7,7 +7,8 @@ import { GridColumns, GridRows } from "@visx/grid";
 import { Group } from "@visx/group";
 import { curveMonotoneX } from "@visx/curve";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { vizStroke, vizTokens } from "@/lib/vizTokens";
+import { vizTokens } from "@/lib/vizTokens";
+import { useVizStroke, useVizType } from "../presentMode";
 import { reduced, vizMotion } from "@/lib/vizMotion";
 import { KeptComparisonButton } from "../KeptComparisonButton";
 import type { ExhibitSceneProps } from "../types";
@@ -79,6 +80,8 @@ function errorScale(value: number): number {
 }
 
 export default function OverfittingScene({ step, resetKey, playing = false }: ExhibitSceneProps) {
+  const type = useVizType();
+  const stroke = useVizStroke();
   const initialPreset = presetFor(step);
   const clipId = useId();
   const prefersReduced = useReducedMotion();
@@ -257,8 +260,8 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
 
           {/* Left panel: data and fitted curve */}
           <Group left={LEFT_PLOT.left} top={LEFT_PLOT.top} clipPath={`url(#${clipId}-left)`}>
-            <GridRows scale={leftYScale} width={LEFT_PLOT_WIDTH} tickValues={LEFT_Y_TICKS} stroke={vizTokens.grid} strokeWidth={vizStroke.grid} />
-            <GridColumns scale={leftXScale} height={LEFT_PLOT_HEIGHT} tickValues={LEFT_X_TICKS} stroke={vizTokens.grid} strokeWidth={vizStroke.grid} />
+            <GridRows scale={leftYScale} width={LEFT_PLOT_WIDTH} tickValues={LEFT_Y_TICKS} stroke={vizTokens.grid} strokeWidth={stroke.grid} />
+            <GridColumns scale={leftXScale} height={LEFT_PLOT_HEIGHT} tickValues={LEFT_X_TICKS} stroke={vizTokens.grid} strokeWidth={stroke.grid} />
 
             <LinePath<Point>
               data={truthCurve}
@@ -266,7 +269,7 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
               y={(point) => leftYScale(point.y)}
               fill="none"
               stroke={vizTokens.path}
-              strokeWidth={vizStroke.marker}
+              strokeWidth={stroke.marker}
               strokeDasharray="7 6"
               opacity={0.85}
             />
@@ -278,7 +281,7 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
                 y={(point) => leftYScale(point.y)}
                 fill="none"
                 stroke={vizTokens.mutedInk}
-                strokeWidth={vizStroke.contourStrong}
+                strokeWidth={stroke.contourStrong}
                 strokeDasharray="3 4"
                 opacity={0.55}
               />
@@ -289,7 +292,7 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
                 <motion.path
                   fill="none"
                   stroke={vizTokens.selection}
-                  strokeWidth={vizStroke.path}
+                  strokeWidth={stroke.path}
                   strokeLinejoin="round"
                   strokeLinecap="round"
                   initial={false}
@@ -308,7 +311,7 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
                 initial={false}
                 animate={{ y2: leftYScale(predict(coefficients, point.x)) }}
                 stroke={vizTokens.error}
-                strokeWidth={vizStroke.guide}
+                strokeWidth={stroke.guide}
                 opacity={0.34}
                 transition={reduced(playing ? vizMotion.cinematic : vizMotion.fade, prefersReduced)}
               />
@@ -323,7 +326,7 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
                   r={4.5}
                   fill={vizTokens.canvas}
                   stroke={vizTokens.classB}
-                  strokeWidth={vizStroke.marker}
+                  strokeWidth={stroke.marker}
                   initial={prefersReduced ? false : { scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0, opacity: 0 }}
@@ -334,21 +337,25 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
             </AnimatePresence>
 
             {dataset.train.map((point, index) => (
-              <circle key={`train-${index}`} cx={leftXScale(point.x)} cy={leftYScale(point.y)} r={4.5} fill={vizTokens.classA} stroke={vizTokens.pointOutline} strokeWidth={vizStroke.guide} />
+              <circle key={`train-${index}`} cx={leftXScale(point.x)} cy={leftYScale(point.y)} r={4.5} fill={vizTokens.classA} stroke={vizTokens.pointOutline} strokeWidth={stroke.guide} />
             ))}
           </Group>
           <rect x={LEFT_PLOT.left} y={LEFT_PLOT.top} width={LEFT_PLOT_WIDTH} height={LEFT_PLOT_HEIGHT} fill="none" stroke={vizTokens.border} />
-          <text x={LEFT_PLOT.left + 8} y={LEFT_PLOT.top + 18} fill={vizTokens.mutedInk} fontSize="12" fontFamily="var(--font-dm-mono)">TRAIN AND VALIDATION DATA</text>
-          <text x={LEFT_PLOT.left} y={HEIGHT - 10} fill={vizTokens.mutedInk} fontSize="11" fontFamily="var(--font-dm-mono)">x</text>
-          <text x={LEFT_WIDTH - LEFT_PLOT.right} y={HEIGHT - 10} textAnchor="end" fill={vizTokens.classA} fontSize="11" fontFamily="var(--font-dm-mono)">● train</text>
-          <text x={LEFT_WIDTH - LEFT_PLOT.right} y={HEIGHT - 24} textAnchor="end" fill={vizTokens.classB} fontSize="11" fontFamily="var(--font-dm-mono)">○ validation</text>
+          {/* Captions and legends are placed off the type scale rather than off
+              fixed pixel offsets: at reading size the difference is invisible,
+              but enlarged type would otherwise cross the plot border and stack
+              on top of itself. */}
+          <text x={LEFT_PLOT.left + 8} y={LEFT_PLOT.top + type.label * 1.8} fill={vizTokens.mutedInk} fontSize={type.label} fontFamily="var(--font-dm-mono)">TRAIN AND VALIDATION DATA</text>
+          <text x={LEFT_PLOT.left} y={HEIGHT - type.label} fill={vizTokens.mutedInk} fontSize={type.label} fontFamily="var(--font-dm-mono)">x</text>
+          <text x={LEFT_WIDTH - LEFT_PLOT.right} y={HEIGHT - type.label} textAnchor="end" fill={vizTokens.classA} fontSize={type.label} fontFamily="var(--font-dm-mono)">● train</text>
+          <text x={LEFT_WIDTH - LEFT_PLOT.right} y={HEIGHT - type.label * 2.6} textAnchor="end" fill={vizTokens.classB} fontSize={type.label} fontFamily="var(--font-dm-mono)">○ validation</text>
           {referenceDegree !== null && referenceDegree !== degree ? (
-            <text x={LEFT_PLOT.left + 8} y={LEFT_PLOT.top + 36} fill={vizTokens.mutedInk} fontSize="10" fontFamily="var(--font-dm-mono)">- - kept degree {referenceDegree}</text>
+            <text x={LEFT_PLOT.left + 8} y={LEFT_PLOT.top + type.label * 3.4} fill={vizTokens.mutedInk} fontSize={type.label} fontFamily="var(--font-dm-mono)">- - kept degree {referenceDegree}</text>
           ) : null}
 
           {/* Right panel: error vs degree */}
           <Group left={RIGHT_X + RIGHT_PLOT.left} top={RIGHT_PLOT.top} clipPath={`url(#${clipId}-right)`}>
-            <GridRows scale={rightYScale} width={RIGHT_PLOT_WIDTH} tickValues={RIGHT_Y_TICKS} stroke={vizTokens.grid} strokeWidth={vizStroke.grid} />
+            <GridRows scale={rightYScale} width={RIGHT_PLOT_WIDTH} tickValues={RIGHT_Y_TICKS} stroke={vizTokens.grid} strokeWidth={stroke.grid} />
 
             {curve.degrees.map((value, index) => (
               <line
@@ -385,7 +392,7 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
               textAnchor={degree > 8 ? "end" : "start"}
               dominantBaseline="middle"
               fill={generalisationGap > 0 ? vizTokens.error : vizTokens.classA}
-              fontSize="9"
+              fontSize={type.label}
               fontFamily="var(--font-dm-mono)"
             >GAP {Math.abs(generalisationGap).toFixed(3)}</motion.text>
 
@@ -401,7 +408,7 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
               curve={curveMonotoneX}
               fill="none"
               stroke={vizTokens.classA}
-              strokeWidth={vizStroke.contourStrong}
+              strokeWidth={stroke.contourStrong}
             />
             <LinePath
               data={curve.degrees.map((d, i) => ({ degree: d, value: curve.validationError[i] }))}
@@ -410,14 +417,14 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
               curve={curveMonotoneX}
               fill="none"
               stroke={vizTokens.classB}
-              strokeWidth={vizStroke.contourStrong}
+              strokeWidth={stroke.contourStrong}
             />
 
             <motion.line
               y1={0}
               y2={RIGHT_PLOT_HEIGHT}
               stroke={vizTokens.selection}
-              strokeWidth={vizStroke.marker}
+              strokeWidth={stroke.marker}
               strokeDasharray="4 3"
               initial={false}
               animate={{ x1: rightXScale(degree), x2: rightXScale(degree) }}
@@ -431,7 +438,7 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
                 y1={0}
                 y2={RIGHT_PLOT_HEIGHT}
                 stroke={vizTokens.mutedInk}
-                strokeWidth={vizStroke.guide}
+                strokeWidth={stroke.guide}
                 strokeDasharray="2 4"
                 opacity={0.7}
               />
@@ -443,30 +450,33 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
               r={5}
               fill={vizTokens.canvas}
               stroke={vizTokens.classB}
-              strokeWidth={vizStroke.marker}
+              strokeWidth={stroke.marker}
             />
             <text
               x={rightXScale(bestDegree) + (bestDegree > 7 ? -8 : 8)}
-              y={Math.max(14, rightYOf(curve.validationError[bestValidationIndex]) - 9)}
+              y={Math.max(type.label * 5, rightYOf(curve.validationError[bestValidationIndex]) - type.label)}
               textAnchor={bestDegree > 7 ? "end" : "start"}
               fill={vizTokens.classB}
-              fontSize="9"
+              fontSize={type.label}
               fontFamily="var(--font-dm-mono)"
             >LOWEST VALIDATION</text>
 
             {bestDegree > DEGREE_RANGE.min && (
-              <text x={rightXScale((DEGREE_RANGE.min + bestDegree) / 2)} y={RIGHT_PLOT_HEIGHT + 18} textAnchor="middle" fill={vizTokens.mutedInk} fontSize="10" fontFamily="var(--font-dm-mono)" letterSpacing="0.08em">UNDERFIT</text>
+              <text x={rightXScale((DEGREE_RANGE.min + bestDegree) / 2)} y={RIGHT_PLOT_HEIGHT + 18} textAnchor="middle" fill={vizTokens.mutedInk} fontSize={type.labelStrong} fontFamily="var(--font-dm-mono)" letterSpacing="0.08em">UNDERFIT</text>
             )}
             {bestDegree < DEGREE_RANGE.max && (
-              <text x={rightXScale((bestDegree + DEGREE_RANGE.max) / 2)} y={RIGHT_PLOT_HEIGHT + 18} textAnchor="middle" fill={vizTokens.mutedInk} fontSize="10" fontFamily="var(--font-dm-mono)" letterSpacing="0.08em">OVERFIT</text>
+              <text x={rightXScale((bestDegree + DEGREE_RANGE.max) / 2)} y={RIGHT_PLOT_HEIGHT + 18} textAnchor="middle" fill={vizTokens.mutedInk} fontSize={type.labelStrong} fontFamily="var(--font-dm-mono)" letterSpacing="0.08em">OVERFIT</text>
             )}
           </Group>
           <rect x={RIGHT_X + RIGHT_PLOT.left} y={RIGHT_PLOT.top} width={RIGHT_PLOT_WIDTH} height={RIGHT_PLOT_HEIGHT} fill="none" stroke={vizTokens.border} />
-          <text x={RIGHT_X + RIGHT_PLOT.left} y={RIGHT_PLOT.top - 6} fill={vizTokens.mutedInk} fontSize="12" fontFamily="var(--font-dm-mono)">ERROR VS DEGREE</text>
-          <text x={RIGHT_X + RIGHT_PLOT.left} y={RIGHT_PLOT.top + 16} fill={vizTokens.classA} fontSize="11" fontFamily="var(--font-dm-mono)">— train</text>
-          <text x={RIGHT_X + RIGHT_PLOT.left + 62} y={RIGHT_PLOT.top + 16} fill={vizTokens.classB} fontSize="11" fontFamily="var(--font-dm-mono)">— validation</text>
+          {/* This caption lives in the 20px margin above the plot, so it takes a
+              label size rather than a body size: enlarged body type overruns
+              the top of the frame. The legend below it sits inside the plot. */}
+          <text x={RIGHT_X + RIGHT_PLOT.left} y={RIGHT_PLOT.top - 4} fill={vizTokens.mutedInk} fontSize={type.label} fontFamily="var(--font-dm-mono)">ERROR VS DEGREE</text>
+          <text x={RIGHT_X + RIGHT_PLOT.left} y={RIGHT_PLOT.top + type.label * 1.8} fill={vizTokens.classA} fontSize={type.label} fontFamily="var(--font-dm-mono)">— train</text>
+          <text x={RIGHT_X + RIGHT_PLOT.left + type.label * 5.5} y={RIGHT_PLOT.top + type.label * 1.8} fill={vizTokens.classB} fontSize={type.label} fontFamily="var(--font-dm-mono)">— validation</text>
           {referenceDegree !== null && referenceDegree !== degree ? (
-            <text x={RIGHT_X + RIGHT_PLOT.left + rightXScale(referenceDegree)} y={RIGHT_PLOT.top + 34} textAnchor="middle" fill={vizTokens.mutedInk} fontSize="9" fontFamily="var(--font-dm-mono)">KEPT D{referenceDegree}</text>
+            <text x={RIGHT_X + RIGHT_PLOT.left + rightXScale(referenceDegree)} y={RIGHT_PLOT.top + type.label * 3.6} textAnchor="middle" fill={vizTokens.mutedInk} fontSize={type.label} fontFamily="var(--font-dm-mono)">KEPT D{referenceDegree}</text>
           ) : null}
         </svg>
 
@@ -475,7 +485,7 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
 
       <div className="grid shrink-0 grid-cols-[auto_minmax(8rem,1fr)] gap-x-3 gap-y-2 border-t border-outline bg-surface-container-low p-2 sm:flex sm:items-end sm:gap-4 sm:px-3 sm:py-2">
         <label className="col-span-2 min-w-0 sm:max-w-sm sm:flex-1">
-          <span className="mb-1 flex items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant">
+          <span className="mb-1 flex items-center justify-between gap-3 font-mono viz-label uppercase tracking-[0.1em] text-on-surface-variant">
             <span>Degree</span>
             <span className={REGIME_TONE_CLASS[regime]}>{degree} · {regime}</span>
           </span>
@@ -504,8 +514,8 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
         {comparisonSummary ? (
           <div className={`col-span-2 min-w-0 border-l-2 px-2 py-1 sm:max-w-sm ${comparisonContradiction ? "border-error" : "border-primary"}`}>
             <p className={`font-headline text-sm font-medium ${comparisonContradiction ? "text-error" : "text-primary"}`}>{comparisonContradiction ? "Training improved. Validation worsened." : "Kept versus current"}</p>
-            <p className={`text-[10px] leading-snug ${comparisonContradiction ? "text-error" : "text-on-surface"}`}>{comparisonSummary}</p>
-            {trainDelta !== null && validationDelta !== null ? <p className="mt-0.5 font-mono text-[9px] uppercase text-on-surface-variant">train {trainDelta <= 0 ? "↓" : "↑"} {Math.abs(trainDelta).toFixed(3)} · validation {validationDelta <= 0 ? "↓" : "↑"} {Math.abs(validationDelta).toFixed(3)}</p> : null}
+            <p className={`viz-label-strong leading-snug ${comparisonContradiction ? "text-error" : "text-on-surface"}`}>{comparisonSummary}</p>
+            {trainDelta !== null && validationDelta !== null ? <p className="mt-0.5 font-mono viz-label uppercase text-on-surface-variant">train {trainDelta <= 0 ? "↓" : "↑"} {Math.abs(trainDelta).toFixed(3)} · validation {validationDelta <= 0 ? "↓" : "↑"} {Math.abs(validationDelta).toFixed(3)}</p> : null}
           </div>
         ) : null}
 

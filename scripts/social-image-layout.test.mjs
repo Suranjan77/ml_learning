@@ -8,7 +8,7 @@ import { motifFor, renderSocialSvg, socialCards } from "./social-image-layout.mj
 
 describe("social image layout", () => {
   it("defines one route-specific motif for every public social card", () => {
-    expect(socialCards).toHaveLength(16);
+    expect(socialCards).toHaveLength(19);
     expect(new Set(socialCards.map((card) => card.name)).size).toBe(socialCards.length);
 
     for (const card of socialCards) {

@@ -7,6 +7,7 @@ import { useReducedMotion } from "motion/react";
 import * as THREE from "three";
 import { VizCanvas } from "@/lib/three/VizCanvas";
 import { vizTokens } from "@/lib/vizTokens";
+import { useVizType } from "../presentMode";
 import { numberParam, replaceSceneUrlState, useSceneUrlState } from "../sceneUrlState";
 import type { ExhibitSceneProps } from "../types";
 import {
@@ -158,20 +159,25 @@ function FeatureMapSurface({ lift }: { lift: number }) {
 }
 
 function InputSpaceInset({ points }: { points: readonly KernelPoint[] }) {
+  const type = useVizType();
   const size = 200;
   const centre = size / 2;
   const scale = 76 / MAX_RADIUS;
+  // The caption sits below the plot, so the viewBox has to carry it: at the
+  // authored size its descender already fell a fraction outside the frame.
+  const plotHeight = size - 22;
+  const frameHeight = plotHeight + type.micro * 1.9;
   return (
     <div className="pointer-events-none absolute bottom-4 left-4 hidden w-[220px] border border-outline-dark bg-surface/95 p-2 backdrop-blur-sm lg:block" aria-hidden="true">
-      <p className="font-mono text-[8px] uppercase tracking-[0.08em] text-on-surface-variant">Input space · same threshold</p>
-      <svg viewBox={`0 0 ${size} ${size - 22}`} className="mt-1 block w-full">
-        <rect width={size} height={size - 22} fill={vizTokens.canvas} />
+      <p className="font-mono viz-micro uppercase tracking-[0.08em] text-on-surface-variant">Input space · same threshold</p>
+      <svg viewBox={`0 0 ${size} ${frameHeight}`} className="mt-1 block w-full">
+        <rect width={size} height={frameHeight} fill={vizTokens.canvas} />
         {[40, 70, 100, 130, 160].map((value) => <g key={value}><line x1={value} x2={value} y1="10" y2="170" stroke={vizTokens.grid} /><line x1="20" x2="180" y1={value - 10} y2={value - 10} stroke={vizTokens.grid} /></g>)}
         <line x1="20" x2="180" y1={centre - 10} y2={centre - 10} stroke={vizTokens.axis} />
         <line x1={centre} x2={centre} y1="10" y2="170" stroke={vizTokens.axis} />
         <circle cx={centre} cy={centre - 10} r={BOUNDARY_RADIUS * scale} fill="none" stroke={vizTokens.path} strokeWidth="3" />
         {points.map((point) => <circle key={point.id} cx={centre + point.x * scale} cy={centre - 10 - point.y * scale} r="4" fill={point.label === 1 ? vizTokens.classB : vizTokens.classA} stroke={vizTokens.canvas} strokeWidth="1.5" />)}
-        <text x={centre} y="176" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="8" fill={vizTokens.path}>circle r = {BOUNDARY_RADIUS.toFixed(2)}</text>
+        <text x={centre} y={plotHeight + type.micro * 1.3} textAnchor="middle" fontFamily="var(--font-mono)" fontSize={type.micro} fill={vizTokens.path}>circle r = {BOUNDARY_RADIUS.toFixed(2)}</text>
       </svg>
     </div>
   );
@@ -272,19 +278,19 @@ export default function KernelTrickScene({ step, resetKey }: ExhibitSceneProps) 
         />
         {activeStep === 3 ? <InputSpaceInset points={points} /> : null}
 
-        <div className="pointer-events-none absolute left-3 top-3 hidden border border-outline bg-surface/92 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.08em] text-on-surface-variant backdrop-blur-sm sm:left-4 sm:top-4 sm:block">
+        <div className="pointer-events-none absolute left-3 top-3 hidden border border-outline bg-surface/92 px-3 py-2 font-mono viz-label-strong uppercase tracking-[0.08em] text-on-surface-variant backdrop-blur-sm sm:left-4 sm:top-4 sm:block">
           <span className="text-primary">2D inputs</span><span className="px-2 text-outline-dark">→</span><span className={lift > 0.08 ? "text-primary" : ""}>3D feature space</span><span className="px-2 text-outline-dark">→</span><span className={showBoundary ? "text-primary" : ""}>2D boundary</span>
         </div>
         <div className="pointer-events-none absolute left-3 right-3 top-3 border border-outline bg-surface/92 px-3 py-2 backdrop-blur-sm sm:left-auto sm:right-4 sm:top-4 sm:max-w-64">
-          <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-primary">{showBoundary ? "Same threshold · two simultaneous views" : showPlane ? "Flat threshold ↔ circular boundary" : "Explicit map: φ(x,y) = (x,y,(r/R)²)"}</p>
-          <p className="mt-1 text-[11px] leading-snug text-on-surface-variant">{description}</p>
-          {showPlane || showBoundary ? <p className="mt-1 font-mono text-[9px] leading-snug text-on-surface-variant">z = {SEPARATING_HEIGHT.toFixed(2)} ↔ r = {BOUNDARY_RADIUS.toFixed(2)}</p> : null}
+          <p className="font-mono viz-label uppercase tracking-[0.1em] text-primary">{showBoundary ? "Same threshold · two simultaneous views" : showPlane ? "Flat threshold ↔ circular boundary" : "Explicit map: φ(x,y) = (x,y,(r/R)²)"}</p>
+          <p className="mt-1 viz-caption leading-snug text-on-surface-variant">{description}</p>
+          {showPlane || showBoundary ? <p className="mt-1 font-mono viz-label leading-snug text-on-surface-variant">z = {SEPARATING_HEIGHT.toFixed(2)} ↔ r = {BOUNDARY_RADIUS.toFixed(2)}</p> : null}
         </div>
-        <div className={`pointer-events-none absolute bottom-3 border border-outline bg-surface/88 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.08em] text-on-surface-variant ${activeStep === 3 ? "right-3 sm:right-4" : "left-3 sm:left-4"}`}>Drag to orbit · scroll to zoom</div>
+        <div className={`pointer-events-none absolute bottom-3 border border-outline bg-surface/88 px-2 py-1 font-mono viz-label uppercase tracking-[0.08em] text-on-surface-variant ${activeStep === 3 ? "right-3 sm:right-4" : "left-3 sm:left-4"}`}>Drag to orbit · scroll to zoom</div>
       </div>
 
       <div className="grid grid-cols-[auto_minmax(100px,1fr)_auto] items-center gap-x-3 gap-y-1 border-t border-outline bg-surface-container-low px-3 py-2 sm:px-4">
-        <label htmlFor="kernel-lift" className="font-mono text-[10px] uppercase tracking-[0.08em] text-on-surface-variant">View</label>
+        <label htmlFor="kernel-lift" className="font-mono viz-label-strong uppercase tracking-[0.08em] text-on-surface-variant">View</label>
         <input
           id="kernel-lift"
           type="range"
@@ -297,7 +303,7 @@ export default function KernelTrickScene({ step, resetKey }: ExhibitSceneProps) 
           aria-valuetext={`${Math.round(lift * 100)}% between input and feature-space views`}
         />
         <output className="w-9 text-right font-mono text-xs text-primary">{Math.round(lift * 100)}%</output>
-        <div className="col-start-2 col-end-4 flex justify-between font-mono text-[8px] uppercase tracking-[0.08em] text-on-surface-variant" aria-hidden="true">
+        <div className="col-start-2 col-end-4 flex justify-between font-mono viz-micro uppercase tracking-[0.08em] text-on-surface-variant" aria-hidden="true">
           <span>Input space</span>
           <span>Feature space</span>
         </div>

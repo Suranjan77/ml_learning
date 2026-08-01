@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { ConceptConstellation, type ConceptMapExhibit } from "@/features/concepts/ConceptConstellation";
-import { conceptNodes, type ConceptSlug } from "@/features/concepts/constellation";
+import { conceptCountWord, conceptNodes, type ConceptSlug } from "@/features/concepts/constellation";
 import { exhibits } from "@/features/exhibits/registry";
 
 export const metadata: Metadata = {
   title: "Concept map",
-  description: "Explore an authored map of the questions connecting thirteen interactive machine-learning visualisations.",
+  description: `Explore an authored map of the questions connecting ${conceptCountWord} interactive machine-learning visualisations.`,
   alternates: { canonical: "/concepts" },
   openGraph: {
     url: "/concepts",

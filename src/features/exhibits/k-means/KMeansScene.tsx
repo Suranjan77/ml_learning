@@ -5,7 +5,8 @@ import { scaleLinear } from "@visx/scale";
 import { GridColumns, GridRows } from "@visx/grid";
 import { Group } from "@visx/group";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { vizStroke, vizTokens } from "@/lib/vizTokens";
+import { vizTokens } from "@/lib/vizTokens";
+import { useVizStroke, useVizType } from "../presentMode";
 import { reduced, vizMotion } from "@/lib/vizMotion";
 import type { ExhibitSceneProps } from "../types";
 import {
@@ -97,6 +98,8 @@ function presetFor(step: number) {
 }
 
 export default function KMeansScene({ step, resetKey, playing = false }: ExhibitSceneProps) {
+  const type = useVizType();
+  const stroke = useVizStroke();
   const initialPreset = presetFor(step);
   const svgRef = useRef<SVGSVGElement>(null);
   const stageId = useId();
@@ -331,8 +334,8 @@ export default function KMeansScene({ step, resetKey, playing = false }: Exhibit
           <Group left={PLOT.left} top={PLOT.top}>
             <rect width={PLOT_WIDTH} height={PLOT_HEIGHT} fill={vizTokens.canvas} stroke="none" />
             {decisionCells.map((cell) => <rect key={`${cell.column}-${cell.row}`} x={cell.column * PLOT_WIDTH / cell.columns} y={cell.row * PLOT_HEIGHT / cell.rows} width={PLOT_WIDTH / cell.columns + 0.5} height={PLOT_HEIGHT / cell.rows + 0.5} fill={PALETTE[cell.cluster]} opacity="0.09" />)}
-            <GridColumns scale={xScale} height={PLOT_HEIGHT} tickValues={X_TICKS} stroke={vizTokens.grid} strokeWidth={vizStroke.grid} />
-            <GridRows scale={yScale} width={PLOT_WIDTH} tickValues={Y_TICKS} stroke={vizTokens.grid} strokeWidth={vizStroke.grid} />
+            <GridColumns scale={xScale} height={PLOT_HEIGHT} tickValues={X_TICKS} stroke={vizTokens.grid} strokeWidth={stroke.grid} />
+            <GridRows scale={yScale} width={PLOT_WIDTH} tickValues={Y_TICKS} stroke={vizTokens.grid} strokeWidth={stroke.grid} />
 
             <AnimatePresence>
               {current && assignments && DATASET.map((point, index) => (
@@ -343,7 +346,7 @@ export default function KMeansScene({ step, resetKey, playing = false }: Exhibit
                   x2={sx(centroids[assignments[index]].x)}
                   y2={sy(centroids[assignments[index]].y)}
                   stroke={PALETTE[assignments[index]]}
-                  strokeWidth={vizStroke.hairline}
+                  strokeWidth={stroke.hairline}
                   initial={prefersReduced ? false : { opacity: 0 }}
                   animate={{ opacity: current.phase === "assign" ? 0.22 : 0.12 }}
                   exit={{ opacity: 0 }}
@@ -364,13 +367,13 @@ export default function KMeansScene({ step, resetKey, playing = false }: Exhibit
               const wing = 7;
               return (
                 <g key={`centroid-move-${index}`}>
-                  <circle cx={x1} cy={y1} r={14} fill="none" stroke={PALETTE[index]} strokeWidth={vizStroke.guide} strokeDasharray="4 4" opacity="0.72" />
-                  <line x1={x1} y1={y1} x2={arrowX} y2={arrowY} stroke={PALETTE[index]} strokeWidth={vizStroke.marker} opacity="0.9" />
+                  <circle cx={x1} cy={y1} r={14} fill="none" stroke={PALETTE[index]} strokeWidth={stroke.guide} strokeDasharray="4 4" opacity="0.72" />
+                  <line x1={x1} y1={y1} x2={arrowX} y2={arrowY} stroke={PALETTE[index]} strokeWidth={stroke.marker} opacity="0.9" />
                   <path
                     d={`M ${arrowX} ${arrowY} L ${arrowX - Math.cos(angle - Math.PI / 4) * wing} ${arrowY - Math.sin(angle - Math.PI / 4) * wing} M ${arrowX} ${arrowY} L ${arrowX - Math.cos(angle + Math.PI / 4) * wing} ${arrowY - Math.sin(angle + Math.PI / 4) * wing}`}
                     fill="none"
                     stroke={PALETTE[index]}
-                    strokeWidth={vizStroke.marker}
+                    strokeWidth={stroke.marker}
                   />
                 </g>
               );
@@ -383,7 +386,7 @@ export default function KMeansScene({ step, resetKey, playing = false }: Exhibit
                 cy={sy(point.y)}
                 r={4}
                 stroke={vizTokens.pointOutline}
-                strokeWidth={vizStroke.hairline}
+                strokeWidth={stroke.hairline}
                 initial={false}
                 animate={{ fill: assignments ? PALETTE[assignments[index]] : vizTokens.mutedInk }}
                 transition={reduced(vizMotion.fade, prefersReduced)}
@@ -400,8 +403,8 @@ export default function KMeansScene({ step, resetKey, playing = false }: Exhibit
                   animate={{ x: sx(centroid.x), y: sy(centroid.y) }}
                   transition={draggingIndex === index ? { duration: 0 } : reduced(vizMotion.markerSpring, prefersReduced)}
                 >
-                  {selected && <circle r={23} fill="none" stroke={vizTokens.selection} strokeWidth={vizStroke.guide} opacity={0.5} />}
-                  <circle r={15} fill={vizTokens.canvas} fillOpacity={0.85} stroke={color} strokeWidth={vizStroke.markerStrong} />
+                  {selected && <circle r={23} fill="none" stroke={vizTokens.selection} strokeWidth={stroke.guide} opacity={0.5} />}
+                  <circle r={15} fill={vizTokens.canvas} fillOpacity={0.85} stroke={color} strokeWidth={stroke.markerStrong} />
                   <circle r={4} fill={color} />
                   <circle
                     data-testid={`centroid-handle-${index}`}
@@ -416,35 +419,35 @@ export default function KMeansScene({ step, resetKey, playing = false }: Exhibit
           </Group>
 
           <rect x={PLOT.left} y={PLOT.top} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke={vizTokens.border} />
-          <text x={PLOT.left + 10} y={PLOT.top + 18} fill={vizTokens.mutedInk} fontSize="10" fontFamily="var(--font-dm-mono)">TINT = NEAREST-CENTROID REGION</text>
+          <text x={PLOT.left + 10} y={PLOT.top + 18} fill={vizTokens.mutedInk} fontSize={type.labelStrong} fontFamily="var(--font-dm-mono)">TINT = NEAREST-CENTROID REGION</text>
 
           <g transform={`translate(${PLOT.left + 10} ${PLOT.top + 32})`}>
             <rect width="306" height="48" fill={vizTokens.canvas} fillOpacity="0.94" stroke={vizTokens.border} />
             <rect x="8" y="8" width="126" height="31" fill={current?.phase === "assign" || current === null ? vizTokens.classA : vizTokens.canvas} fillOpacity={current?.phase === "assign" || current === null ? 0.16 : 1} stroke={current?.phase === "assign" || current === null ? vizTokens.classA : vizTokens.border} />
-            <text x="18" y="27" fill={current?.phase === "assign" || current === null ? vizTokens.classA : vizTokens.mutedInk} fontSize="10" fontFamily="var(--font-dm-mono)">1  ASSIGN NEAREST</text>
-            <text x="146" y="28" fill={vizTokens.mutedInk} fontSize="15">→</text>
+            <text x="18" y="27" fill={current?.phase === "assign" || current === null ? vizTokens.classA : vizTokens.mutedInk} fontSize={type.labelStrong} fontFamily="var(--font-dm-mono)">1  ASSIGN NEAREST</text>
+            <text x="146" y="28" fill={vizTokens.mutedInk} fontSize={type.valueSoft}>→</text>
             <rect x="172" y="8" width="126" height="31" fill={current?.phase === "update" ? vizTokens.path : vizTokens.canvas} fillOpacity={current?.phase === "update" ? 0.14 : 1} stroke={current?.phase === "update" ? vizTokens.path : vizTokens.border} />
-            <text x="182" y="27" fill={current?.phase === "update" ? vizTokens.path : vizTokens.mutedInk} fontSize="10" fontFamily="var(--font-dm-mono)">2  MOVE TO MEAN</text>
+            <text x="182" y="27" fill={current?.phase === "update" ? vizTokens.path : vizTokens.mutedInk} fontSize={type.labelStrong} fontFamily="var(--font-dm-mono)">2  MOVE TO MEAN</text>
           </g>
 
           <g transform={`translate(${WIDTH - 326} ${PLOT.top + 18})`}>
             <rect width="282" height={step === 3 ? 166 : 86} fill={vizTokens.canvas} fillOpacity="0.94" stroke={vizTokens.border} />
-            <text x="14" y="20" fill={vizTokens.mutedInk} fontSize="10" fontFamily="var(--font-dm-mono)" letterSpacing="1.3">{panelHeading}</text>
-            <text x="14" y="49" fill={vizTokens.ink} fontSize="21" fontFamily="var(--font-dm-mono)">{beforeInertia.toFixed(1)}</text>
-            <text x="106" y="48" fill={vizTokens.mutedInk} fontSize="17">{"→"}</text>
-            <text x="137" y="49" fill={converged ? vizTokens.classA : vizTokens.path} fontSize="21" fontFamily="var(--font-dm-mono)">{afterInertia.toFixed(1)}</text>
-            <text x="14" y="72" fill={converged ? vizTokens.classA : vizTokens.path} fontSize="11" fontFamily="var(--font-dm-mono)">{outcomeLabel}</text>
-            <text x="268" y="72" textAnchor="end" fill={vizTokens.mutedInk} fontSize="11" fontFamily="var(--font-dm-mono)">{changePercent.toFixed(1)}%</text>
+            <text x="14" y="20" fill={vizTokens.mutedInk} fontSize={type.labelStrong} fontFamily="var(--font-dm-mono)" letterSpacing="1.3">{panelHeading}</text>
+            <text x="14" y="49" fill={vizTokens.ink} fontSize={type.valueStrong} fontFamily="var(--font-dm-mono)">{beforeInertia.toFixed(1)}</text>
+            <text x="106" y="48" fill={vizTokens.mutedInk} fontSize={type.value}>{"→"}</text>
+            <text x="137" y="49" fill={converged ? vizTokens.classA : vizTokens.path} fontSize={type.valueStrong} fontFamily="var(--font-dm-mono)">{afterInertia.toFixed(1)}</text>
+            <text x="14" y="72" fill={converged ? vizTokens.classA : vizTokens.path} fontSize={type.caption} fontFamily="var(--font-dm-mono)">{outcomeLabel}</text>
+            <text x="268" y="72" textAnchor="end" fill={vizTokens.mutedInk} fontSize={type.caption} fontFamily="var(--font-dm-mono)">{changePercent.toFixed(1)}%</text>
             {step === 3 && (
               <g transform="translate(14 88)">
                 <line x1="0" y1="0" x2="254" y2="0" stroke={vizTokens.border} />
-                <text x="0" y="18" fill={vizTokens.mutedInk} fontSize="9" fontFamily="var(--font-dm-mono)" letterSpacing="1">SAME DATA · SAME K · FINAL INERTIA</text>
-                <text x="0" y="40" fill={vizTokens.path} fontSize="9" fontFamily="var(--font-dm-mono)">THIS START</text>
+                <text x="0" y="18" fill={vizTokens.mutedInk} fontSize={type.label} fontFamily="var(--font-dm-mono)" letterSpacing="1">SAME DATA · SAME K · FINAL INERTIA</text>
+                <text x="0" y="40" fill={vizTokens.path} fontSize={type.label} fontFamily="var(--font-dm-mono)">THIS START</text>
                 <rect x="76" y="30" width={(finalInertia / comparisonMax) * 132} height="12" fill={vizTokens.path} opacity="0.72" />
-                <text x="246" y="40" textAnchor="end" fill={vizTokens.path} fontSize="11" fontFamily="var(--font-dm-mono)">{finalInertia.toFixed(1)}</text>
-                <text x="0" y="63" fill={vizTokens.classA} fontSize="9" fontFamily="var(--font-dm-mono)">BETTER START</text>
+                <text x="246" y="40" textAnchor="end" fill={vizTokens.path} fontSize={type.caption} fontFamily="var(--font-dm-mono)">{finalInertia.toFixed(1)}</text>
+                <text x="0" y="63" fill={vizTokens.classA} fontSize={type.label} fontFamily="var(--font-dm-mono)">BETTER START</text>
                 <rect x="76" y="53" width={(betterStartFinalInertia / comparisonMax) * 132} height="12" fill={vizTokens.classA} opacity="0.72" />
-                <text x="246" y="63" textAnchor="end" fill={vizTokens.classA} fontSize="11" fontFamily="var(--font-dm-mono)">{betterStartFinalInertia.toFixed(1)}</text>
+                <text x="246" y="63" textAnchor="end" fill={vizTokens.classA} fontSize={type.caption} fontFamily="var(--font-dm-mono)">{betterStartFinalInertia.toFixed(1)}</text>
               </g>
             )}
           </g>
@@ -454,9 +457,9 @@ export default function KMeansScene({ step, resetKey, playing = false }: Exhibit
       </div>
 
       <div className="grid shrink-0 grid-cols-[auto_minmax(8rem,1fr)] gap-x-3 gap-y-2 border-t border-outline bg-surface-container-low p-2 sm:flex sm:items-end sm:gap-4 sm:px-3 sm:py-2">
-        {step === 3 ? <p className="col-span-2 font-mono text-[9px] uppercase tracking-[0.06em] text-on-surface-variant sm:hidden">Same data · this start finishes at {finalInertia.toFixed(1)} inertia; better start {betterStartFinalInertia.toFixed(1)}.</p> : null}
+        {step === 3 ? <p className="col-span-2 font-mono viz-label uppercase tracking-[0.06em] text-on-surface-variant sm:hidden">Same data · this start finishes at {finalInertia.toFixed(1)} inertia; better start {betterStartFinalInertia.toFixed(1)}.</p> : null}
         <fieldset className="min-w-0">
-          <legend className="mb-1 font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant">k</legend>
+          <legend className="mb-1 font-mono viz-label uppercase tracking-[0.1em] text-on-surface-variant">k</legend>
           <div className="grid grid-cols-3">
             {K_OPTIONS.map((option) => (
               <button

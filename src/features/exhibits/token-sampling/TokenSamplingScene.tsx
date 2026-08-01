@@ -3,7 +3,8 @@
 import { useEffect, useId, useMemo, useState, type KeyboardEvent } from "react";
 import { scaleLinear } from "@visx/scale";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { vizStroke, vizTokens } from "@/lib/vizTokens";
+import { vizTokens } from "@/lib/vizTokens";
+import { useVizStroke, useVizType } from "../presentMode";
 import { reduced, vizMotion } from "@/lib/vizMotion";
 import type { ExhibitSceneProps } from "../types";
 import { enumParam, numberParam, replaceSceneUrlState, useSceneUrlState } from "../sceneUrlState";
@@ -68,6 +69,8 @@ function truncationSummary(method: TruncationMethod, topK: number, topP: number,
 const widthScale = scaleLinear({ domain: [0, 1], range: [0, BAR_MAX_WIDTH] });
 
 export default function TokenSamplingScene({ step, resetKey, playing = false }: ExhibitSceneProps) {
+  const type = useVizType();
+  const stroke = useVizStroke();
   const initialPreset = presetFor(step);
   const sceneId = useId();
   const prefersReduced = useReducedMotion();
@@ -227,17 +230,17 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
         >
           <rect width={WIDTH} height={HEIGHT} fill={vizTokens.canvas} />
 
-          <text x={LABEL_LEFT} y={30} fill={vizTokens.mutedInk} fontSize="11" fontFamily="var(--font-dm-mono)" letterSpacing="1.3">PROMPT</text>
-          <text x={LABEL_LEFT} y={54} fill={vizTokens.ink} fontSize="19" fontFamily="var(--font-dm-mono)">{PROMPT} …</text>
+          <text x={LABEL_LEFT} y={30} fill={vizTokens.mutedInk} fontSize={type.caption} fontFamily="var(--font-dm-mono)" letterSpacing="1.3">PROMPT</text>
+          <text x={LABEL_LEFT} y={54} fill={vizTokens.ink} fontSize={type.valueStrong} fontFamily="var(--font-dm-mono)">{PROMPT} …</text>
           <g transform="translate(350 34)">
-            <text x="0" y="-6" fill={vizTokens.mutedInk} fontSize="9" fontFamily="var(--font-dm-mono)">UNIT INTERVAL USED BY THE RANDOM DRAW</text>
+            <text x="0" y="-6" fill={vizTokens.mutedInk} fontSize={type.label} fontFamily="var(--font-dm-mono)">UNIT INTERVAL USED BY THE RANDOM DRAW</text>
             {rouletteSegments.map((segment) => <rect key={segment.index} x={segment.start * 480} width={Math.max(1, segment.width * 480)} height="17" fill={segment.index % 2 === 0 ? vizTokens.classA : vizTokens.path} opacity={0.38 + segment.index % 2 * 0.22} />)}
             {lastDraw !== null ? <g><line x1={lastDraw * 480} x2={lastDraw * 480} y1="-2" y2="24" stroke={vizTokens.selection} strokeWidth="3" /><path d={`M${lastDraw * 480 - 5} -2 h10 l-5 7 z`} fill={vizTokens.selection} /></g> : null}
           </g>
-          <line x1={LABEL_LEFT} x2={WIDTH - LABEL_LEFT} y1={PROMPT_BAND_HEIGHT} y2={PROMPT_BAND_HEIGHT} stroke={vizTokens.border} strokeWidth={vizStroke.grid} />
-          <text x={LABEL_LEFT} y={CHART_TOP - 7} fill={vizTokens.mutedInk} fontSize="9" fontFamily="var(--font-dm-mono)">TOKEN</text>
-          <text x={BAR_LEFT} y={CHART_TOP - 7} fill={vizTokens.mutedInk} fontSize="9" fontFamily="var(--font-dm-mono)">OUTLINE = DEFAULT T 0.80 · FILL = PROBABILITY USED TO SAMPLE NOW</text>
-          <text x={FIGURE_LEFT} y={CHART_TOP - 7} fill={vizTokens.mutedInk} fontSize="9" fontFamily="var(--font-dm-mono)">NOW · Δ FROM DEFAULT</text>
+          <line x1={LABEL_LEFT} x2={WIDTH - LABEL_LEFT} y1={PROMPT_BAND_HEIGHT} y2={PROMPT_BAND_HEIGHT} stroke={vizTokens.border} strokeWidth={stroke.grid} />
+          <text x={LABEL_LEFT} y={CHART_TOP - 7} fill={vizTokens.mutedInk} fontSize={type.label} fontFamily="var(--font-dm-mono)">TOKEN</text>
+          <text x={BAR_LEFT} y={CHART_TOP - 7} fill={vizTokens.mutedInk} fontSize={type.label} fontFamily="var(--font-dm-mono)">OUTLINE = DEFAULT T 0.80 · FILL = PROBABILITY USED TO SAMPLE NOW</text>
+          <text x={FIGURE_LEFT} y={CHART_TOP - 7} fill={vizTokens.mutedInk} fontSize={type.label} fontFamily="var(--font-dm-mono)">NOW · Δ FROM DEFAULT</text>
 
           {ranked.map((entry, row) => {
             const rowY = CHART_TOP + row * ROW_HEIGHT;
@@ -262,7 +265,7 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
                 animate={{ y: rowY }}
                 transition={reduced(playing ? vizMotion.cinematic : vizMotion.markerSpring, prefersReduced)}
               >
-                <text x={LABEL_LEFT} y={BAR_HEIGHT * 0.72} fill={textColour} fontSize="14" fontFamily="var(--font-dm-mono)">{entry.token}</text>
+                <text x={LABEL_LEFT} y={BAR_HEIGHT * 0.72} fill={textColour} fontSize={type.valueSoft} fontFamily="var(--font-dm-mono)">{entry.token}</text>
                 <rect
                   x={BAR_LEFT}
                   y={0}
@@ -270,7 +273,7 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
                   height={BAR_HEIGHT}
                   fill="none"
                   stroke={vizTokens.mutedInk}
-                  strokeWidth={vizStroke.guide}
+                  strokeWidth={stroke.guide}
                   strokeDasharray="4 3"
                   opacity="0.52"
                 />
@@ -287,8 +290,8 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
                 />
                 {!entry.surviving && (
                   <g transform={`translate(${BAR_LEFT + 8} ${BAR_HEIGHT / 2})`}>
-                    <path d="M -5 -5 L 5 5 M 5 -5 L -5 5" stroke={vizTokens.path} strokeWidth={vizStroke.marker} />
-                    <text x="13" y="4" fill={vizTokens.path} fontSize="10" fontFamily="var(--font-dm-mono)">EXCLUDED BEFORE THE DRAW</text>
+                    <path d="M -5 -5 L 5 5 M 5 -5 L -5 5" stroke={vizTokens.path} strokeWidth={stroke.marker} />
+                    <text x="13" y="4" fill={vizTokens.path} fontSize={type.labelStrong} fontFamily="var(--font-dm-mono)">EXCLUDED BEFORE THE DRAW</text>
                   </g>
                 )}
                 <AnimatePresence>
@@ -301,7 +304,7 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
                       height={BAR_HEIGHT + 6}
                       fill="none"
                       stroke={vizTokens.selection}
-                      strokeWidth={vizStroke.contourStrong}
+                      strokeWidth={stroke.contourStrong}
                       initial={prefersReduced ? false : { opacity: 0, scale: 0.96 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0 }}
@@ -310,8 +313,8 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
                     />
                   )}
                 </AnimatePresence>
-                <text x={FIGURE_LEFT} y={BAR_HEIGHT * 0.72} fill={textColour} fontSize="13" fontFamily="var(--font-dm-mono)">{formatPercent(entry.samplingProbability)}</text>
-                <text x={FIGURE_LEFT + 45} y={BAR_HEIGHT * 0.72} fill={!entry.surviving ? vizTokens.path : Math.abs(deltaPoints) < 0.05 ? vizTokens.mutedInk : deltaPoints > 0 ? vizTokens.classA : vizTokens.path} fontSize="11" fontFamily="var(--font-dm-mono)">
+                <text x={FIGURE_LEFT} y={BAR_HEIGHT * 0.72} fill={textColour} fontSize={type.body} fontFamily="var(--font-dm-mono)">{formatPercent(entry.samplingProbability)}</text>
+                <text x={FIGURE_LEFT + 45} y={BAR_HEIGHT * 0.72} fill={!entry.surviving ? vizTokens.path : Math.abs(deltaPoints) < 0.05 ? vizTokens.mutedInk : deltaPoints > 0 ? vizTokens.classA : vizTokens.path} fontSize={type.caption} fontFamily="var(--font-dm-mono)">
                   {deltaLabel}
                 </text>
               </motion.g>
@@ -333,7 +336,7 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
                   y1={CHART_TOP + (nucleusBoundaryRow + 1) * ROW_HEIGHT - ROW_HEIGHT * 0.19}
                   y2={CHART_TOP + (nucleusBoundaryRow + 1) * ROW_HEIGHT - ROW_HEIGHT * 0.19}
                   stroke={vizTokens.path}
-                  strokeWidth={vizStroke.guide}
+                  strokeWidth={stroke.guide}
                   strokeDasharray="6 5"
                 />
                 <text
@@ -341,7 +344,7 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
                   y={CHART_TOP + (nucleusBoundaryRow + 1) * ROW_HEIGHT - ROW_HEIGHT * 0.19 - 6}
                   textAnchor="end"
                   fill={vizTokens.path}
-                  fontSize="11"
+                  fontSize={type.caption}
                   fontFamily="var(--font-dm-mono)"
                 >
                   nucleus closes at {formatPercent(nucleusCumulative)} · {formatPercent(removedRawMass)} raw mass excluded, survivors renormalised
@@ -352,9 +355,9 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
 
           <g transform={`translate(${WIDTH - 300} ${8})`}>
             <rect width="276" height="54" fill={vizTokens.canvas} fillOpacity="0.94" stroke={vizTokens.border} />
-            <text x="12" y="18" fill={vizTokens.mutedInk} fontSize="10" fontFamily="var(--font-dm-mono)" letterSpacing="1.1">T {temperature.toFixed(2)} · {regime.toUpperCase()}</text>
-            <text x="12" y="36" fill={vizTokens.ink} fontSize="11" fontFamily="var(--font-dm-mono)">ENTROPY {entropyBits.toFixed(2)} bits</text>
-            <text x="12" y="49" fill={vizTokens.ink} fontSize="11" fontFamily="var(--font-dm-mono)">{truncationResult.survivingIndices.length} / {CANDIDATES.length} TOKENS IN PLAY</text>
+            <text x="12" y="18" fill={vizTokens.mutedInk} fontSize={type.labelStrong} fontFamily="var(--font-dm-mono)" letterSpacing="1.1">T {temperature.toFixed(2)} · {regime.toUpperCase()}</text>
+            <text x="12" y="36" fill={vizTokens.ink} fontSize={type.caption} fontFamily="var(--font-dm-mono)">ENTROPY {entropyBits.toFixed(2)} bits</text>
+            <text x="12" y="49" fill={vizTokens.ink} fontSize={type.caption} fontFamily="var(--font-dm-mono)">{truncationResult.survivingIndices.length} / {CANDIDATES.length} TOKENS IN PLAY</text>
           </g>
         </svg>
 
@@ -362,13 +365,13 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
       </div>
 
       <div className="border-t border-outline bg-surface-container-low px-3 py-2 sm:px-4">
-        <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant">Sampled continuation</p>
+        <p className="font-mono viz-label uppercase tracking-[0.1em] text-on-surface-variant">Sampled continuation</p>
         <p className="mt-0.5 truncate text-sm text-on-surface" data-testid="sampled-continuation">
           <span className="text-on-surface-variant">{PROMPT}</span>
           {samples.length > 0 && <span className="text-primary"> {samples.join(" · ")}</span>}
         </p>
         {truncation !== "none" ? (
-          <p className="mt-1 text-[11px] leading-4 text-on-surface-variant sm:hidden">
+          <p className="mt-1 viz-caption leading-4 text-on-surface-variant sm:hidden">
             {truncation === "top-p" ? `Top-p ${topP.toFixed(2)}` : `Top-k ${topK}`} excludes {formatPercent(removedRawMass)} of the raw probability mass; {truncationResult.survivingIndices.length} tokens remain, then renormalise to 100%.
           </p>
         ) : null}
@@ -376,7 +379,7 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
 
       <div className="grid shrink-0 grid-cols-[auto_minmax(8rem,1fr)] gap-x-3 gap-y-2 border-t border-outline bg-surface-container-low p-2 sm:flex sm:flex-wrap sm:items-end sm:gap-4 sm:px-3 sm:py-2">
         <label className="min-w-0 flex-1 sm:max-w-xs">
-          <span className="mb-1 flex items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant">
+          <span className="mb-1 flex items-center justify-between gap-3 font-mono viz-label uppercase tracking-[0.1em] text-on-surface-variant">
             <span>Temperature</span>
             <span className={regime === "adventurous" ? "text-warning" : "text-primary"}>
               {temperature.toFixed(2)} · {regime}
@@ -395,7 +398,7 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
         </label>
 
         <fieldset className="min-w-0">
-          <legend className="mb-1 font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant">Truncation</legend>
+          <legend className="mb-1 font-mono viz-label uppercase tracking-[0.1em] text-on-surface-variant">Truncation</legend>
           <div className="grid grid-cols-3">
             {TRUNCATION_OPTIONS.map((option, index) => (
               <button
@@ -417,7 +420,7 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
 
         {truncation === "top-k" && (
           <label className="min-w-0 flex-1 sm:max-w-[10rem]">
-            <span className="mb-1 flex items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant">
+            <span className="mb-1 flex items-center justify-between gap-3 font-mono viz-label uppercase tracking-[0.1em] text-on-surface-variant">
               <span>k</span>
               <span className="text-primary">{topK}</span>
             </span>
@@ -436,7 +439,7 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
 
         {truncation === "top-p" && (
           <label className="min-w-0 flex-1 sm:max-w-[10rem]">
-            <span className="mb-1 flex items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant">
+            <span className="mb-1 flex items-center justify-between gap-3 font-mono viz-label uppercase tracking-[0.1em] text-on-surface-variant">
               <span>p</span>
               <span className="text-primary">{topP.toFixed(2)}</span>
             </span>

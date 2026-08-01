@@ -31,6 +31,9 @@ const scenes: Readonly<Record<string, ExhibitScene>> = {
   backpropagation: dynamic<ExhibitSceneProps>(() => import("./backprop/BackpropScene"), { loading: SceneLoading }),
   "regression-boundary": dynamic<ExhibitSceneProps>(() => import("./regression/RegressionScene"), { loading: SceneLoading }),
   "decision-tree": dynamic<ExhibitSceneProps>(() => import("./decision-tree/DecisionTreeScene"), { loading: SceneLoading }),
+  "classification-threshold": dynamic<ExhibitSceneProps>(() => import("./classification-threshold/ClassificationThresholdScene"), { loading: SceneLoading }),
+  "bayesian-updating": dynamic<ExhibitSceneProps>(() => import("./bayesian-updating/BayesianUpdatingScene"), { loading: SceneLoading }),
+  "bagging-and-boosting": dynamic<ExhibitSceneProps>(() => import("./ensembles/EnsemblesScene"), { loading: SceneLoading }),
 };
 
 export function ExhibitScene({ slug, ...props }: ExhibitSceneProps & { slug: string }) {
