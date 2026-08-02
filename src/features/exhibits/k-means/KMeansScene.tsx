@@ -454,6 +454,10 @@ export default function KMeansScene({ step, resetKey, playing = false }: Exhibit
       </div>
 
       <div className="grid shrink-0 grid-cols-[auto_minmax(8rem,1fr)] gap-x-3 gap-y-2 border-t border-outline bg-surface-container-low p-2 sm:flex sm:items-end sm:gap-4 sm:px-3 sm:py-2">
+        <p className="col-span-2 flex items-center justify-between gap-3 border-b border-outline pb-2 font-mono text-[9px] uppercase tracking-[0.06em] text-on-surface-variant sm:hidden">
+          <span>Iteration {current?.iteration ?? iterationNumber} · {current?.phase ?? "ready"}</span>
+          <span className={converged ? "text-primary" : "text-warning"}>Inertia {beforeInertia.toFixed(1)} → {afterInertia.toFixed(1)}</span>
+        </p>
         {step === 3 ? <p className="col-span-2 font-mono text-[9px] uppercase tracking-[0.06em] text-on-surface-variant sm:hidden">Same data · this start finishes at {finalInertia.toFixed(1)} inertia; better start {betterStartFinalInertia.toFixed(1)}.</p> : null}
         <fieldset className="min-w-0">
           <legend className="mb-1 font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant">k</legend>

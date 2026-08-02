@@ -111,7 +111,7 @@ export function ConceptConstellation({ exhibits }: { exhibits: readonly ConceptM
 
   return (
     <div data-testid="concept-constellation">
-      <div className="hidden gap-5 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="hidden gap-5 xl:grid xl:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="min-w-0">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <p className="font-mono text-[10px] uppercase tracking-label text-on-surface-variant">
@@ -154,7 +154,7 @@ export function ConceptConstellation({ exhibits }: { exhibits: readonly ConceptM
                     strokeWidth={active ? 3.2 : 1.25}
                     strokeDasharray={style.dash}
                     strokeLinecap="round"
-                    opacity={active ? 0.92 : 0.22}
+                    opacity={active ? 0.96 : 0.34}
                     markerEnd={isDirected(relation.kind) ? `url(#concept-arrow-${relation.kind})` : undefined}
                   />
                 );
@@ -176,7 +176,7 @@ export function ConceptConstellation({ exhibits }: { exhibits: readonly ConceptM
                   aria-pressed={active}
                   onClick={() => selectConcept(node.slug)}
                   onKeyDown={(event) => handleNodeKeyDown(event, node)}
-                  className={`absolute flex min-h-[3.25rem] w-[14%] min-w-[7.5rem] -translate-x-1/2 -translate-y-1/2 flex-col items-start justify-center border px-3 py-2 text-left transition-[border-color,background-color,opacity,transform] ${active ? "z-20 scale-[1.04] border-primary bg-primary text-on-primary" : connected ? "z-10 border-outline-dark bg-surface text-on-surface hover:border-primary" : "border-outline bg-surface text-on-surface opacity-80 hover:border-primary hover:opacity-100"}`}
+                  className={`absolute flex min-h-[3.25rem] w-[14%] min-w-[7.5rem] -translate-x-1/2 -translate-y-1/2 flex-col items-start justify-center border px-3 py-2 text-left transition-[border-color,background-color,opacity,transform] ${active ? "z-20 scale-[1.04] border-primary bg-primary text-on-primary" : connected ? "z-10 border-outline-dark bg-surface text-on-surface hover:border-primary" : "border-outline-dark bg-surface text-on-surface hover:border-primary"}`}
                   style={{ left: `${(node.x / MAP_WIDTH * 100).toFixed(3)}%`, top: `${(node.y / MAP_HEIGHT * 100).toFixed(3)}%` }}
                 >
                   <span className={`font-mono text-[8px] uppercase tracking-[0.08em] ${active ? "text-on-primary/75" : "text-on-surface-variant"}`}>{exhibit.topic}</span>
@@ -196,7 +196,7 @@ export function ConceptConstellation({ exhibits }: { exhibits: readonly ConceptM
         />
       </div>
 
-      <div className="lg:hidden">
+      <div className="xl:hidden">
         <p className="mb-3 font-mono text-[10px] uppercase tracking-label text-on-surface-variant">
           One-hop lens · choose a question to recenter
         </p>

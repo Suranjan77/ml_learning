@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useReducedMotion } from "motion/react";
 import type { ExhibitSceneProps } from "../types";
 import { vizTokens } from "@/lib/vizTokens";
@@ -20,12 +20,31 @@ function tone(value: number) { return value >= 0 ? vizTokens.classA : vizTokens.
 export default function BackpropScene({ step, resetKey, playing = false }: ExhibitSceneProps) {
   const activeStep = Math.max(0, Math.min(3, step));
   const titleId = useId();
+  const diagramRef = useRef<HTMLDivElement>(null);
   const prefersReduced = Boolean(useReducedMotion());
   const [input, setInput] = useState<[number, number]>(DEFAULT_INPUT);
   const [target, setTarget] = useState(DEFAULT_TARGET);
   const [learningRate, setLearningRate] = useState(DEFAULT_RATE);
   const [updates, setUpdates] = useState(0);
+  const [mobilePanel, setMobilePanel] = useState<"network" | "result">(activeStep >= 2 ? "result" : "network");
   useEffect(() => { setInput([...DEFAULT_INPUT]); setTarget(DEFAULT_TARGET); setLearningRate(DEFAULT_RATE); setUpdates(0); }, [resetKey]);
+
+  const showMobilePanel = (panel: "network" | "result") => {
+    setMobilePanel(panel);
+    const diagram = diagramRef.current;
+    if (!diagram) return;
+    diagram.scrollTo({ left: panel === "network" ? 0 : diagram.scrollWidth - diagram.clientWidth, behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    const panel = activeStep >= 2 ? "result" : "network";
+    setMobilePanel(panel);
+    const frame = window.requestAnimationFrame(() => {
+      const diagram = diagramRef.current;
+      if (diagram) diagram.scrollLeft = panel === "network" ? 0 : diagram.scrollWidth - diagram.clientWidth;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeStep, resetKey]);
 
   const syncControls = (next: { input?: [number, number]; target?: number; learningRate?: number; updates?: number }) => {
     const values = { input, target, learningRate, updates, ...next };
@@ -83,9 +102,24 @@ export default function BackpropScene({ step, resetKey, playing = false }: Exhib
   }, [input, learningRate, playing, prefersReduced, showGradients, target, updates]);
 
   return <section aria-label="Backpropagation visualisation" className="grid h-full min-h-[22rem] grid-rows-[minmax(0,1fr)_auto] overflow-hidden border border-outline bg-surface">
-    <div role="img" aria-labelledby={titleId} className="min-h-0 overflow-x-auto overflow-y-hidden">
-      <span id={titleId} className="sr-only">Forward activations and backward gradients through a small neural network</span>
-      <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="h-full min-w-[700px] sm:min-w-0 sm:w-full" aria-hidden="true">
+    <div className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] sm:block">
+      <div className="grid min-h-10 grid-cols-2 border-b border-outline bg-surface-container-low font-mono text-[9px] uppercase tracking-[0.08em] sm:hidden" aria-label="Backpropagation diagram stage">
+        <button type="button" aria-pressed={mobilePanel === "network"} onClick={() => showMobilePanel("network")} className={`border-r border-outline px-2 ${mobilePanel === "network" ? "bg-primary text-on-primary" : "text-on-surface-variant"}`}>Network</button>
+        <button type="button" aria-pressed={mobilePanel === "result"} onClick={() => showMobilePanel("result")} className={mobilePanel === "result" ? "bg-primary text-on-primary" : "text-on-surface-variant"}>Prediction + loss</button>
+      </div>
+      <div
+        ref={diagramRef}
+        role="img"
+        aria-labelledby={titleId}
+        tabIndex={0}
+        onScroll={(event) => {
+          const element = event.currentTarget;
+          setMobilePanel(element.scrollLeft > (element.scrollWidth - element.clientWidth) / 2 ? "result" : "network");
+        }}
+        className="min-h-0 overflow-x-auto overflow-y-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary"
+      >
+        <span id={titleId} className="sr-only">Forward activations and backward gradients through a small neural network</span>
+        <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="h-full min-w-[700px] sm:min-w-0 sm:w-full" aria-hidden="true">
         <rect width={WIDTH} height={HEIGHT} fill={vizTokens.canvas} />
         <text x="90" y="55" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>INPUTS</text><text x="420" y="55" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>HIDDEN FEATURES</text><text x="750" y="55" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>PREDICTION</text>
         {INPUT_POS.flatMap(([x1, y1], inputIndex) => HIDDEN_POS.map(([x2, y2], hiddenIndex) => {
@@ -132,9 +166,10 @@ export default function BackpropScene({ step, resetKey, playing = false }: Exhib
             <text y="158" fontFamily="var(--font-mono)" fontSize="12" fill={tone(tracedChain.gradient)}>= {tracedChain.gradient.toFixed(4)}</text>
           </g> : null}
         </g> : null}
-        {showGradients ? <><path d="M850 430 H205" stroke={vizTokens.error} strokeWidth="3" strokeDasharray="8 6" /><path d="M205 430 l12-6v12z" fill={vizTokens.error} /><text x="530" y="455" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.error}>BACKWARD: chain rule assigns each weight responsibility for the error</text></> : null}
-      </svg>
-      <p className="sr-only" aria-live="polite">Prediction {pass.output.toFixed(3)}, target {target}, loss {pass.loss.toFixed(3)}. {updates} updates applied.</p>
+        {showGradients ? <><path d="M850 430 H205" stroke={vizTokens.error} strokeWidth="3" strokeDasharray="8 6" /><path d="M205 430 l12-6v12z" fill={vizTokens.error} /><text x="530" y="455" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="11" fill={vizTokens.error}>BACKWARD: CHAIN-RULE GRADIENTS</text></> : null}
+        </svg>
+        <p className="sr-only" aria-live="polite">Prediction {pass.output.toFixed(3)}, target {target}, loss {pass.loss.toFixed(3)}. {updates} updates applied.</p>
+      </div>
     </div>
     <div className="grid gap-2 border-t border-outline bg-surface-container-low p-2 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end sm:px-3">
       {input.map((value,index) => <label key={index}><span className="flex justify-between font-mono text-[9px] uppercase tracking-label text-on-surface-variant"><span>Input x{index+1}</span><span>{value.toFixed(2)}</span></span><input aria-label={`Input x${index+1}`} type="range" min="0" max="1" step="0.05" value={value} onChange={(event) => { const nextInput = input.map((item,i) => i === index ? Number(event.target.value) : item) as [number,number]; setInput(nextInput); setUpdates(0); syncControls({ input: nextInput, updates: 0 }); }} /></label>)}

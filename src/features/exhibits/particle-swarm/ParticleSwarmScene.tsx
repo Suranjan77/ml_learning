@@ -374,7 +374,9 @@ function SwarmField({
         {SHADE_CELLS.map((cell) => {
           const width = PLOT.width / 14;
           const height = PLOT.height / 14;
-          const opacity = 0.025 + Math.min(0.09, cell.score / 900);
+          // Rounded because `objective` uses Math.cos, whose last-place digits differ
+          // between the server and browser engines and desynchronise hydration.
+          const opacity = Math.round((0.025 + Math.min(0.09, cell.score / 900)) * 1e4) / 1e4;
           return <rect key={`${cell.row}-${cell.column}`} x={PLOT.left + cell.column * width} y={PLOT.top + (13 - cell.row) * height} width={width + 0.4} height={height + 0.4} fill={vizTokens.error} opacity={opacity} />;
         })}
         {CONTOURS.map(({ level, path }, index) => (
@@ -456,7 +458,7 @@ function SwarmField({
           );
         })}
 
-        <g aria-label={`Global best at ${state.globalBest.x.toFixed(2)}, ${state.globalBest.y.toFixed(2)}`}>
+        <g aria-hidden="true" pointerEvents="none">
           <circle cx={globalBest.x} cy={globalBest.y} r={12} fill={vizTokens.canvas} stroke={vizTokens.path} strokeWidth={2.4} />
           <circle cx={globalBest.x} cy={globalBest.y} r={6} fill="none" stroke={vizTokens.path} strokeWidth={2} />
         </g>

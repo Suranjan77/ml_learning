@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { ExhibitSceneProps } from "../types";
 import { vizTokens } from "@/lib/vizTokens";
 import { DEFAULT_MUTATION_RATE, evolvePopulation, fitnessAt, initialPopulation, nextGeneration, type GeneticState } from "./model";
@@ -72,12 +72,23 @@ function GenomeRow({ label, genome, y, sourceSplit, tone, mutations = [] }: {
 }
 
 export default function GeneticAlgorithmScene({ step, resetKey, playing = false }: ExhibitSceneProps) {
-  const initialGeneration = STEP_GENERATIONS[Math.max(0, Math.min(STEP_GENERATIONS.length - 1, step))];
+  const activeStep = Math.max(0, Math.min(STEP_GENERATIONS.length - 1, step));
+  const initialGeneration = STEP_GENERATIONS[activeStep];
   const titleId = useId();
+  const diagramRef = useRef<HTMLDivElement>(null);
   const [mutationRate, setMutationRate] = useState(DEFAULT_MUTATION_RATE);
   const [state, setState] = useState<GeneticState>(() => evolvePopulation(initialGeneration));
   const [history, setHistory] = useState<HistoryPoint[]>(() => runWithHistory(initialGeneration, DEFAULT_MUTATION_RATE).history);
   const [running, setRunning] = useState(false);
+  const [mobilePanel, setMobilePanel] = useState<"landscape" | "history" | "ancestry">(activeStep === 0 ? "landscape" : activeStep === 3 ? "history" : "ancestry");
+
+  const showMobilePanel = (panel: "landscape" | "history" | "ancestry") => {
+    setMobilePanel(panel);
+    const diagram = diagramRef.current;
+    if (!diagram) return;
+    const maximum = diagram.scrollWidth - diagram.clientWidth;
+    diagram.scrollTo({ left: panel === "landscape" ? 0 : panel === "history" ? maximum / 2 : maximum, behavior: "smooth" });
+  };
 
   useEffect(() => {
     const run = runWithHistory(initialGeneration, DEFAULT_MUTATION_RATE);
@@ -86,6 +97,18 @@ export default function GeneticAlgorithmScene({ step, resetKey, playing = false 
     setHistory(run.history);
     setRunning(false);
   }, [initialGeneration, resetKey]);
+
+  useEffect(() => {
+    const panel = activeStep === 0 ? "landscape" : activeStep === 3 ? "history" : "ancestry";
+    setMobilePanel(panel);
+    const frame = window.requestAnimationFrame(() => {
+      const diagram = diagramRef.current;
+      if (!diagram) return;
+      const maximum = diagram.scrollWidth - diagram.clientWidth;
+      diagram.scrollLeft = panel === "landscape" ? 0 : panel === "history" ? maximum / 2 : maximum;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeStep, resetKey]);
 
   useEffect(() => {
     if (!playing) return;
@@ -132,9 +155,28 @@ export default function GeneticAlgorithmScene({ step, resetKey, playing = false 
 
   return (
     <section aria-label="Genetic algorithm visualisation" className="grid h-full min-h-[22rem] grid-rows-[minmax(0,1fr)_auto] overflow-hidden border border-outline bg-surface">
-      <div role="img" aria-labelledby={titleId} className="min-h-0 overflow-x-auto overflow-y-hidden">
-        <span id={titleId} className="sr-only">A binary population evolving toward the highest-fitness region</span>
-        <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="h-full w-full min-w-[850px] lg:min-w-0" aria-hidden="true">
+      <div className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] lg:block">
+        <div className="grid min-h-10 grid-cols-3 border-b border-outline bg-surface-container-low font-mono text-[9px] uppercase tracking-[0.07em] lg:hidden" aria-label="Genetic algorithm diagram stage">
+          {(["landscape", "history", "ancestry"] as const).map((panel, index) => (
+            <button key={panel} type="button" aria-pressed={mobilePanel === panel} onClick={() => showMobilePanel(panel)} className={`border-r border-outline px-1 last:border-r-0 ${mobilePanel === panel ? "bg-primary text-on-primary" : "text-on-surface-variant"}`}>
+              {index + 1} · {panel}
+            </button>
+          ))}
+        </div>
+        <div
+          ref={diagramRef}
+          role="img"
+          aria-labelledby={titleId}
+          tabIndex={0}
+          onScroll={(event) => {
+            const element = event.currentTarget;
+            const progress = element.scrollLeft / Math.max(1, element.scrollWidth - element.clientWidth);
+            setMobilePanel(progress < 0.25 ? "landscape" : progress > 0.75 ? "ancestry" : "history");
+          }}
+          className="min-h-0 overflow-x-auto overflow-y-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary"
+        >
+          <span id={titleId} className="sr-only">A binary population evolving toward the highest-fitness region</span>
+          <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="h-full w-full min-w-[850px] lg:min-w-0" aria-hidden="true">
           <rect width={WIDTH} height={HEIGHT} fill={vizTokens.canvas} />
           <text x={X0} y="27" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.mutedInk}>FITNESS LANDSCAPE · TWO PEAKS, ONE GLOBAL BEST</text>
           <line x1={X0} y1={Y_BASE} x2={X1} y2={Y_BASE} stroke={vizTokens.axis} />
@@ -195,12 +237,13 @@ export default function GeneticAlgorithmScene({ step, resetKey, playing = false 
             <text x="12" y="356" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.ink}>CROSSOVER recombines evidence</text>
             <text x="12" y="379" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.ink}>MUTATION restores variation</text>
           </g>
-        </svg>
-        <p className="sr-only" aria-live="polite">Generation {state.generation}. Best fitness {best.fitness.toFixed(3)}. {diversity} unique genomes remain. {reproductionSummary}</p>
+          </svg>
+          <p className="sr-only" aria-live="polite">Generation {state.generation}. Best fitness {best.fitness.toFixed(3)}. {diversity} unique genomes remain. {reproductionSummary}</p>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-end gap-3 border-t border-outline bg-surface-container-low px-3 py-2">
-        <p className="w-full font-mono text-[9px] uppercase tracking-label text-on-surface-variant lg:hidden">Swipe landscape → history → bit ancestry</p>
+        <p className="w-full font-mono text-[9px] uppercase tracking-label text-on-surface-variant lg:hidden">Diagram stages above · guided step follows the evidence</p>
         <label className="min-w-48 flex-1 sm:max-w-sm"><span className="flex justify-between font-mono text-[9px] uppercase tracking-label text-on-surface-variant"><span>Mutation probability</span><span className="text-primary">{(mutationRate * 100).toFixed(1)}%</span></span><input aria-label="Mutation probability" type="range" min="0" max="0.2" step="0.005" value={mutationRate} onChange={(event) => setMutationRate(Number(event.target.value))} /></label>
         <div className="ml-auto flex gap-2"><button type="button" onClick={() => { setRunning(false); evolveOnce(); }} className="min-h-9 border border-primary bg-primary px-3 text-xs text-on-primary">Evolve once</button><button type="button" onClick={() => setRunning((value) => !value)} className="min-h-9 border border-outline bg-surface px-3 text-xs">{running ? "Pause" : "Run"}</button><button type="button" onClick={restart} className="min-h-9 border border-outline bg-surface px-3 text-xs">Restart</button></div>
       </div>

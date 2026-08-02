@@ -29,7 +29,7 @@ export const particleSwarmExhibit: ExhibitDefinition = {
     },
     {
       title: "Explain one move",
-      instruction: "Use the particle microscope and compare momentum, personal memory, shared knowledge, and their combined next move.",
+      instruction: "Compare momentum, personal memory, shared knowledge, and the combined next move.",
       observation: "The next velocity is the vector combination of previous motion, personal evidence, and information from the swarm.",
     },
     {

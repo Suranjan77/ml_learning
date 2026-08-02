@@ -363,7 +363,7 @@ function DescentScene3D({
       {referenceLabelPosition && referenceLearningRate !== null ? (
         <Html position={[referenceLabelPosition[0], referenceLabelPosition[1] + 0.24, referenceLabelPosition[2]]} center zIndexRange={[4, 0]}>
           <span aria-hidden="true" className="pointer-events-none whitespace-nowrap border border-primary bg-surface/95 px-1.5 py-0.5 font-mono text-[8px] uppercase text-primary">
-            Stable reference · {referenceLearningRate.toFixed(2)} · {referenceAssessment?.behaviour ?? "kept"}
+            Kept {referenceLearningRate.toFixed(2)}
           </span>
         </Html>
       ) : null}
@@ -383,7 +383,7 @@ function DescentScene3D({
 
       {currentLabelPosition && referenceLearningRate !== null ? <Html position={[currentLabelPosition[0], currentLabelPosition[1] + 0.28, currentLabelPosition[2]]} center zIndexRange={[5, 0]}>
         <span aria-hidden="true" className={`pointer-events-none whitespace-nowrap border bg-surface/95 px-1.5 py-0.5 font-mono text-[8px] uppercase ${currentAssessment.behaviour === "diverging" ? "border-error text-error" : "border-accent text-accent"}`}>
-          Current · {currentAssessment.behaviour}
+          Current path
         </span>
       </Html> : null}
 

@@ -103,7 +103,7 @@ export function GradientPathComparison({
         {start ? <circle cx={sx(start.x)} cy={sy(start.y)} r="4.5" fill={vizTokens.ink} stroke={vizTokens.canvas} strokeWidth="1.5" /> : null}
         <g transform={`translate(14 ${HEIGHT - 22})`} fontFamily="var(--font-mono)" fontSize="7.5">
           <line x1="0" y1="-2" x2="14" y2="-2" stroke={vizTokens.classA} strokeWidth="3" />
-          <text x="19" fill={vizTokens.classA}>REFERENCE {referenceRate.toFixed(2)} · {changeLabel(referenceAssessment)}</text>
+          <text x="19" fill={vizTokens.classA}>KEPT {referenceRate.toFixed(2)}</text>
           <line x1="153" y1="-2" x2="167" y2="-2" stroke={vizTokens.target} strokeWidth="3" />
           <text x="172" fill={vizTokens.target}>CURRENT {currentRate.toFixed(2)}</text>
         </g>

@@ -363,10 +363,18 @@ export default function TokenSamplingScene({ step, resetKey, playing = false }: 
 
       <div className="border-t border-outline bg-surface-container-low px-3 py-2 sm:px-4">
         <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant">Sampled continuation</p>
-        <p className="mt-0.5 truncate text-sm text-on-surface" data-testid="sampled-continuation">
+        <p className="mt-0.5 break-words text-sm text-on-surface" data-testid="sampled-continuation">
           <span className="text-on-surface-variant">{PROMPT}</span>
           {samples.length > 0 && <span className="text-primary"> {samples.join(" · ")}</span>}
         </p>
+        <div className="mt-2 grid grid-cols-3 gap-px border border-outline bg-outline font-mono text-[9px] sm:hidden" aria-label="Three most likely tokens after truncation">
+          {ranked.slice(0, 3).map((entry, index) => (
+            <p key={entry.token} className="bg-surface px-2 py-1.5">
+              <span className="block text-on-surface-variant">#{index + 1} {entry.token}</span>
+              <span className="mt-0.5 block text-primary">{formatPercent(entry.samplingProbability)}</span>
+            </p>
+          ))}
+        </div>
         {truncation !== "none" ? (
           <p className="mt-1 text-[11px] leading-4 text-on-surface-variant sm:hidden">
             {truncation === "top-p" ? `Top-p ${topP.toFixed(2)}` : `Top-k ${topK}`} excludes {formatPercent(removedRawMass)} of the raw probability mass; {truncationResult.survivingIndices.length} tokens remain, then renormalise to 100%.

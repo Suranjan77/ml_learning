@@ -17,18 +17,22 @@ export const metadata: Metadata = {
 
 const sections = [
   {
+    id: "approach",
     title: "Approach",
     body: "Each exhibit focuses on one relationship. Controls change the model or data directly, and guided steps point out useful states without requiring a fixed order. Fixed models and datasets keep the examples repeatable.",
   },
   {
+    id: "evidence-and-simplification",
     title: "Evidence and simplification",
     body: "The insight drawer for every exhibit names its references and states what is illustrative, idealised, or omitted. Equations appear only when they clarify a control or visible mechanism. The visualisations are explanations, not production model benchmarks or claims about real-world performance.",
   },
   {
+    id: "accessibility",
     title: "Accessibility",
     body: "Controls are designed for keyboard, pointer, and touch input. Scenes include a nonvisual description, important states are not encoded by colour alone, dialogs trap and restore focus, and automatic walkthroughs stop when reduced motion is preferred. Automated checks complement—not replace—manual review with assistive technology and real devices.",
   },
   {
+    id: "privacy",
     title: "Privacy",
     body: "The site is a static export. It uses no analytics, tracking pixels, cookies, accounts, advertising, or stored visitor profiles. Search, filters, and exhibit state remain in the browser and are represented in ordinary URLs when they need to be shared.",
   },
@@ -48,7 +52,7 @@ export default function MethodologyPage() {
 
         <div className="mt-12 grid gap-px border border-outline bg-outline md:grid-cols-2">
           {sections.map((section) => (
-            <section key={section.title} className="bg-surface p-6 sm:p-8">
+            <section id={section.id} key={section.title} className="scroll-mt-20 bg-surface p-6 sm:p-8">
               <h2 className="font-headline text-2xl font-medium text-on-surface">{section.title}</h2>
               <p className="mt-4 text-sm leading-7 text-on-surface-variant">{section.body}</p>
             </section>

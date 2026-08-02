@@ -39,7 +39,7 @@ export const tokenSamplingExhibit: ExhibitDefinition = {
       title: "Cut the tail with top-p",
       instruction: "Switch to top-p truncation and read the nucleus marker on the chart.",
       observation:
-        "Top-p removes the low-probability tail before sampling ever runs, even though the untruncated distribution still assigns those tokens a small weight.",
+        "Top-p removes low-probability tokens before the draw; the original distribution still gives them weight.",
     },
     {
       title: "Raise the temperature",

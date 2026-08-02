@@ -7,13 +7,14 @@ describe("GradientDescentProof", () => {
     render(<GradientDescentProof />);
 
     const slider = screen.getByRole("slider", { name: "Homepage learning rate" });
-    expect(screen.getByText(/0.52 · converging/)).toBeInTheDocument();
+    expect(screen.getAllByText(/0.52 · converging/).length).toBeGreaterThan(0);
 
-    fireEvent.change(slider, { target: { value: "0.90" } });
-    expect(screen.getByText(/0.90 · oscillating/)).toBeInTheDocument();
+    fireEvent.input(slider, { target: { value: "0.90" } });
+    expect(screen.getAllByText(/0.90 · oscillating/).length).toBeGreaterThan(0);
 
-    fireEvent.change(slider, { target: { value: "1.06" } });
-    expect(screen.getByText(/1.06 · diverging/)).toBeInTheDocument();
-    expect(screen.getByText(/1.06 finishes .* higher after 14 steps/)).toBeInTheDocument();
+    fireEvent.input(slider, { target: { value: "1.06" } });
+    expect(screen.getAllByText(/1.06 · diverging/).length).toBeGreaterThan(0);
+    expect(screen.getByText(/1.06 finishes .* above its starting loss after 14 steps/)).toBeInTheDocument();
+    expect(screen.getByText(/0.40 lowers loss; at 1.06, loss finishes/)).toBeInTheDocument();
   });
 });

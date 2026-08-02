@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import LibraryBrowser from "@/features/library/LibraryBrowser";
+import { conceptRelations } from "@/features/concepts/constellation";
 import { exhibitSummaries } from "@/features/exhibits/registry";
 
 export const metadata: Metadata = {
@@ -35,7 +36,7 @@ export default function VisualisationsPage() {
       </header>
 
       <section className="flex-1 bg-surface-dim px-4 py-5 pb-8 sm:px-6 lg:px-8">
-        <LibraryBrowser exhibits={exhibitSummaries} />
+        <LibraryBrowser exhibits={exhibitSummaries} connectionCount={conceptRelations.length} />
       </section>
     </div>
   );

@@ -71,6 +71,34 @@ test.describe("homepage proof", () => {
 
     expect(hydrationErrors).toEqual([]);
   });
+
+  test("keeps the complete homepage field and comparison plates inside 320px", async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 844 });
+    await page.goto("/");
+
+    const layout = await page.evaluate(() => {
+      const field = document.querySelector<HTMLElement>('[data-testid="home-concept-field"]');
+      const map = field?.querySelector<HTMLElement>('[role="group"]');
+      const plates = Array.from(document.querySelectorAll<HTMLElement>(".causal-study"));
+      const fieldBox = field?.getBoundingClientRect();
+      const mapBox = map?.getBoundingClientRect();
+      return {
+        documentWidth: document.documentElement.scrollWidth,
+        viewportWidth: document.documentElement.clientWidth,
+        fieldWidth: fieldBox?.width,
+        mapWidth: mapBox?.width,
+        plateWidths: plates.map((plate) => plate.getBoundingClientRect().width),
+        plateTops: plates.map((plate) => plate.getBoundingClientRect().top),
+      };
+    });
+
+    expect(layout.documentWidth).toBeLessThanOrEqual(layout.viewportWidth);
+    expect(layout.mapWidth).toBeLessThanOrEqual(layout.fieldWidth ?? 0);
+    expect(layout.plateWidths).toHaveLength(3);
+    expect(layout.plateWidths.every((width) => width <= 288)).toBe(true);
+    expect(layout.plateTops[1]).toBeGreaterThan(layout.plateTops[0]);
+    expect(layout.plateTops[2]).toBeGreaterThan(layout.plateTops[1]);
+  });
 });
 
 test.describe("concept constellation", () => {
@@ -108,6 +136,14 @@ test.describe("concept constellation", () => {
     await gradient.press("ArrowUp");
     await expect(page.getByRole("heading", { level: 2, name: "Regression parameters" })).toBeVisible();
   });
+
+  test("uses the collision-free one-hop layout at 1024px", async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await page.goto("/concepts");
+
+    await expect(page.getByText(/One-hop lens/)).toBeVisible();
+    await expect(page.getByRole("group", { name: /Authored map of thirteen/ })).toBeHidden();
+  });
 });
 
 test.describe("visualisation workspace", () => {
@@ -141,6 +177,37 @@ test.describe("visualisation workspace", () => {
     });
   }
 
+  for (const route of [
+    "/visualisations/gradient-descent",
+    "/visualisations/attention",
+    "/visualisations/kernel-trick",
+    "/visualisations/particle-swarm",
+  ]) {
+    test(`${route} remains complete on a short 320px viewport`, async ({ page }) => {
+      await page.setViewportSize({ width: 320, height: 568 });
+      await page.goto(route);
+
+      const layout = await page.evaluate(() => {
+        const workspace = document.querySelector<HTMLElement>('[data-testid="visualisation-workspace"]')!;
+        const next = Array.from(workspace.querySelectorAll<HTMLButtonElement>("button")).find((button) => button.textContent?.trim() === "Next");
+        const nextBox = next?.getBoundingClientRect();
+        return {
+          documentWidth: document.documentElement.scrollWidth,
+          viewportWidth: document.documentElement.clientWidth,
+          documentHeight: document.documentElement.scrollHeight,
+          workspaceWidth: workspace.clientWidth,
+          workspaceScrollWidth: workspace.scrollWidth,
+          lastActionRight: nextBox?.right,
+        };
+      });
+
+      expect(layout.documentWidth).toBeLessThanOrEqual(layout.viewportWidth);
+      expect(layout.workspaceScrollWidth).toBeLessThanOrEqual(layout.workspaceWidth);
+      expect(layout.documentHeight).toBeGreaterThan(568);
+      expect(layout.lastActionRight).toBeLessThanOrEqual(320);
+    });
+  }
+
   test("lists every visualisation on the library index", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto("/visualisations");
@@ -166,6 +233,25 @@ test.describe("visualisation workspace", () => {
     expect(routingBox!.x).toBeGreaterThanOrEqual(diagramBox!.x - 1);
     expect(routingBox!.x + routingBox!.width).toBeLessThanOrEqual(diagramBox!.x + diagramBox!.width + 1);
     expect(routingBox!.x).toBeGreaterThan(partitionBox!.x + partitionBox!.width);
+  });
+
+  test("moves wide mobile diagrams to the evidence named by the guided step", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    await page.goto("/visualisations/backpropagation?step=3");
+    const backpropResult = page.getByRole("button", { name: "Prediction + loss" });
+    await expect(backpropResult).toHaveAttribute("aria-pressed", "true");
+    await expect.poll(() => page.locator('section[aria-label="Backpropagation visualisation"] [role="img"]').evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+    await page.getByRole("button", { name: "Network", exact: true }).click();
+    await expect.poll(() => page.locator('section[aria-label="Backpropagation visualisation"] [role="img"]').evaluate((element) => element.scrollLeft)).toBe(0);
+
+    await page.goto("/visualisations/cnn-feature-maps?step=3");
+    await expect(page.getByRole("button", { name: "3 · output" })).toHaveAttribute("aria-pressed", "true");
+    await expect.poll(() => page.locator('section[aria-label="CNN convolution visualisation"] [role="img"]').evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+
+    await page.goto("/visualisations/genetic-algorithm?step=1");
+    await expect(page.getByRole("button", { name: "3 · ancestry" })).toHaveAttribute("aria-pressed", "true");
+    await expect.poll(() => page.locator('section[aria-label="Genetic algorithm visualisation"] [role="img"]').evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
   });
 
   test("searches the library and reflects the query in the URL", async ({ page }) => {

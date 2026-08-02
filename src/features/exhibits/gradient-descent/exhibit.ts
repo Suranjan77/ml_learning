@@ -34,7 +34,7 @@ export const gradientDescentExhibit: ExhibitDefinition = {
     {
       title: "Test a larger step",
       instruction: "Predict what a larger step will do, then find the highest slider value that still lowers loss after 14 steps.",
-      observation: "Green and rust share a start and surface; only learning rate changes. Crossing the marked valley floor can still lower loss—until the path becomes unstable.",
+      observation: "Only the rate changes. Valley crossings can still lower loss—until the path becomes unstable.",
     },
     {
       title: "Change only the start",

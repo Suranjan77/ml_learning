@@ -202,11 +202,11 @@ export default function ExhibitShell({ slug }: { slug: string }) {
       data-testid="visualisation-workspace"
       data-embed={embedMode ? "true" : undefined}
       data-guided-step={step}
-      className="relative grid h-full min-h-0 grid-rows-[76px_minmax(0,1fr)_172px] overflow-hidden sm:grid-rows-[72px_minmax(0,1fr)_104px]"
+      className="relative grid h-full min-h-0 grid-rows-[96px_minmax(0,1fr)_196px] overflow-hidden sm:grid-rows-[72px_minmax(0,1fr)_152px] xl:grid-rows-[72px_minmax(0,1fr)_124px]"
     >
       <header inert={detailsOpen ? true : undefined} className="border-b border-outline bg-surface px-4 sm:px-6 lg:px-8">
         <div className="mx-auto grid h-full max-w-[1600px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
-          <div className="min-w-0">
+          <div className="min-w-0 overflow-y-auto py-2">
             <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-label text-on-surface-variant sm:text-[11px]">
               <Link
                 href="/visualisations"
@@ -215,11 +215,11 @@ export default function ExhibitShell({ slug }: { slug: string }) {
                 All visualisations
               </Link>
               <span aria-hidden="true">/</span>
-              <span className="truncate">{exhibit.topic}</span>
+              <span className="min-w-0 leading-tight">{exhibit.topic}</span>
             </div>
             <h1
               id={`${sceneId}-title`}
-              className="mt-1 line-clamp-2 font-headline text-lg font-medium leading-tight text-on-surface sm:text-xl lg:text-2xl"
+              className="mt-1 font-headline text-[15px] font-medium leading-[1.18] text-on-surface sm:text-xl sm:leading-tight lg:text-2xl"
             >
               {exhibit.question}
             </h1>
@@ -239,7 +239,7 @@ export default function ExhibitShell({ slug }: { slug: string }) {
             <Link
               href={fullViewHref}
               target="_top"
-              className="absolute right-3 top-2 inline-flex min-h-9 items-center gap-1.5 border border-outline bg-surface px-3 text-xs text-primary hover:border-primary"
+              className="inline-flex min-h-9 shrink-0 items-center gap-1.5 border border-outline bg-surface px-3 text-xs text-primary hover:border-primary"
             >
               Full view <ExternalLink size={13} aria-hidden="true" />
             </Link>
@@ -261,14 +261,14 @@ export default function ExhibitShell({ slug }: { slug: string }) {
         </div>
       </section>
 
-      <footer inert={detailsOpen ? true : undefined} className="border-t border-outline bg-surface px-3 py-3 sm:px-6 lg:px-8">
-        <div className="mx-auto flex h-full max-w-[1600px] min-w-0 flex-col justify-between gap-2 sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-6">
-          <div className="min-w-0" aria-live="polite">
+      <footer inert={detailsOpen ? true : undefined} className="min-h-0 border-t border-outline bg-surface px-3 py-3 sm:px-6 lg:px-8">
+        <div className="mx-auto flex h-full min-h-0 max-w-[1600px] min-w-0 flex-col justify-between gap-2 sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-6">
+          <div className="min-h-0 min-w-0 overflow-y-auto pr-1" aria-live="polite">
             <p className="flex min-w-0 items-center gap-2">
               <span className="shrink-0 font-mono text-[10px] uppercase tracking-label text-primary">
                 Step {step + 1} of {exhibit.steps.length}
               </span>
-              <span data-testid="guided-step-title" className="truncate text-sm font-medium text-on-surface">
+              <span data-testid="guided-step-title" className="text-sm font-medium leading-5 text-on-surface">
                 {current.title}
               </span>
               {playing ? <span className="hidden shrink-0 font-mono text-[9px] uppercase tracking-label text-primary lg:inline">Auto-playing</span> : null}
@@ -280,20 +280,24 @@ export default function ExhibitShell({ slug }: { slug: string }) {
                     onClick={() => { setPlaying(false); chooseStep(index); }}
                     aria-label={`Go to step ${index + 1}: ${item.title}`}
                     aria-current={index === step ? "step" : undefined}
-                    className={`h-1.5 transition-all ${index === step ? "w-6 bg-primary" : "w-3 bg-outline-dark hover:bg-primary"}`}
-                  />
+                    className="group flex h-6 items-center px-1"
+                  >
+                    <span
+                      className={`block h-1.5 transition-all ${index === step ? "w-6 bg-primary" : "w-3 bg-outline-dark group-hover:bg-primary"}`}
+                    />
+                  </button>
                 ))}
               </span>
             </p>
-            <p className="mt-1 line-clamp-2 text-sm leading-5 text-on-surface sm:line-clamp-1">
+            <p className="mt-1 text-sm leading-5 text-on-surface">
               {current.instruction}
             </p>
-            <p className="mt-0.5 line-clamp-2 text-xs leading-4 text-on-surface-variant sm:line-clamp-1">
+            <p className="mt-0.5 text-xs leading-4 text-on-surface-variant">
               {current.observation}
             </p>
           </div>
 
-          <div className="grid shrink-0 grid-cols-[40px_64px_40px_40px_40px_minmax(80px,1fr)] gap-1.5 sm:flex sm:items-center sm:gap-2">
+          <div className="grid shrink-0 grid-cols-[repeat(5,minmax(36px,1fr))_minmax(68px,1.45fr)] gap-1 sm:flex sm:items-center sm:gap-2">
             <button
               type="button"
               disabled={step === 0}
@@ -315,7 +319,7 @@ export default function ExhibitShell({ slug }: { slug: string }) {
               title={playbackLabel}
             >
               {playing ? <Pause size={16} fill="currentColor" aria-hidden="true" /> : <Play size={16} fill="currentColor" aria-hidden="true" />}
-              <span className="ml-1 text-[9px] sm:hidden">{playing ? "Pause" : finalStep ? "Replay" : "Auto"}</span>
+              <span className="ml-1 hidden text-[9px] min-[360px]:inline sm:hidden">{playing ? "Pause" : finalStep ? "Replay" : "Auto"}</span>
               <span className="ml-1.5 hidden sm:inline">{playing ? "Pause" : finalStep ? "Replay" : "Auto-play"}</span>
             </button>
             <button

@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import Header from "@/components/layout/Header";
+
+const Footer = dynamic(() => import("@/components/layout/Footer"));
 
 export default function AppShell({
   children,
@@ -21,14 +24,15 @@ export default function AppShell({
     <div
       className={
         isVisualisation
-          ? "flex h-dvh min-w-0 flex-col overflow-hidden bg-background"
-          : "min-h-dvh min-w-0 bg-background"
+          ? "visualisation-app-shell flex h-dvh min-w-0 flex-col overflow-hidden bg-background"
+          : "flex min-h-dvh min-w-0 flex-col bg-background"
       }
     >
       {embedMode ? null : <Header />}
-      <main className={isVisualisation ? "min-h-0 min-w-0 flex-1 overflow-hidden" : "min-w-0"}>
+      <main id="main-content" className={isVisualisation ? "visualisation-app-main min-h-0 min-w-0 flex-1 overflow-hidden" : "min-w-0 flex-1"}>
         {children}
       </main>
+      {isVisualisation ? null : <Footer />}
     </div>
   );
 }

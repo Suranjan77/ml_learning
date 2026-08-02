@@ -474,6 +474,11 @@ export default function OverfittingScene({ step, resetKey, playing = false }: Ex
       </div>
 
       <div className="grid shrink-0 grid-cols-[auto_minmax(8rem,1fr)] gap-x-3 gap-y-2 border-t border-outline bg-surface-container-low p-2 sm:flex sm:items-end sm:gap-4 sm:px-3 sm:py-2">
+        <dl className="col-span-2 grid grid-cols-3 gap-px border border-outline bg-outline font-mono text-[9px] uppercase tracking-[0.05em] sm:hidden">
+          <div className="bg-surface px-2 py-1.5"><dt className="text-on-surface-variant">Train error</dt><dd className="mt-0.5 text-primary">{trainError.toFixed(3)}</dd></div>
+          <div className="bg-surface px-2 py-1.5"><dt className="text-on-surface-variant">Validation</dt><dd className="mt-0.5 text-error">{validationError.toFixed(3)}</dd></div>
+          <div className="bg-surface px-2 py-1.5"><dt className="text-on-surface-variant">Gap</dt><dd className={generalisationGap > 0 ? "mt-0.5 text-error" : "mt-0.5 text-primary"}>{Math.abs(generalisationGap).toFixed(3)}</dd></div>
+        </dl>
         <label className="col-span-2 min-w-0 sm:max-w-sm sm:flex-1">
           <span className="mb-1 flex items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.1em] text-on-surface-variant">
             <span>Degree</span>

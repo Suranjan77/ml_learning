@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState, type KeyboardEvent } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import type { ExhibitSceneProps } from "../types";
 import { vizTokens } from "@/lib/vizTokens";
 import { enumParam, numberParam, replaceSceneUrlState, useSceneUrlState } from "../sceneUrlState";
@@ -42,9 +42,20 @@ export default function CnnScene({ step, resetKey, playing = false }: ExhibitSce
   const defaultFilter: FilterKind = activeStep === 2 ? "horizontal" : "vertical";
   const titleId = useId();
   const instructionId = useId();
+  const diagramRef = useRef<HTMLDivElement>(null);
   const [filter, setFilter] = useState<FilterKind>(defaultFilter);
   const [selected, setSelected] = useState(DEFAULT_SELECTED);
   const [scanning, setScanning] = useState(activeStep === 1);
+  const [mobilePanel, setMobilePanel] = useState<"input" | "filter" | "output">(activeStep >= 2 ? "output" : activeStep === 1 ? "filter" : "input");
+
+  const showMobilePanel = (panel: "input" | "filter" | "output") => {
+    setMobilePanel(panel);
+    const diagram = diagramRef.current;
+    if (!diagram) return;
+    const maximum = diagram.scrollWidth - diagram.clientWidth;
+    const left = panel === "input" ? 0 : panel === "filter" ? maximum / 2 : maximum;
+    diagram.scrollTo({ left, behavior: "smooth" });
+  };
 
   const syncControls = (nextFilter: FilterKind, nextSelected: { row: number; column: number }) => {
     replaceSceneUrlState([
@@ -89,6 +100,18 @@ export default function CnnScene({ step, resetKey, playing = false }: ExhibitSce
     setScanning(activeStep === 1);
   }, [activeStep, defaultFilter, resetKey]);
 
+  useEffect(() => {
+    const panel = activeStep >= 2 ? "output" : activeStep === 1 ? "filter" : "input";
+    setMobilePanel(panel);
+    const frame = window.requestAnimationFrame(() => {
+      const diagram = diagramRef.current;
+      if (!diagram) return;
+      const maximum = diagram.scrollWidth - diagram.clientWidth;
+      diagram.scrollLeft = panel === "input" ? 0 : panel === "filter" ? maximum / 2 : maximum;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeStep, resetKey]);
+
   useSceneUrlState((params) => {
     const restoredRow = numberParam(params, "row", { min: 0, max: 5, step: 1 });
     const restoredColumn = numberParam(params, "column", { min: 0, max: 5, step: 1 });
@@ -131,8 +154,29 @@ export default function CnnScene({ step, resetKey, playing = false }: ExhibitSce
     <section aria-label="CNN convolution visualisation" className="grid h-full min-h-[22rem] grid-rows-[minmax(0,1fr)_auto] overflow-hidden border border-outline bg-surface">
       <span id={titleId} className="sr-only">Convolutional neural network feature-map calculation</span>
       <span id={instructionId} className="sr-only">Use the arrow keys to move the selected output cell and its matching three by three input patch.</span>
-      <div role="img" aria-labelledby={titleId} aria-describedby={instructionId} tabIndex={0} onKeyDown={moveCell} className="min-h-0 overflow-x-auto overflow-y-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary">
-        <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="h-full min-w-[700px] sm:min-w-0 sm:w-full" aria-hidden="true">
+      <div className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] sm:block">
+        <div className="grid min-h-10 grid-cols-3 border-b border-outline bg-surface-container-low font-mono text-[9px] uppercase tracking-[0.08em] sm:hidden" aria-label="CNN diagram stage">
+          {(["input", "filter", "output"] as const).map((panel, index) => (
+            <button key={panel} type="button" aria-pressed={mobilePanel === panel} onClick={() => showMobilePanel(panel)} className={`border-r border-outline px-1 last:border-r-0 ${mobilePanel === panel ? "bg-primary text-on-primary" : "text-on-surface-variant"}`}>
+              {index + 1} · {panel}
+            </button>
+          ))}
+        </div>
+        <div
+          ref={diagramRef}
+          role="img"
+          aria-labelledby={titleId}
+          aria-describedby={instructionId}
+          tabIndex={0}
+          onKeyDown={moveCell}
+          onScroll={(event) => {
+            const element = event.currentTarget;
+            const progress = element.scrollLeft / Math.max(1, element.scrollWidth - element.clientWidth);
+            setMobilePanel(progress < 0.25 ? "input" : progress > 0.75 ? "output" : "filter");
+          }}
+          className="min-h-0 overflow-x-auto overflow-y-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary"
+        >
+          <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="h-full min-w-[700px] sm:min-w-0 sm:w-full" aria-hidden="true">
           <rect width={WIDTH} height={HEIGHT} fill={vizTokens.canvas} />
           <MatrixGrid matrix={INPUT} x={38} y={78} size={45} selected={{ ...selected, span: 3 }} label="8×8 INPUT IMAGE" />
           <path d="M408 240 H466" stroke={vizTokens.axis} strokeWidth="2" /><path d="M466 240 l-9 -5 v10 z" fill={vizTokens.axis} />
@@ -175,7 +219,8 @@ export default function CnnScene({ step, resetKey, playing = false }: ExhibitSce
             {activeStep >= 2 && activeStep < 3 ? <text x="695" fontFamily="var(--font-mono)" fontSize="10" fill={response < 0 ? vizTokens.error : vizTokens.classA}>RAW {response} → ReLU → {Math.max(0, response)}</text> : null}
             {activeStep === 3 ? <text x="447" fontFamily="var(--font-mono)" fontSize="10" fill={vizTokens.path}>SAME ACTIVATION MAP → LESS POSITION DETAIL</text> : null}
           </g>
-        </svg>
+          </svg>
+        </div>
       </div>
       <p className="sr-only" aria-live="polite">{filter} filter. Selected output cell row {selected.row}, column {selected.column}. Patch dot product {response}. {activeStep >= 2 ? `ReLU output ${Math.max(0, response)}.` : "Raw response shown."}</p>
 
@@ -183,7 +228,7 @@ export default function CnnScene({ step, resetKey, playing = false }: ExhibitSce
         <span className="mr-1 font-mono text-[9px] uppercase tracking-label text-on-surface-variant">Filter</span>
         {(Object.keys(FILTERS) as FilterKind[]).map((kind) => <button key={kind} type="button" aria-pressed={filter === kind} onClick={() => chooseFilter(kind)} className={`min-h-9 border px-3 text-xs capitalize ${filter === kind ? "border-primary bg-primary text-on-primary" : "border-outline bg-surface"}`}>{kind}</button>)}
         {activeStep < 3 ? <button type="button" aria-pressed={scanning} onClick={() => setScanning((value) => !value)} className={`min-h-9 border px-3 text-xs ${scanning ? "border-accent bg-accent text-on-accent" : "border-outline bg-surface"}`}>{scanning ? "Pause scan" : "Scan image"}</button> : null}
-        <p className="ml-auto hidden max-w-lg text-xs text-on-surface-variant md:block">Click an output cell to reveal the exact 3×3 input patch that produced it.</p><span className="ml-auto font-mono text-[9px] uppercase text-on-surface-variant sm:hidden">Swipe diagram →</span>
+        <p className="ml-auto hidden max-w-lg text-xs text-on-surface-variant md:block">Click an output cell to reveal the exact 3×3 input patch that produced it.</p><span className="ml-auto font-mono text-[9px] uppercase text-on-surface-variant sm:hidden">Stages above</span>
       </div>
     </section>
   );

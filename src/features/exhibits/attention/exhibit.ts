@@ -36,7 +36,7 @@ export const attentionExhibit: ExhibitDefinition = {
       instruction:
         "Choose the sentence ending in ‘wide’, then select ‘it’ again.",
       observation:
-        "Changing the ending changes the contextual query vector, which recomputes every score and weight while the query token remains ‘it’.",
+        "Only the ending changes; every score and weight is recomputed while the query stays ‘it’.",
     },
     {
       title: "Inspect another pattern",

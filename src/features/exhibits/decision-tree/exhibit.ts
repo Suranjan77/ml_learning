@@ -21,7 +21,7 @@ export const decisionTreeExhibit: ExhibitDefinition = {
     { title: "Make the first cut", instruction: "Inspect how one x threshold creates two leaves and two broad prediction regions.", observation: "One rule can only divide the whole plane into two half-planes." },
     { title: "Split each branch", instruction: "Increase depth and follow the y rules attached beneath the left and right branches.", observation: "A new rule only subdivides examples that reached its parent node." },
     { title: "Refine one leaf", instruction: "Reveal the final x split inside the upper-right region.", observation: "Deeper trees create more local rectangular regions without changing earlier routing decisions." },
-    { title: "Move the root", instruction: "The dashed line keeps x < 4.0. Drag the solid root threshold and inspect the highlighted strip and rerouted points.", observation: "Crossing the root changes which subtree a point reaches. Some rerouted points keep the same prediction; others inherit a different leaf and change the accuracy." },
+    { title: "Move the root", instruction: "The dashed line keeps x < 4.0. Drag the solid root threshold and inspect the highlighted strip and rerouted points.", observation: "Crossing the root changes the subtree; some predictions stay the same, while others change." },
   ],
   challenges: ["Move the root until accuracy first drops and identify the rerouted point.", "Explain why a diagonal boundary needs several rectangular leaves."],
 };

@@ -10,6 +10,7 @@ function GradientPreview() {
       </g>
       <path d="M171 12 C171 48 173 102 174 140" stroke="var(--color-error)" strokeDasharray="5 5" opacity="0.55" />
       <path
+        className="preview-gradient-path"
         d="M43 30 C64 33 62 55 82 55 S91 70 102 70"
         fill="none"
         stroke="var(--color-accent)"
@@ -49,6 +50,7 @@ function AttentionPreview() {
   return (
     <svg viewBox="0 0 360 150" className="h-full w-full" aria-hidden="true">
       <path
+        className="preview-attention-arc preview-attention-arc-strong"
         d="M180 106 C165 56 120 47 78 47"
         fill="none"
         stroke="var(--color-primary)"
@@ -57,6 +59,7 @@ function AttentionPreview() {
         opacity="0.72"
       />
       <path
+        className="preview-attention-arc preview-attention-arc-weak"
         d="M180 106 C203 69 247 62 284 47"
         fill="none"
         stroke="var(--color-primary)"
@@ -110,6 +113,7 @@ function KernelPreview() {
         stroke="var(--color-outline-dark)"
       />
       <path
+        className="preview-kernel-plane"
         d="M82 70 L180 28 L278 70 L180 111 Z"
         fill="var(--color-accent-container)"
         fillOpacity="0.72"
@@ -158,6 +162,7 @@ function OverfittingPreview() {
         strokeLinecap="round"
       />
       <path
+        className="preview-overfit-curve"
         d="M40 110 L86 62 L120 92 L154 40 L188 78 L222 36 L256 86 L290 44 L324 96"
         fill="none"
         stroke="var(--color-accent)"
@@ -190,7 +195,7 @@ function KMeansPreview() {
   return (
     <svg viewBox="0 0 360 150" className="h-full w-full" aria-hidden="true">
       {clusters.map(({ colour, cx, cy, points }) => (
-        <g key={colour}>
+        <g key={colour} className="preview-kmeans-cluster">
           {points.map(([dx, dy]) => (
             <circle key={`${dx}-${dy}`} cx={cx + dx} cy={cy + dy} r="4" fill={colour} opacity="0.75" />
           ))}
@@ -228,6 +233,7 @@ function TokenSamplingPreview() {
               {label}
             </text>
             <rect
+              className="preview-token-bar"
               x="62"
               y={y}
               width={width}
@@ -246,7 +252,7 @@ function ParticleSwarmPreview() {
   const particles = [[58, 48], [92, 102], [130, 67], [172, 111], [222, 52], [270, 96], [313, 45], [245, 122], [144, 34]] as const;
   return <svg viewBox="0 0 360 150" className="h-full w-full" aria-hidden="true">
     {[30, 54, 82].map((radius) => <ellipse key={radius} cx="196" cy="78" rx={radius * 1.45} ry={radius * 0.62} fill="none" stroke="var(--color-outline-dark)" opacity="0.65" />)}
-    {particles.map(([x, y], index) => <g key={index} transform={`translate(${x} ${y}) rotate(${index * 17 - 35})`}><path d="M-10 3 L0 -2 L10 3 L4 1 L0 7 L-4 1 Z" fill={index % 2 ? "var(--color-error)" : "var(--color-primary)"} /></g>)}
+    {particles.map(([x, y], index) => <g key={index} className="preview-particle" transform={`translate(${x} ${y}) rotate(${index * 17 - 35})`}><path d="M-10 3 L0 -2 L10 3 L4 1 L0 7 L-4 1 Z" fill={index % 2 ? "var(--color-error)" : "var(--color-primary)"} /></g>)}
     <path d="M184 75 L196 68 L208 75 L201 73 L196 84 L191 73 Z" fill="var(--color-accent)" />
     <path d="M303 108 l12-7 12 7-7-2-5 10-5-10z" fill="var(--color-on-surface)" />
     <circle cx="315" cy="108" r="17" fill="none" stroke="var(--color-error)" strokeDasharray="3 3" />
@@ -258,7 +264,7 @@ function CnnPreview() {
   return <svg viewBox="0 0 360 150" className="h-full w-full" aria-hidden="true">
     {image.map((value, index) => <rect key={index} x={36 + (index % 6) * 17} y={24 + Math.floor(index / 6) * 17} width="15" height="15" fill={value ? "var(--color-primary)" : "var(--color-surface)"} stroke="var(--color-outline)" />)}
     <path d="M152 75 H190" stroke="var(--color-outline-dark)" /><path d="M190 75 l-7-4v8z" fill="var(--color-outline-dark)" />
-    {Array.from({ length: 9 }, (_, index) => <rect key={index} x={202 + (index % 3) * 22} y={43 + Math.floor(index / 3) * 22} width="20" height="20" fill={index % 3 === 0 ? "var(--color-error)" : index % 3 === 2 ? "var(--color-primary)" : "var(--color-surface)"} opacity="0.75" />)}
+    {Array.from({ length: 9 }, (_, index) => <rect key={index} className="preview-cnn-activation" x={202 + (index % 3) * 22} y={43 + Math.floor(index / 3) * 22} width="20" height="20" fill={index % 3 === 0 ? "var(--color-error)" : index % 3 === 2 ? "var(--color-primary)" : "var(--color-surface)"} opacity="0.75" />)}
     <path d="M278 75 H310" stroke="var(--color-outline-dark)" /><circle cx="324" cy="75" r="13" fill="var(--color-accent)" />
   </svg>;
 }
@@ -267,13 +273,13 @@ function GeneticPreview() {
   const genomes = ["101101001010", "101111001010", "101111101010", "101111101110"];
   return <svg viewBox="0 0 360 150" className="h-full w-full" aria-hidden="true">
     <path d="M24 48 C75 45 82 91 132 82 S210 105 248 48 S305 28 336 64" fill="none" stroke="var(--color-primary)" strokeWidth="2.5" />
-    {genomes.map((genome, row) => <g key={genome} transform={`translate(40 ${62 + row * 20})`}><text fontFamily="var(--font-mono)" fontSize="10" fill="var(--color-on-surface)">{genome}</text><rect x="105" y="-9" width={70 + row * 32} height="11" fill={row === genomes.length - 1 ? "var(--color-accent)" : "var(--color-primary)"} opacity={0.55 + row * 0.14} /></g>)}
+    {genomes.map((genome, row) => <g key={genome} transform={`translate(40 ${62 + row * 20})`}><text fontFamily="var(--font-mono)" fontSize="10" fill="var(--color-on-surface)">{genome}</text><rect className="preview-genetic-fitness" x="105" y="-9" width={70 + row * 32} height="11" fill={row === genomes.length - 1 ? "var(--color-accent)" : "var(--color-primary)"} opacity={0.55 + row * 0.14} /></g>)}
   </svg>;
 }
 
 function PcaPreview() {
   const points = Array.from({ length: 18 }, (_, index) => ({ x: 55 + index * 14, y: 112 - index * 3.4 + Math.sin(index * 2.2) * 15 }));
-  return <svg viewBox="0 0 360 150" className="h-full w-full" aria-hidden="true"><line x1="38" y1="128" x2="326" y2="35" stroke="var(--color-accent)" strokeWidth="3" />{points.map((point,index) => <g key={index}><line x1={point.x} y1={point.y} x2={point.x+3} y2={point.y-1} stroke="var(--color-error)" opacity="0.4" /><circle cx={point.x} cy={point.y} r="4" fill="var(--color-primary)" /></g>)}</svg>;
+  return <svg viewBox="0 0 360 150" className="h-full w-full" aria-hidden="true"><line className="preview-pca-axis" x1="38" y1="128" x2="326" y2="35" stroke="var(--color-accent)" strokeWidth="3" />{points.map((point,index) => <g key={index}><line x1={point.x} y1={point.y} x2={point.x+3} y2={point.y-1} stroke="var(--color-error)" opacity="0.4" /><circle cx={point.x} cy={point.y} r="4" fill="var(--color-primary)" /></g>)}</svg>;
 }
 
 function BackpropPreview() {
@@ -288,7 +294,7 @@ function RegressionPreview() {
       {[38,68,98,128].map((y) => <line key={y} x1="28" y1={y} x2="258" y2={y} />)}
       {[48,98,148,198,248].map((x) => <line key={x} x1={x} y1="22" x2={x} y2="132" />)}
     </g>
-    <path d="M34 119 L254 30" fill="none" stroke="var(--color-accent)" strokeWidth="3" />
+    <path className="preview-regression-line" d="M34 119 L254 30" fill="none" stroke="var(--color-accent)" strokeWidth="3" />
     {samples.map(([x,y], index) => <g key={x}>
       <line x1={x} y1={y} x2={x} y2={119 - (x - 34) * 0.405} stroke="var(--color-error)" strokeDasharray="2 2" opacity="0.6" />
       <circle cx={x} cy={y} r="4" fill="var(--color-primary)" />
@@ -308,7 +314,7 @@ function DecisionTreePreview() {
     <rect x="25" y="20" width="220" height="110" fill="var(--color-primary-container)" opacity="0.7" />
     <rect x="132" y="20" width="113" height="110" fill="var(--color-accent-container)" opacity="0.82" />
     <rect x="25" y="91" width="107" height="39" fill="var(--color-accent-container)" opacity="0.58" />
-    <line x1="132" x2="132" y1="20" y2="130" stroke="var(--color-accent)" strokeWidth="3" />
+    <line className="preview-tree-split" x1="132" x2="132" y1="20" y2="130" stroke="var(--color-accent)" strokeWidth="3" />
     <line x1="25" x2="132" y1="91" y2="91" stroke="var(--color-primary)" strokeWidth="2" />
     {points.map(([x,y,label]) => <circle key={`${x}-${y}`} cx={x} cy={y} r="4.5" fill={label === "a" ? "var(--color-primary)" : "var(--color-error)"} stroke="var(--color-surface)" strokeWidth="1.5" />)}
     <g stroke="var(--color-outline-dark)" fill="var(--color-surface)">
@@ -322,20 +328,27 @@ function DecisionTreePreview() {
 }
 
 export function ExhibitPreview({ slug }: { slug: string }) {
-  if (slug === "gradient-descent") return <GradientPreview />;
-  if (slug === "attention") return <AttentionPreview />;
-  if (slug === "overfitting") return <OverfittingPreview />;
-  if (slug === "k-means") return <KMeansPreview />;
-  if (slug === "token-sampling") return <TokenSamplingPreview />;
-  if (slug === "particle-swarm") return <ParticleSwarmPreview />;
-  if (slug === "cnn-feature-maps") return <CnnPreview />;
-  if (slug === "genetic-algorithm") return <GeneticPreview />;
-  if (slug === "pca") return <PcaPreview />;
-  if (slug === "backpropagation") return <BackpropPreview />;
-  if (slug === "regression-boundary") return <RegressionPreview />;
-  if (slug === "decision-tree") return <DecisionTreePreview />;
-  if (slug === "kernel-trick") return <KernelPreview />;
-  return null;
+  const Preview = slug === "gradient-descent" ? GradientPreview
+    : slug === "attention" ? AttentionPreview
+      : slug === "overfitting" ? OverfittingPreview
+        : slug === "k-means" ? KMeansPreview
+          : slug === "token-sampling" ? TokenSamplingPreview
+            : slug === "particle-swarm" ? ParticleSwarmPreview
+              : slug === "cnn-feature-maps" ? CnnPreview
+                : slug === "genetic-algorithm" ? GeneticPreview
+                  : slug === "pca" ? PcaPreview
+                    : slug === "backpropagation" ? BackpropPreview
+                      : slug === "regression-boundary" ? RegressionPreview
+                        : slug === "decision-tree" ? DecisionTreePreview
+                          : slug === "kernel-trick" ? KernelPreview
+                            : null;
+
+  if (!Preview) return null;
+  return (
+    <div className={`exhibit-preview exhibit-preview-${slug} h-full w-full`}>
+      <Preview />
+    </div>
+  );
 }
 
 export default function ExhibitCard({
@@ -350,31 +363,43 @@ export default function ExhibitCard({
   return (
     <Link
       href={`/visualisations/${exhibit.slug}`}
-      className={`group grid h-full min-h-[310px] grid-rows-[auto_minmax(120px,1fr)_auto] overflow-hidden bg-surface transition-colors hover:bg-surface-container-low focus-visible:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:min-h-0 ${className}`}
+      className={`group grid h-full min-h-[350px] grid-rows-[auto_minmax(145px,1fr)_auto] overflow-hidden bg-surface transition-colors duration-300 hover:bg-surface-container-low focus-visible:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${className}`}
     >
-      <div className="flex items-center justify-between gap-4 border-b border-outline px-4 py-3 font-mono text-[10px] uppercase tracking-label text-on-surface-variant sm:px-5">
-        <span className="truncate">
-          {String(index + 1).padStart(2, "0")} · {exhibit.topic}
+      <div className="flex items-center justify-between gap-4 border-b border-outline px-4 py-3 sm:px-5">
+        <div className="flex min-w-0 items-baseline gap-3">
+          <span className="font-headline text-2xl font-medium leading-none text-on-surface">
+            {String(index + 1).padStart(2, "0")}
+          </span>
+          <span className="font-mono text-[9px] uppercase leading-4 tracking-[0.11em] text-on-surface-variant">
+            {exhibit.topic}
+          </span>
+        </div>
+        <span className="shrink-0 text-right font-mono text-[9px] uppercase leading-4 tracking-[0.11em] text-on-surface-variant">
+          {exhibit.difficulty}<br />{exhibit.renderer} · {exhibit.duration} min
         </span>
-        <span className="shrink-0">{exhibit.duration} min</span>
       </div>
 
-      <div className="min-h-0 overflow-hidden bg-background px-3 py-2 transition-colors group-hover:bg-primary-container/35">
-        <ExhibitPreview slug={exhibit.slug} />
+      <div className="min-h-0 overflow-hidden border-b border-outline bg-background px-3 py-2 transition-colors group-hover:bg-primary-container/35">
+        <div className="h-full w-full">
+          <ExhibitPreview slug={exhibit.slug} />
+        </div>
       </div>
 
-      <div className="border-t border-outline p-4 sm:p-5">
-        <h2 className="line-clamp-2 font-headline text-xl font-medium leading-tight text-on-surface transition-colors group-hover:text-primary lg:text-2xl">
+      <div className="p-4 sm:p-5">
+        <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-primary">{exhibit.title}</p>
+        <h2 className="mt-2 font-headline text-xl font-medium leading-tight text-on-surface transition-colors group-hover:text-primary lg:text-2xl">
           {exhibit.question}
         </h2>
-        <p className="mt-2 line-clamp-2 text-sm leading-5 text-on-surface-variant">
+        <p className="mt-2 text-sm leading-5 text-on-surface-variant">
           {exhibit.summary}
         </p>
-        <div className="mt-4 flex items-center justify-between gap-4 text-sm">
-          <span className="font-mono text-[10px] uppercase tracking-label text-on-surface-variant">
-            {exhibit.difficulty}
+        <div className="mt-4 flex items-center justify-between gap-4 border-t border-outline pt-3 text-sm">
+          <span className="font-mono text-[8px] uppercase tracking-[0.1em] text-on-surface-variant">
+            Direct manipulation
           </span>
-          <span className="font-medium text-primary">Open visualisation →</span>
+          <span className="inline-flex items-center gap-2 font-medium text-primary">
+            Open <span className="inline-block transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+          </span>
         </div>
       </div>
     </Link>

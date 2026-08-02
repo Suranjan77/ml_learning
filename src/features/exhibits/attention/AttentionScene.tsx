@@ -315,13 +315,13 @@ export default function AttentionScene({ resetKey = 0, step = 0, playing = false
                   }}
                   onFocus={() => chooseQuery(index)}
                   onKeyDown={(event) => handleQueryKeyDown(event, index)}
-                  className={`relative min-h-10 min-w-0 border px-0.5 font-mono text-[9px] transition-colors focus-visible:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:min-h-11 sm:text-xs ${
+                  className={`relative min-h-10 min-w-0 border px-0.5 font-mono text-[clamp(7px,2vw,9px)] transition-colors focus-visible:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:min-h-11 sm:text-xs ${
                     selected
                       ? "border-primary bg-primary font-medium text-on-primary"
                       : "border-outline bg-surface text-on-surface hover:border-outline-dark"
                   }`}
                 >
-                  <span className="block truncate">{token}</span>
+                  <span className="block whitespace-nowrap leading-none">{token}</span>
                   {selected ? (
                     <span
                       aria-hidden="true"
@@ -407,7 +407,7 @@ export default function AttentionScene({ resetKey = 0, step = 0, playing = false
                     rank === 1 ? "border-t-2 border-accent" : rank ? "border-primary" : "border-outline"
                   }`}
                 >
-                  <span className="block truncate text-[9px] text-on-surface sm:text-xs">{token}</span>
+                  <span className="block whitespace-nowrap text-[clamp(7px,2vw,9px)] leading-none text-on-surface sm:text-xs">{token}</span>
                   <span className="mt-0.5 flex items-center justify-center gap-1 text-[8px] text-on-surface-variant sm:text-[10px]">
                     {formatWeight(weight)}
                     {rank ? <strong className="font-medium text-primary">#{rank}</strong> : null}
