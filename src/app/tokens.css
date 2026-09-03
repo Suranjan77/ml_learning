@@ -102,6 +102,7 @@
     --duration-long1: 600ms;
     --duration-long2: 720ms;
 
+    --layout-header-height: 3.75rem;
     --layout-content-max: 85rem;
     --layout-shell-max: 93.75rem;
     --layout-gutter: 1.25rem;

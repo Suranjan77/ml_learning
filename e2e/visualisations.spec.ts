@@ -23,6 +23,15 @@ const viewports = [
   { width: 1440, height: 900 },
 ];
 
+// Wider than the four required viewports: the hero must hold its whole
+// experiment on one screen everywhere, not only where it was designed.
+const foldViewports = [
+  ...viewports,
+  { width: 1024, height: 640 },
+  { width: 1366, height: 768 },
+  { width: 1920, height: 1080 },
+];
+
 test.describe("homepage proof", () => {
   for (const viewport of viewports) {
     test(`fits and reveals the collection at ${viewport.width}x${viewport.height}`, async ({ page }) => {
@@ -34,15 +43,100 @@ test.describe("homepage proof", () => {
 
       const layout = await page.evaluate(() => ({
         scrollWidth: document.documentElement.scrollWidth,
+        scrollHeight: document.documentElement.scrollHeight,
         viewportWidth: document.documentElement.clientWidth,
         nextSectionTop: document.querySelectorAll("main section")[1]?.getBoundingClientRect().top,
         demoHeight: document.querySelector('[data-testid="homepage-gradient-chart"]')?.getBoundingClientRect().height,
       }));
       expect(layout.scrollWidth).toBeLessThanOrEqual(layout.viewportWidth);
-      expect(layout.nextSectionTop).toBeLessThan(viewport.height);
-      expect(layout.demoHeight).toBeLessThanOrEqual(viewport.width < 640 ? 170 : viewport.width < 1024 ? 210 : 230);
+      // The hero holds exactly one screen: never taller, and never the whole page.
+      expect(layout.nextSectionTop).toBeLessThanOrEqual(viewport.height + 4);
+      expect(layout.scrollHeight).toBeGreaterThan(viewport.height);
+      // The chart is budgeted against the viewport, so its floor tracks height
+      // as well as width: short laptops keep 200px, tall screens earn 300px.
+      const chartFloor = viewport.width < 640 ? 150
+        : viewport.width < 1024 ? 220
+        : viewport.height <= 760 ? 195
+        : viewport.height >= 860 ? 290
+        : 250;
+      expect(layout.demoHeight).toBeGreaterThanOrEqual(chartFloor);
     });
   }
+
+  for (const viewport of foldViewports) {
+    test(`keeps the control and its computed result on one screen at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await page.goto("/");
+
+      // The learner changes the rate and reads what changed without scrolling.
+      await page.getByRole("slider", { name: "Homepage learning rate" }).fill("1.06");
+      await expect(page.getByTestId("homepage-gradient-result")).toContainText("loss finishes");
+
+      const bottoms = await page.evaluate(() => {
+        const bottomOf = (selector: string) => {
+          const element = document.querySelector(selector);
+          return element ? element.getBoundingClientRect().bottom : null;
+        };
+        return {
+          slider: bottomOf('input[aria-label="Homepage learning rate"]'),
+          chart: bottomOf('[data-testid="homepage-gradient-chart"]'),
+          result: bottomOf('[data-testid="homepage-gradient-result"]'),
+          viewportHeight: window.innerHeight,
+        };
+      });
+
+      expect(bottoms.chart).not.toBeNull();
+      for (const [name, bottom] of [["slider", bottoms.slider], ["chart", bottoms.chart], ["result", bottoms.result]] as const) {
+        expect(bottom, `${name} must end above the fold`).not.toBeNull();
+        expect(bottom!, `${name} must end above the fold`).toBeLessThanOrEqual(bottoms.viewportHeight);
+      }
+    });
+  }
+
+  test("draws concept-field edges in the same coordinate space as its nodes", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+
+    const field = page.getByTestId("home-concept-field");
+    await field.scrollIntoViewIfNeeded();
+
+    const geometry = await field.evaluate((element) => {
+      const svg = element.querySelector("svg")!;
+      const frame = svg.getBoundingClientRect();
+      const spanOf = (boxes: DOMRect[]) => ({
+        x: [Math.min(...boxes.map((b) => b.left)) - frame.left, Math.max(...boxes.map((b) => b.right)) - frame.left],
+        y: [Math.min(...boxes.map((b) => b.top)) - frame.top, Math.max(...boxes.map((b) => b.bottom)) - frame.top],
+      });
+      const edges = spanOf([...svg.querySelectorAll("path")].map((p) => p.getBoundingClientRect()));
+      const centres = [...element.querySelectorAll("[data-concept-slug]")].map((n) => n.getBoundingClientRect());
+      return {
+        edges,
+        nodeCentreX: [
+          Math.min(...centres.map((b) => b.left + b.width / 2)) - frame.left,
+          Math.max(...centres.map((b) => b.left + b.width / 2)) - frame.left,
+        ],
+        nodeCentreY: [
+          Math.min(...centres.map((b) => b.top + b.height / 2)) - frame.top,
+          Math.max(...centres.map((b) => b.top + b.height / 2)) - frame.top,
+        ],
+        clipped: [...element.querySelectorAll("[data-concept-slug]")]
+          .filter((n) => n.scrollHeight > n.clientHeight)
+          .map((n) => (n as HTMLElement).dataset.conceptSlug),
+      };
+    });
+
+    // Edges are drawn between node centres, so both spans must coincide. A
+    // letterboxed viewBox silently shrinks the edge layer into the middle of
+    // the field and no line reaches a box.
+    for (const axis of ["x", "y"] as const) {
+      const edge = axis === "x" ? geometry.edges.x : geometry.edges.y;
+      const node = axis === "x" ? geometry.nodeCentreX : geometry.nodeCentreY;
+      expect(Math.abs(edge[0] - node[0]), `edge ${axis} start meets a node`).toBeLessThanOrEqual(2);
+      expect(Math.abs(edge[1] - node[1]), `edge ${axis} end meets a node`).toBeLessThanOrEqual(2);
+    }
+
+    expect(geometry.clipped, "concept node labels must not clip").toEqual([]);
+  });
 
   test("turns an oscillating path into a converging path", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
@@ -258,9 +352,14 @@ test.describe("visualisation workspace", () => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto("/visualisations");
 
-    await page.getByRole("searchbox", { name: "Search visualisations" }).fill("svm");
+    // The library filters client-side, so a fill that lands before hydration is
+    // dropped. Re-apply the query until it takes rather than racing the bundle.
+    const search = page.getByRole("searchbox", { name: "Search visualisations" });
+    await expect.poll(async () => {
+      await search.fill("svm");
+      return page.locator('a[href^="/visualisations/"]').count();
+    }).toBe(1);
 
-    await expect(page.locator('a[href^="/visualisations/"]')).toHaveCount(1);
     await expect(page.locator('a[href="/visualisations/kernel-trick"]')).toBeVisible();
     await expect(page).toHaveURL(/\?q=svm/);
   });

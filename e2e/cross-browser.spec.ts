@@ -60,7 +60,13 @@ test("renders a nonblank WebGL scene or an explicit fallback", async ({ page }) 
 
 test("searches and filters the library", async ({ page }) => {
   await page.goto("/visualisations");
-  await page.getByRole("searchbox", { name: "Search visualisations" }).fill("language model");
+  // The library filters client-side, so a fill that lands before hydration is
+  // dropped. Re-apply the query until it takes rather than racing the bundle.
+  const search = page.getByRole("searchbox", { name: "Search visualisations" });
+  await expect.poll(async () => {
+    await search.fill("language model");
+    return page.locator('a[href^="/visualisations/"]').count();
+  }).toBe(2);
 
   await expect(page.locator('a[href="/visualisations/attention"]')).toBeVisible();
   await expect(page.locator('a[href="/visualisations/token-sampling"]')).toBeVisible();

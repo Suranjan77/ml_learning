@@ -32,7 +32,7 @@ export default function Header() {
   }, [pathname]);
 
   return (
-    <header className="sticky top-0 z-40 h-[60px] shrink-0 border-b border-outline bg-background/95 backdrop-blur-sm">
+    <header className="sticky top-0 z-40 h-[var(--layout-header-height)] shrink-0 border-b border-outline bg-background/95 backdrop-blur-sm">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:bg-on-surface focus:px-3 focus:py-2 focus:text-xs focus:text-background"

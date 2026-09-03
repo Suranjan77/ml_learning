@@ -185,7 +185,7 @@ export default function Home() {
 
       <div className="home-folio relative">
         <section className="relative border-b border-outline-dark bg-surface-dim px-4 py-14 sm:px-6 sm:py-18 lg:px-8 lg:py-24">
-          <FolioMarker label="02" />
+          <FolioMarker label="01" />
           <div className="mx-auto max-w-content">
             <div className="grid gap-5 pb-9 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.42fr)] lg:items-end">
               <div>
@@ -208,7 +208,7 @@ export default function Home() {
         </section>
 
         <section className="relative border-b border-background/15 bg-on-surface px-4 py-14 text-background sm:px-6 sm:py-18 lg:px-8 lg:py-24">
-          <FolioMarker label="03" />
+          <FolioMarker label="02" />
           <div className="mx-auto max-w-content">
             <div className="grid gap-6 pb-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(20rem,0.48fr)] lg:items-end">
               <div>
@@ -227,7 +227,7 @@ export default function Home() {
         </section>
 
         <section className="relative bg-background px-4 py-14 sm:px-6 sm:py-18 lg:px-8 lg:py-24">
-          <FolioMarker label="04" />
+          <FolioMarker label="03" />
           <div className="mx-auto max-w-content">
             <div className="grid gap-6 border-b border-outline-dark pb-9 lg:grid-cols-[minmax(13rem,0.28fr)_minmax(0,1fr)_minmax(18rem,0.34fr)] lg:items-end">
               <p className="font-headline text-[8rem] font-medium leading-[0.72] tracking-[-0.08em] text-on-surface sm:text-[10rem]">13</p>
@@ -265,7 +265,7 @@ export default function Home() {
                 ))}
               </ol>
 
-              <div className="home-atlas-stage sticky top-[84px] hidden h-[calc(100dvh-116px)] min-h-[34rem] max-h-[46rem] overflow-hidden border border-outline-dark bg-surface lg:block" aria-hidden="true">
+              <div className="home-atlas-stage sticky top-[calc(var(--layout-header-height)+1.5rem)] hidden h-[calc(100dvh-var(--layout-header-height)-3.5rem)] min-h-[34rem] max-h-[46rem] overflow-hidden border border-outline-dark bg-surface lg:block" aria-hidden="true">
                 {exhibits.map((exhibit, index) => (
                   <article key={exhibit.slug} className={`home-atlas-panel absolute inset-0 grid grid-rows-[minmax(0,1fr)_auto] ${index === 0 ? "is-default" : ""}`}>
                     {index === 0 ? <AtlasDefaultStage /> : null}

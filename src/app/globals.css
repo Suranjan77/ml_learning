@@ -653,17 +653,25 @@ input[type="range"]::-moz-range-thumb {
     }
 }
 
+/* The hero now carries the computed result, so its height is budgeted against
+   the viewport rather than left to the type scale. */
+@media (min-width: 1024px) and (min-height: 860px) {
+    .home-proof-chart {
+        height: 300px;
+    }
+}
+
 @media (min-width: 1024px) and (max-height: 760px) {
     .home-proof {
-        padding-block: 0.75rem;
+        padding-block: 0.5rem;
     }
 
     .home-proof-heading {
-        font-size: min(5vw, 4.5rem);
+        font-size: min(3.4vw, 3.25rem);
     }
 
     .home-proof-chart {
-        height: 205px;
+        height: 200px;
     }
 }
 

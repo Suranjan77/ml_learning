@@ -50,9 +50,26 @@ const shortNodeLabels: Record<ConceptSlug, string> = {
   "particle-swarm": "Swarm",
 };
 
+// Nodes are HTML positioned by percentage, so the edge layer has to use the
+// same mapping. The homepage field is a wide flat band rather than the 5:3 of
+// the full concept map, so the SVG stretches with preserveAspectRatio="none"
+// and every endpoint goes through the identical clamp the nodes use. Without
+// this the edges letterbox into the middle 47% of the width and never reach a
+// box. See docs/ux-improvement-plan.md.
+function clampPercent(value: number, total: number) {
+  return Math.max(9, Math.min(91, value / total * 100));
+}
+
+function anchor(node: { x: number; y: number }) {
+  return {
+    x: clampPercent(node.x, MAP_WIDTH) / 100 * MAP_WIDTH,
+    y: clampPercent(node.y, MAP_HEIGHT) / 100 * MAP_HEIGHT,
+  };
+}
+
 function pathFor(relation: ConceptRelation) {
-  const from = conceptNodes.find((node) => node.slug === relation.from)!;
-  const to = conceptNodes.find((node) => node.slug === relation.to)!;
+  const from = anchor(conceptNodes.find((node) => node.slug === relation.from)!);
+  const to = anchor(conceptNodes.find((node) => node.slug === relation.to)!);
   const dx = to.x - from.x;
   const dy = to.y - from.y;
   const length = Math.max(1, Math.hypot(dx, dy));
@@ -61,11 +78,11 @@ function pathFor(relation: ConceptRelation) {
   const bend = relation.bend ?? 0;
   const controlX = (from.x + to.x) / 2 + normalX * bend;
   const controlY = (from.y + to.y) / 2 + normalY * bend;
-  return `M ${from.x} ${from.y} Q ${controlX.toFixed(2)} ${controlY.toFixed(2)} ${to.x} ${to.y}`;
+  return `M ${from.x.toFixed(2)} ${from.y.toFixed(2)} Q ${controlX.toFixed(2)} ${controlY.toFixed(2)} ${to.x.toFixed(2)} ${to.y.toFixed(2)}`;
 }
 
 function nodePosition(value: number, total: number) {
-  return `${Math.max(9, Math.min(91, value / total * 100)).toFixed(3)}%`;
+  return `${clampPercent(value, total).toFixed(3)}%`;
 }
 
 function RelationItem({
@@ -284,11 +301,7 @@ function ConceptMap({
       aria-label="Concept field. Focus, hover, or select a study to reveal its direct authored connections."
       className="relative bg-background/[0.025]"
     >
-      <svg viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`} className="absolute inset-0 h-full w-full" aria-hidden="true">
-        <g fill="none" stroke="var(--color-background)" strokeWidth="1" opacity="0.06">
-          <path d="M 600 24 V 696" />
-          <path d="M 24 360 H 1176" />
-        </g>
+      <svg viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`} preserveAspectRatio="none" className="absolute inset-0 h-full w-full" aria-hidden="true">
         {availableRelations.map((relation) => {
           const active = relation.from === activeSlug || relation.to === activeSlug;
           const style = relationStyles[relation.kind];
@@ -298,10 +311,11 @@ function ConceptMap({
               d={pathFor(relation)}
               fill="none"
               stroke={active ? style.colour : "var(--color-background)"}
-              strokeWidth={active ? 4 : 1.1}
+              strokeWidth={active ? 3 : 1.25}
               strokeDasharray={style.dash}
               strokeLinecap="round"
-              opacity={active ? 0.96 : 0.24}
+              vectorEffect="non-scaling-stroke"
+              opacity={active ? 0.96 : 0.3}
               className="transition-opacity duration-300 motion-reduce:transition-none"
             />
           );
@@ -323,7 +337,7 @@ function ConceptMap({
               onPointerEnter={() => onSelect(node.slug)}
               onFocus={() => onSelect(node.slug)}
               onClick={() => onSelect(node.slug)}
-              className={`absolute z-10 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center transition-[color,background-color,border-color,opacity,transform] duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-inverse-primary motion-reduce:transition-none lg:min-h-12 lg:w-[7.5rem] lg:flex-col lg:items-start lg:border lg:px-2.5 lg:py-2 lg:text-left ${active ? "lg:scale-[1.04] lg:border-accent lg:bg-accent lg:text-on-accent" : connected ? "lg:border-background/55 lg:bg-on-surface lg:text-background lg:opacity-100 lg:hover:border-inverse-primary" : "lg:border-background/28 lg:bg-on-surface lg:text-background/75 lg:opacity-100 lg:hover:border-background/60 lg:hover:text-background lg:focus:text-background"}`}
+              className={`absolute z-10 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center lg:h-auto transition-[color,background-color,border-color,opacity,transform] duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-inverse-primary motion-reduce:transition-none lg:min-h-12 lg:w-[7.5rem] lg:flex-col lg:items-start lg:border lg:px-2.5 lg:py-2 lg:text-left ${active ? "lg:scale-[1.04] lg:border-accent lg:bg-accent lg:text-on-accent" : connected ? "lg:border-background/55 lg:bg-on-surface lg:text-background lg:opacity-100 lg:hover:border-inverse-primary" : "lg:border-background/28 lg:bg-on-surface lg:text-background/75 lg:opacity-100 lg:hover:border-background/60 lg:hover:text-background lg:focus:text-background"}`}
               style={{ left: nodePosition(node.x, MAP_WIDTH), top: nodePosition(node.y, MAP_HEIGHT) }}
             >
               <span
